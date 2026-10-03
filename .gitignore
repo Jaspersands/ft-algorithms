@@ -1,0 +1,10 @@
+.venv/
+target/
+target-*/
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+dist/
+*.so
+scratch/
