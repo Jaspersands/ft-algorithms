@@ -38,6 +38,7 @@ class NoisyProgram:
     arch: Architecture
     t_count: int = 0
     ccz_count: int = 0
+    idle_qubit_rounds: float = 0.0
 
     @property
     def text(self) -> str:
@@ -70,6 +71,7 @@ class _Compiler:
         self.counts: Counter = Counter()
         self.t_count = 0
         self.ccz_count = 0
+        self.idle_qr = 0.0
 
     # -- emission helpers ------------------------------------------------------------------------
     def noise1(self, out: Circuit, cls: str, q: int, chan, mult: int) -> None:
@@ -89,6 +91,7 @@ class _Compiler:
         gap = t - cur
         if gap > 0:
             self.noise1(out, "idle", q, self.arch.idle(gap), mult)
+            self.idle_qr += gap * mult
             sc.clock[q] = t
 
     def start(self, out: Circuit, sc: _Scope, qs, extra: int = 0, mult: int = 1) -> int:
@@ -200,6 +203,8 @@ class _Compiler:
                 if gap > 0:
                     o.mark("idle")
                     o.noise("PAULI_CHANNEL_1", _p1(self.arch.idle(gap)), q)
+                    if o is outs[0][0]:
+                        self.idle_qr += gap * mult
             padded.append(o)
         out.table(list(rids), padded)
         for q in qs:
@@ -246,7 +251,7 @@ def compile_noisy(circ: Circuit, arch: Architecture) -> NoisyProgram:
     sc = _Scope({}, [])
     comp.block(circ, out, sc, 1)
     rounds = max(sc.clock.values(), default=0)
-    return NoisyProgram(out, rounds, comp.budget, comp.counts, circ.num_qubits, arch, comp.t_count, comp.ccz_count)
+    return NoisyProgram(out, rounds, comp.budget, comp.counts, circ.num_qubits, arch, comp.t_count, comp.ccz_count, comp.idle_qr)
 
 
 __all__ = ["compile_noisy", "NoisyProgram", "compose_p1"]

@@ -100,7 +100,8 @@ def run_stim(text: str, *, shots: int, seed: int, correlated: bool = True) -> Co
     while done < shots:
         b = min(1 << 16, shots - done)
         dets, obs = sampler.sample(b, separate_observables=True, bit_packed=True)
-        pred = m.decode_batch(dets, bit_packed_shots=True, bit_packed_predictions=True)
+        # PyMatching needs enable_correlations at decode time as well as at construction.
+        pred = m.decode_batch(dets, bit_packed_shots=True, bit_packed_predictions=True, enable_correlations=correlated)
         flips = _packed_ints(np.asarray(pred, dtype=np.uint8) ^ np.asarray(obs, dtype=np.uint8))
         nz = flips[flips != 0]
         if nz.size:

@@ -1,0 +1,601 @@
+{
+ "structure": {
+  "rounds_per_toffoli": 5.134146605729823,
+  "cx_per_toffoli": 2.278985401578498,
+  "busy": 3.1797124679621565,
+  "t_per_n": 80.4766865079365,
+  "s_per_n": 54.07718253968254
+ },
+ "target_expected_faults": 0.1,
+ "p": 0.001,
+ "textbook": [
+  {
+   "kind": "textbook_shor",
+   "n": 4,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 4",
+   "d": 13,
+   "expected_faults": 0.07120420053664324,
+   "rounds": 224259.52373827866,
+   "seconds": 0.22425952373827865,
+   "physical_qubits": 55596.96528351364,
+   "data_qubits": 19208,
+   "factory_qubits": 36388.96528351364,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.05333374354925071,
+    "CCZ": 0.0050357096499719384,
+    "CNOT": 0.012678661294688167,
+    "T": 9.115196804537832e-05,
+    "S": 6.493407468705378e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 5,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 5",
+   "d": 15,
+   "expected_faults": 0.017664756537187003,
+   "rounds": 481326.24428717094,
+   "seconds": 0.4813262442871709,
+   "physical_qubits": 60086.69057469578,
+   "data_qubits": 28672,
+   "factory_qubits": 31414.69057469578,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.013235856991108774,
+    "CCZ": 0.0011698723001827794,
+    "CNOT": 0.0032319731389665735,
+    "T": 1.616942651472542e-05,
+    "S": 1.0884680414150412e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 6,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 6",
+   "d": 15,
+   "expected_faults": 0.033220748604550654,
+   "rounds": 804007.3584572903,
+   "seconds": 0.8040073584572903,
+   "physical_qubits": 63600.06392009779,
+   "data_qubits": 32256,
+   "factory_qubits": 31344.063920097793,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.025835441054680924,
+    "CCZ": 0.0019541546902253145,
+    "CNOT": 0.005398687931329764,
+    "T": 1.9403311817670504e-05,
+    "S": 1.3061616496980492e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 8,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 8",
+   "d": 15,
+   "expected_faults": 0.0922247514439727,
+   "rounds": 1823648.874355233,
+   "seconds": 1.823648874355233,
+   "physical_qubits": 70693.80464799222,
+   "data_qubits": 39424,
+   "factory_qubits": 31269.804647992223,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.07550375287303743,
+    "CCZ": 0.004432412170932514,
+    "CNOT": 0.012245299828916553,
+    "T": 2.5871082423560673e-05,
+    "S": 1.7415488662640658e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 10,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 10",
+   "d": 17,
+   "expected_faults": 0.023436474626441203,
+   "rounds": 3927622.1533833146,
+   "seconds": 3.9276221533833144,
+   "physical_qubits": 85879.02320346242,
+   "data_qubits": 58320,
+   "factory_qubits": 27559.02320346242,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.019163814781835473,
+    "CCZ": 0.0010627150216497765,
+    "CNOT": 0.0032011761310233562,
+    "T": 5.8174921473918775e-06,
+    "S": 2.95119978520819e-06
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 16,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 16",
+   "d": 19,
+   "expected_faults": 0.014830045110208924,
+   "rounds": 17231017.472286202,
+   "seconds": 17.2310174722862,
+   "physical_qubits": 128625.4923005971,
+   "data_qubits": 104000,
+   "factory_qubits": 24625.492300597107,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.012557751168865204,
+    "CCZ": 0.0005334272974693128,
+    "CNOT": 0.0017347164901529905,
+    "T": 3.5039992181963153e-06,
+    "S": 6.461545032210292e-07
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 32,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 32",
+   "d": 21,
+   "expected_faults": 0.022494815317331683,
+   "rounds": 146838235.85078678,
+   "seconds": 146.83823585078676,
+   "physical_qubits": 248777.18561223208,
+   "data_qubits": 226512,
+   "factory_qubits": 22265.185612232064,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.020102642127520522,
+    "CCZ": 0.0005340288295008345,
+    "CNOT": 0.001852557580131264,
+    "T": 5.408465182082506e-06,
+    "S": 1.7831499698090177e-07
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 64,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 64",
+   "d": 23,
+   "expected_faults": 0.03554572748341382,
+   "rounds": 1262398753.7590735,
+   "seconds": 1262.3987537590735,
+   "physical_qubits": 523749.5026004865,
+   "data_qubits": 503424,
+   "factory_qubits": 20325.502600486492,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.03296169426165156,
+    "CCZ": 0.0005530971367978924,
+    "CNOT": 0.0020205133829043556,
+    "T": 1.03731187888066e-05,
+    "S": 4.958327120549399e-08
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 128,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 128",
+   "d": 25,
+   "expected_faults": 0.05744361483112043,
+   "rounds": 10872233144.984856,
+   "seconds": 10872.233144984855,
+   "physical_qubits": 1150322.6205679867,
+   "data_qubits": 1131624,
+   "factory_qubits": 18698.620567986825,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.054604432519022944,
+    "CCZ": 0.0005875131763848788,
+    "CNOT": 0.0022310329387371067,
+    "T": 2.062231043984307e-05,
+    "S": 1.3886535658550482e-08
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 256,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 256",
+   "d": 27,
+   "expected_faults": 0.093922655044938,
+   "rounds": 93481857939.53247,
+   "seconds": 93481.85793953246,
+   "physical_qubits": 2570017.34049497,
+   "data_qubits": 2552704,
+   "factory_qubits": 17313.340494969823,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.09076220746679876,
+    "CCZ": 0.0006369178231943072,
+    "CNOT": 0.0024823160363980274,
+    "T": 4.120980219692867e-05,
+    "S": 3.916349986949234e-09
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 512,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 512",
+   "d": 31,
+   "expected_faults": 0.016258230753123284,
+   "rounds": 856562053751.6704,
+   "seconds": 856562.0537516704,
+   "physical_qubits": 6562535.317922906,
+   "data_qubits": 6547456,
+   "factory_qubits": 15079.317922906364,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.015688207101682766,
+    "CCZ": 9.758808550044493e-05,
+    "CNOT": 0.00039002704560589605,
+    "T": 8.240836126204616e-05,
+    "S": 1.5907212947742906e-10
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 1024,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 1024",
+   "d": 33,
+   "expected_faults": 0.026693714274504444,
+   "rounds": 7285710128081.631,
+   "seconds": 7285710.128081631,
+   "physical_qubits": 14612133.409703668,
+   "data_qubits": 14597968,
+   "factory_qubits": 14165.409703667772,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.025969539420871986,
+    "CCZ": 0.00012043607706216432,
+    "CNOT": 0.0004389224091207917,
+    "T": 0.00016481632160855403,
+    "S": 4.584095044234981e-11
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 2048,
+   "factory": "cultivation",
+   "workload": "Shor, textbook arithmetic, n = 2048",
+   "d": 35,
+   "expected_faults": 0.04392300621122095,
+   "rounds": 61780461740919.94,
+   "seconds": 61780461.74091993,
+   "physical_qubits": 32472971.955321558,
+   "data_qubits": 32459616,
+   "factory_qubits": 13355.955321556803,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.04292935928219953,
+    "CCZ": 0.0001686039924079339,
+    "CNOT": 0.0004954103956860952,
+    "T": 0.00032963252761292867,
+    "S": 1.3314462321054497e-11
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 4,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 4",
+   "d": 13,
+   "expected_faults": 0.07121821723949576,
+   "rounds": 224259.52373827866,
+   "seconds": 0.22425952373827865,
+   "physical_qubits": 61741.55644165168,
+   "data_qubits": 19208,
+   "factory_qubits": 42533.55644165168,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.05333374354925071,
+    "CCZ": 0.005035884369837181,
+    "CNOT": 0.012678661294688167,
+    "T": 0.00010499395103265862,
+    "S": 6.493407468705378e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 5,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 5",
+   "d": 15,
+   "expected_faults": 0.01768238402332365,
+   "rounds": 481326.24428717094,
+   "seconds": 0.4813262442871709,
+   "physical_qubits": 65454.10797407143,
+   "data_qubits": 28672,
+   "factory_qubits": 36782.10797407143,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.013235856991108774,
+    "CCZ": 0.0011701972999321143,
+    "CNOT": 0.0032319731389665735,
+    "T": 3.3471912902037485e-05,
+    "S": 1.0884680414150412e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 6,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 6",
+   "d": 15,
+   "expected_faults": 0.03324205446779672,
+   "rounds": 804007.3584572903,
+   "seconds": 0.8040073584572903,
+   "physical_qubits": 68991.77406358896,
+   "data_qubits": 32256,
+   "factory_qubits": 36735.774063588964,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.025835441054680924,
+    "CCZ": 0.0019546975698066034,
+    "CNOT": 0.005398687931329764,
+    "T": 4.016629548244498e-05,
+    "S": 1.3061616496980492e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 8,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 8",
+   "d": 15,
+   "expected_faults": 0.09225366678124268,
+   "rounds": 1823648.874355233,
+   "seconds": 1.823648874355233,
+   "physical_qubits": 76111.05701071682,
+   "data_qubits": 39424,
+   "factory_qubits": 36687.057010716824,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.07550375287303743,
+    "CCZ": 0.004433643529982794,
+    "CNOT": 0.012245299828916553,
+    "T": 5.355506064325997e-05,
+    "S": 1.7415488662640658e-05
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 10,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 10",
+   "d": 17,
+   "expected_faults": 0.023473419597003276,
+   "rounds": 3927622.1533833146,
+   "seconds": 3.9276221533833144,
+   "physical_qubits": 90669.95190838302,
+   "data_qubits": 58320,
+   "factory_qubits": 32349.951908383024,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.019163814781835473,
+    "CCZ": 0.0010650550173469857,
+    "CNOT": 0.0032011761310233562,
+    "T": 4.0422467012252045e-05,
+    "S": 2.95119978520819e-06
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 16,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 16",
+   "d": 19,
+   "expected_faults": 0.014894598367881859,
+   "rounds": 17231017.472286202,
+   "seconds": 17.2310174722862,
+   "physical_qubits": 132923.3193131848,
+   "data_qubits": 104000,
+   "factory_qubits": 28923.319313184787,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.012557751168865204,
+    "CCZ": 0.0005426125948986389,
+    "CNOT": 0.0017347164901529905,
+    "T": 5.887195946180585e-05,
+    "S": 6.461545032210292e-07
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 32,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 32",
+   "d": 21,
+   "expected_faults": 0.02267637102332433,
+   "rounds": 146838235.85078678,
+   "seconds": 146.83823585078676,
+   "physical_qubits": 252670.86263294014,
+   "data_qubits": 226512,
+   "factory_qubits": 26158.862632940156,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.020102642127520522,
+    "CCZ": 0.0006048486148790967,
+    "CNOT": 0.001852557580131264,
+    "T": 0.0001161443857964667,
+    "S": 1.7831499698090177e-07
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 64,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 64",
+   "d": 23,
+   "expected_faults": 0.036323108609363115,
+   "rounds": 1262398753.7590735,
+   "seconds": 1262.3987537590735,
+   "physical_qubits": 527305.8303582718,
+   "data_qubits": 503424,
+   "factory_qubits": 23881.830358271858,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.03296169426165156,
+    "CCZ": 0.0011090064214830779,
+    "CNOT": 0.0020205133829043556,
+    "T": 0.00023184496005291267,
+    "S": 4.958327120549399e-08
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 128,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 128",
+   "d": 25,
+   "expected_faults": 0.06229122027225761,
+   "rounds": 10872233144.984856,
+   "seconds": 10872.233144984855,
+   "physical_qubits": 1153594.7316590908,
+   "data_qubits": 1131624,
+   "factory_qubits": 21970.73165909088,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.054604432519022944,
+    "CCZ": 0.004992174934983983,
+    "CNOT": 0.0022310329387371067,
+    "T": 0.00046356599297791754,
+    "S": 1.3886535658550482e-08
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 256,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 256",
+   "d": 29,
+   "expected_faults": 0.045899747405533126,
+   "rounds": 100406440009.12746,
+   "seconds": 100406.44000912746,
+   "physical_qubits": 2949340.165544702,
+   "data_qubits": 2930400,
+   "factory_qubits": 18940.16554470208,
+   "extrapolated": true,
+   "breakdown": {
+    "idle": 0.00946997803126822,
+    "CCZ": 0.03515482136543122,
+    "CNOT": 0.00034785520696444574,
+    "T": 0.0009270922457468061,
+    "S": 5.561224262012922e-10
+   }
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 512,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 512",
+   "d": null,
+   "expected_faults": Infinity,
+   "rounds": 0,
+   "seconds": 0,
+   "physical_qubits": 0,
+   "data_qubits": 0,
+   "factory_qubits": 0,
+   "extrapolated": true,
+   "breakdown": {}
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 1024,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 1024",
+   "d": null,
+   "expected_faults": Infinity,
+   "rounds": 0,
+   "seconds": 0,
+   "physical_qubits": 0,
+   "data_qubits": 0,
+   "factory_qubits": 0,
+   "extrapolated": true,
+   "breakdown": {}
+  },
+  {
+   "kind": "textbook_shor",
+   "n": 2048,
+   "factory": "15to1",
+   "workload": "Shor, textbook arithmetic, n = 2048",
+   "d": null,
+   "expected_faults": Infinity,
+   "rounds": 0,
+   "seconds": 0,
+   "physical_qubits": 0,
+   "data_qubits": 0,
+   "factory_qubits": 0,
+   "extrapolated": true,
+   "breakdown": {}
+  }
+ ],
+ "published": [
+  {
+   "source": "Gidney 2025 (arXiv:2505.15917): 1,409 logical qubits, 6.5e9 Toffolis, 4.63 days of expected run time (Tables 4\u20135)",
+   "name": "RSA-2048, Gidney 2025",
+   "logical_qubits": 1409,
+   "toffolis": 6500000000.0,
+   "cnots": 0.0,
+   "t_gates": 0.0,
+   "s_gates": 0.0,
+   "rounds_per_d": null,
+   "rounds_fixed": 400032000000.0,
+   "estimate": {
+    "workload": "RSA-2048, Gidney 2025",
+    "d": 29,
+    "expected_faults": 0.0696590431959713,
+    "rounds": 400032000000.0,
+    "seconds": 400032.0,
+    "physical_qubits": 5305796.88024958,
+    "data_qubits": 5266800,
+    "factory_qubits": 38996.880249580034,
+    "extrapolated": true,
+    "breakdown": {
+     "idle": 0.06881196644925057,
+     "CCZ": 0.0008470767467207263,
+     "CNOT": 0.0,
+     "T": 0.0,
+     "S": 0.0
+    }
+   }
+  },
+  {
+   "source": "Lee et al. 2021 (PRX Quantum 2, 030305), Table III: 2,142 logical qubits, 5.3e9 Toffolis; Toffolis at 25 kHz",
+   "name": "FeMoco (THC), Lee et al. 2021",
+   "logical_qubits": 2142,
+   "toffolis": 5300000000.0,
+   "cnots": 0.0,
+   "t_gates": 0.0,
+   "s_gates": 0.0,
+   "rounds_per_d": null,
+   "rounds_fixed": 212000000000.0,
+   "estimate": {
+    "workload": "FeMoco (THC), Lee et al. 2021",
+    "d": 29,
+    "expected_faults": 0.056172645412926624,
+    "rounds": 212000000000.0,
+    "seconds": 212000.0,
+    "physical_qubits": 8008800.0,
+    "data_qubits": 7948800,
+    "factory_qubits": 60000.0,
+    "extrapolated": true,
+    "breakdown": {
+     "idle": 0.05548195206560049,
+     "CCZ": 0.0006906933473261307,
+     "CNOT": 0.0,
+     "T": 0.0,
+     "S": 0.0
+    }
+   }
+  }
+ ]
+}

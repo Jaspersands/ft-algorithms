@@ -92,19 +92,23 @@ FACTORIES = {
 }
 
 
+def _one_minus_pow(a: float, n: float) -> float:
+    """1 − (1 − 2a)^n without cancellation when a is tiny."""
+    return -math.expm1(n * math.log1p(-2 * a))
+
+
 def compose_p1(q: tuple[float, float, float], n: int | float) -> tuple[float, float, float]:
-    """A single-qubit Pauli channel applied n times."""
+    """A single-qubit Pauli channel applied n times. Through the Pauli fidelities
+    f_X = 1 − 2(p_Y + p_Z) etc., written with g = 1 − f^n so that probabilities far below the
+    double-precision epsilon survive (per-round rates reach 1e-20 at large d)."""
     px, py, pz = q
-    fx, fy, fz = 1 - 2 * (py + pz), 1 - 2 * (px + pz), 1 - 2 * (px + py)
-    fx, fy, fz = fx**n, fy**n, fz**n
-    return (max((1 + fx - fy - fz) / 4, 0.0), max((1 - fx + fy - fz) / 4, 0.0), max((1 - fx - fy + fz) / 4, 0.0))
+    ga, gb, gc = _one_minus_pow(py + pz, n), _one_minus_pow(px + pz, n), _one_minus_pow(px + py, n)
+    return (max((-ga + gb + gc) / 4, 0.0), max((ga - gb + gc) / 4, 0.0), max((ga + gb - gc) / 4, 0.0))
 
 
 def xor_flips(*qs: float) -> float:
-    f = 1.0
-    for q in qs:
-        f *= 1 - 2 * q
-    return (1 - f) / 2
+    """Probability that an odd number of independent flips (probabilities qs) occur."""
+    return -math.expm1(sum(math.log1p(-2 * q) for q in qs)) / 2
 
 
 @dataclass
