@@ -6,10 +6,16 @@
 //! exact number of faults.
 
 pub mod complex;
+pub mod dense;
 pub mod gates;
 pub mod program;
 pub mod rng;
+pub mod sparse;
+pub mod state;
 
 pub use complex::C64;
 pub use gates::{Basis, Gate, Noise};
+pub use dense::Dense;
 pub use program::{Block, Op, Program};
+pub use sparse::Sparse;
+pub use state::State;
