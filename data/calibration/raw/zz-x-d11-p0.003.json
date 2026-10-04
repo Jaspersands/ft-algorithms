@@ -1,0 +1,26 @@
+{
+ "name": "zz-x-d11-p0.003",
+ "kind": "zz",
+ "basis": "x",
+ "d": 11,
+ "p": 0.003,
+ "merged": 11,
+ "rounds": 33,
+ "counts": {
+  "shots": 114688,
+  "num_obs": 1,
+  "patterns": {
+   "1": 1015
+  },
+  "seconds": 9.772
+ },
+ "seed": 3181148105,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 14.1
+}

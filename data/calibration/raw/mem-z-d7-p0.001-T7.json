@@ -1,0 +1,25 @@
+{
+ "name": "mem-z-d7-p0.001-T7",
+ "kind": "memory",
+ "basis": "z",
+ "d": 7,
+ "p": 0.001,
+ "rounds": 7,
+ "counts": {
+  "shots": 12566528,
+  "num_obs": 1,
+  "patterns": {
+   "1": 765
+  },
+  "seconds": 11.243
+ },
+ "seed": 3179489679,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 11.7
+}

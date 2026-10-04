@@ -1,0 +1,26 @@
+{
+ "name": "choi-d3-p0.002-T3",
+ "kind": "choi",
+ "d": 3,
+ "p": 0.002,
+ "rounds": 3,
+ "counts": {
+  "shots": 49152,
+  "num_obs": 2,
+  "patterns": {
+   "1": 424,
+   "2": 419,
+   "3": 43
+  },
+  "seconds": 0.007
+ },
+ "seed": 131445236,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 0.0
+}

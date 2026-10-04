@@ -350,8 +350,32 @@ class LogicalModel:
         j[0] = 1 - j[1:].sum()
         return {"joint": j, "o": self.rate(f"{kind}_o", d, p)[0]}
 
+    MAIN = ("idle_xy", "idle_zy", "cnot_x2", "cnot_z1", "zz_o")
+
     def extrapolated(self, d: int, p: float) -> bool:
-        return any(self.rate(n, d, p)[1] for n in ("idle_xy", "idle_zy", "cnot_x3", "zz_j1"))
+        """Whether (d, p) lies beyond the directly measured range of the main components."""
+        return any(self.rate(n, d, p)[1] for n in self.MAIN)
+
+    def to_json(self) -> dict:
+        return {
+            "points": {n: [[q.d, q.p, q.value, q.sigma, q.events] for q in pts] for n, pts in self.points.items()},
+            "per_p": {n: {repr(p): [f.a, f.b, f.dmax, f.npts] for p, f in fs.items()} for n, fs in self.per_p.items()},
+            "global": {n: [g.logA, g.logpstar] for n, g in self.glob.items()},
+        }
+
+    @staticmethod
+    def from_json(dct: dict) -> "LogicalModel":
+        m = LogicalModel({n: [Point(int(a), b, c, e, f) for a, b, c, e, f in pts] for n, pts in dct["points"].items()})
+        m.per_p = {n: {float(p): Fit(*v) for p, v in fs.items()} for n, fs in dct["per_p"].items()}
+        m.glob = {n: GlobalFit(*v) for n, v in dct["global"].items()}
+        return m
+
+    @staticmethod
+    def load(path: str | None = None) -> "LogicalModel":
+        """The committed fitted model (data/calibration/model.json, written by tools/fit_model.py)."""
+        path = path or os.path.join(DATA, "model.json")
+        with open(path) as f:
+            return LogicalModel.from_json(json.load(f))
 
     def summary(self) -> dict:
         out = {}

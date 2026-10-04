@@ -1,0 +1,28 @@
+{
+ "name": "cnot-x-d9-p0.005",
+ "kind": "cnot",
+ "inputs": "x",
+ "d": 9,
+ "p": 0.005,
+ "merged": 9,
+ "rounds": 36,
+ "counts": {
+  "shots": 16384,
+  "num_obs": 2,
+  "patterns": {
+   "1": 1254,
+   "2": 3179,
+   "3": 919
+  },
+  "seconds": 2.648
+ },
+ "seed": 4189083923,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 4.1
+}

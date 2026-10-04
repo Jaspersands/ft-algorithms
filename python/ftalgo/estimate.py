@@ -26,6 +26,8 @@ PLAIN_ABOVE = 12.0  # expected faults above which plain sampling is used
 
 @dataclass
 class Estimate:
+    """value and sigma are floats for a single score, lists for several (score columns)."""
+
     value: float
     sigma: float
     tail: float
@@ -34,8 +36,10 @@ class Estimate:
     single_fault: dict = field(default_factory=dict)  # class → (shots, mean score)
     shots: int = 0
 
-    def interval(self, z: float = 2.0) -> tuple[float, float]:
-        return (max(self.value - z * self.sigma - self.tail, 0.0), min(self.value + z * self.sigma + self.tail, 1.0))
+    def interval(self, z: float = 2.0, i: int = 0) -> tuple[float, float]:
+        v = self.value if np.isscalar(self.value) else self.value[i]
+        s = self.sigma if np.isscalar(self.sigma) else self.sigma[i]
+        return (max(v - z * s - self.tail, 0.0), min(v + z * s + self.tail, 1.0))
 
     def to_json(self) -> dict:
         return {
@@ -61,12 +65,24 @@ def stratified(
     threads: int = 0,
     attribute: bool = True,
 ) -> Estimate:
-    """score(rows) → per-shot score in [0, 1] (e.g. success)."""
+    """score(rows) → per-shot scores in [0, 1]: a vector (one score) or a (shots × S) array."""
+
+    def sc(rows):
+        s = np.asarray(score(rows), dtype=float)
+        return s[:, None] if s.ndim == 1 else s
+
+    def out(v):
+        v = [float(x) for x in np.atleast_1d(v)]
+        return v[0] if single else v
+
     ef = prog.expected_faults
+    raw = np.asarray(score(prog.sample(1, seed=seed, faults="none", threads=1)))
+    single = raw.ndim == 1
+    S = 1 if single else raw.shape[1]
     if ef > PLAIN_ABOVE:
         rows = prog.sample(shots, seed=seed, threads=threads)
-        s = score(rows).astype(float)
-        return Estimate(float(s.mean()), float(s.std(ddof=1) / math.sqrt(len(s))), 0.0, "plain", shots=shots)
+        s = sc(rows)
+        return Estimate(out(s.mean(axis=0)), out(s.std(axis=0, ddof=1) / math.sqrt(len(s))), 0.0, "plain", shots=shots)
     K = 4
     while True:
         pk = prog.fault_count_distribution(K)
@@ -78,10 +94,10 @@ def stratified(
         pk[-1] += pk[K]
         K -= 1
     pk = np.concatenate([pk[: K + 1], [pk[-1]]])
-    value = 0.0
-    var = 0.0
+    value = np.zeros(S)
+    var = np.zeros(S)
     strata = []
-    single: dict = {}
+    per_class: dict = {}
     total = 0
     last = None
     classes = prog.classes
@@ -94,14 +110,14 @@ def stratified(
             rows, faults = prog.sample(n, seed=seed * 1000 + k, faults=k, threads=threads, log_faults=True)
         else:
             rows = prog.sample(n, seed=seed * 1000 + k, faults=k, threads=threads)
-        s = score(rows).astype(float)
-        sk = float(s.mean())
-        vk = float(s.var(ddof=1) / n) if n > 1 else 0.25
+        s = sc(rows)
+        sk = s.mean(axis=0)
+        vk = s.var(axis=0, ddof=1) / n if n > 1 else np.full(S, 0.25)
         value += w * sk
         var += w * w * vk
         total += n
         last = sk
-        strata.append({"k": k, "weight": w, "shots": n, "score": sk})
+        strata.append({"k": k, "weight": w, "shots": n, "score": out(sk)})
         if k == 1 and attribute:
             static = faults.site != faults.DYNAMIC
             shot_cls = np.full(n, -1)
@@ -110,22 +126,23 @@ def stratified(
                 if c < 0:
                     continue
                 sel = shot_cls == c
-                single[classes[c]] = (int(sel.sum()), float(s[sel].mean()))
+                per_class[classes[c]] = (int(sel.sum()), out(s[sel].mean(axis=0)))
     t = float(pk[-1])
     if last is not None:
         value += t * last
-    return Estimate(value, math.sqrt(var), t, "stratified", strata, single, total)
+    return Estimate(out(value), out(np.sqrt(var)), t, "stratified", strata, per_class, total)
 
 
-def error_budget(budget: dict, est: Estimate) -> dict:
-    """Per class: expected faults, the score of shots with one fault there, and the expected
-    score lost (expected faults × (S₀ − S₁(class)))."""
-    s0 = next((s["score"] for s in est.strata if s["k"] == 0), None)
+def error_budget(budget: dict, est: Estimate, i: int = 0) -> dict:
+    """Per class: expected faults, the score (column i) of shots with one fault there, and the
+    expected score lost (expected faults × (S₀ − S₁(class)))."""
+    pick = lambda v: v if np.isscalar(v) else v[i]  # noqa: E731
+    s0 = next((pick(s["score"]) for s in est.strata if s["k"] == 0), None)
     out = {}
     for cls, ef in budget.items():
         sf = est.single_fault.get(cls)
         if s0 is None or sf is None:
             out[cls] = {"expected_faults": ef, "single_fault_score": None, "loss": None}
         else:
-            out[cls] = {"expected_faults": ef, "single_fault_score": sf[1], "single_fault_shots": sf[0], "loss": ef * (s0 - sf[1])}
+            out[cls] = {"expected_faults": ef, "single_fault_score": pick(sf[1]), "single_fault_shots": sf[0], "loss": ef * (s0 - pick(sf[1]))}
     return out

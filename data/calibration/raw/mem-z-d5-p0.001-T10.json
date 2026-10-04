@@ -1,0 +1,25 @@
+{
+ "name": "mem-z-d5-p0.001-T10",
+ "kind": "memory",
+ "basis": "z",
+ "d": 5,
+ "p": 0.001,
+ "rounds": 10,
+ "counts": {
+  "shots": 1032192,
+  "num_obs": 1,
+  "patterns": {
+   "1": 940
+  },
+  "seconds": 0.618
+ },
+ "seed": 855702432,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 0.8
+}
