@@ -5,12 +5,15 @@
 //! sparse or dense state vector; noise is sampled independently per site or stratified by the
 //! exact number of faults.
 
+pub mod batch;
 pub mod complex;
 pub mod dense;
 pub mod exec;
 pub mod gates;
 pub mod noise;
 pub mod program;
+#[cfg(feature = "python")]
+pub mod python;
 pub mod rng;
 pub mod sparse;
 pub mod state;
