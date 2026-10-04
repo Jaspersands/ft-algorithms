@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$title$</title>
+<meta name="description" content="$description$">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231c1d1f'/%3E%3Ccircle cx='5' cy='5' r='1.6' fill='%23f4f2ec'/%3E%3Ccircle cx='11' cy='5' r='1.6' fill='%23f4f2ec'/%3E%3Ccircle cx='5' cy='11' r='1.6' fill='%23f4f2ec'/%3E%3Ccircle cx='11' cy='11' r='1.6' fill='%23c0392b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<main class="paper">
+<header class="masthead">
+  <p class="kicker">Technical report · ftalgo $version$</p>
+  <h1>$title$</h1>
+$if(subtitle)$
+  <p class="subtitle">$subtitle$</p>
+$endif$
+  <p class="byline">$author$ · $date$ · commit <code>$commit$</code></p>
+  <p class="links"><a href="../index.html">the explainer site</a> · <a href="https://github.com/Jaspersands/ft-algorithms">github.com/Jaspersands/ft-algorithms</a> · <a href="report.pdf">PDF</a></p>
+</header>
+$if(abstract)$
+<section class="abstract">
+<h2 class="abstract__title">Summary</h2>
+$abstract$
+</section>
+$endif$
+$if(toc)$
+<nav class="toc" aria-label="Contents">
+<h2 class="toc__title">Contents</h2>
+$table-of-contents$
+</nav>
+$endif$
+$body$
+</main>
+</body>
+</html>

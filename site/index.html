@@ -96,7 +96,7 @@
     <figcaption><b>Figure 4.</b> Left: peak probability against distance for each <i>N</i> (<i>p</i>&nbsp;=&nbsp;0.1%, cultivated magic states); faint lines are each instance's noiseless value. Right: the same runs scored by whether they found the factors, with each <i>N</i>'s random-outcome baseline: the noisy runs look successful long before they are. Open markers: beyond the measured distance range (channels extrapolated). Error bars 2σ.</figcaption></figure>
   <div class="tablewrap" id="tab-shor"></div>
   <h3>Which magic states, and what fails</h3>
-  <p>Each Toffoli consumes a |CCZ⟩ state and each rotation's T gates a |T⟩ state. With injected states (error ≈ <i>p</i>) the circuit cannot succeed at any distance; distilled and cultivated states remove that floor.</p>
+  <p>Each Toffoli consumes a |CCZ⟩ state and each rotation's T gates a |T⟩ state. Their error sets a floor no distance can lower: with injected states (error ≈ <i>p</i>, distilled once into |CCZ⟩) the peak probability of <span data-k="shor.factN">N = 35</span> saturates at <span class="n" data-k="shor.inj">—</span>; distilled and cultivated states lower the floor below what the distances shown can resolve.</p>
   <figure class="panel"><div class="row"><div id="fig-shor-fact"></div><div id="fig-shor-budget"></div></div>
     <figcaption><b>Figure 5.</b> Left: <span data-k="shor.factN">N = 35</span>, peak probability against distance for each factory at <i>p</i>&nbsp;=&nbsp;0.1% and 0.2%. Right: where the expected faults come from, cultivated states at <i>p</i>&nbsp;=&nbsp;0.1%. Idling dominates: the textbook circuit runs one Toffoli at a time while every other patch waits.</figcaption></figure>
 </section>

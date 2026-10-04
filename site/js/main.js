@@ -178,6 +178,11 @@ function shorFigures(shor) {
     const rs = runs(fN, f, p);
     if (rs.length) fs.push({ label: `${F_LABEL[f]}, p = ${(p * 100).toFixed(1)}%`, color: F_COLORS[f], dash: p === 0.002, points: pts(rs, 0) });
   }
+  const inj = runs(fN, "injected", 0.001);
+  if (inj.length) {
+    const best = inj.reduce((a, b) => (b.scores[0] > a.scores[0] ? b : a));
+    setK("shor.inj", `${best.scores[0].toFixed(2)} (noiseless ${base[fN].noiseless[0].toFixed(2)}), ${best.expected_faults.toPrecision(2)} expected faults even at d = ${best.d}`);
+  }
   plot($("fig-shor-fact"), { width: 420, height: 320, x: { label: "code distance d", min: 5, max: 31 }, y: { label: "peak probability", min: 0, max: 1.02, ticks: [0, 0.25, 0.5, 0.75, 1] }, series: fs });
   const brs = runs(fN, "cultivation", 0.001).map((r) => ({ label: `d = ${r.d}`, parts: Object.fromEntries(Object.keys(BUDGET_COLORS).map((k) => [k, r.budget[k] || 0])), note: `${r.expected_faults.toPrecision(2)} faults` }));
   stacked($("fig-shor-budget"), brs, BUDGET_COLORS, { width: 420, labelW: 52, noteW: 92 });

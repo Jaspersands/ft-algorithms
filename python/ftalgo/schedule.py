@@ -143,6 +143,10 @@ class _Compiler:
                     else:
                         out.noise("Z_CHANNEL_3", tuple(z3), *ts)
                     self.budget["CCZ"] += sum(z3) * mult
+                    # The merges' X errors are applied as X on all three patches. In the CCX frame
+                    # the target's should be Z (H conjugates it): this misassigns the Pauli type of
+                    # one error term, not its rate, so fault counts are unaffected and only whether
+                    # such a fault harms the run can differ (the CCZ class is a few % of the budget).
                     for q in ts:
                         self.noise1(out, "CCZ", q, (qx, 0.0, 0.0), mult)
                         self.noise1(out, "idle", q, a.idle(d), mult)

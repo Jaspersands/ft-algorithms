@@ -62,12 +62,18 @@ def run_config(
 
 
 def d_range(circ: Circuit, model: LogicalModel, p: float, factory: str, lo_faults: float = 40.0, hi_faults: float = 0.003, dmax: int = 31) -> list[int]:
-    """Odd distances from where the run expects ≲ lo_faults faults to where it expects ≲ hi_faults."""
+    """Odd distances from where the run expects ≲ lo_faults faults to where it expects ≲ hi_faults,
+    or to where a floor stops the expected faults falling (less than 10% per step)."""
     out = []
+    prev = None
     for d in range(3, dmax + 1, 2):
         ef = Program(compile_noisy(circ, Architecture(model, d, p, FACTORIES[factory])).text).expected_faults
         if ef <= lo_faults:
             out.append(d)
         if ef <= hi_faults:
             break
+        # A floor (magic-state error) has been reached: more distance changes nothing.
+        if prev is not None and len(out) >= 3 and ef > 0.9 * prev:
+            break
+        prev = ef
     return out

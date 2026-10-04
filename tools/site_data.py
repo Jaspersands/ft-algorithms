@@ -8,6 +8,7 @@ import gzip
 import json
 import math
 import os
+import re
 import sys
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -39,6 +40,8 @@ def clean(o):
 def load_dir(path):
     out = []
     for f in sorted(glob.glob(os.path.join(path, "*.json"))):
+        if re.search(r" \d+\.json$", f):  # sync-conflict copies ("name 2.json")
+            continue
         with open(f) as fh:
             out.append(json.load(fh))
     return out
@@ -62,7 +65,7 @@ def main():
         path = os.path.join(ROOT, "data", "calibration", f"{name}.json")
         if os.path.exists(path):
             out[name] = json.load(open(path))
-    raw = sorted(glob.glob(os.path.join(ROOT, "data", "calibration", "raw", "*.json")))
+    raw = sorted(f for f in glob.glob(os.path.join(ROOT, "data", "calibration", "raw", "*.json")) if not re.search(r" \d+\.json$", f))
     out["calibration_meta"] = {
         "experiments": len(raw),
         "shots": sum(json.load(open(f))["counts"]["shots"] for f in raw),
