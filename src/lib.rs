@@ -7,7 +7,9 @@
 
 pub mod complex;
 pub mod dense;
+pub mod exec;
 pub mod gates;
+pub mod noise;
 pub mod program;
 pub mod rng;
 pub mod sparse;

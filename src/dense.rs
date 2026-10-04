@@ -2,6 +2,7 @@
 
 use crate::complex::C64;
 use crate::gates::Gate;
+use crate::exec::RunApply;
 use crate::state::State;
 
 /// The largest register the dense backend accepts (2^30 amplitudes = 16 GiB).
@@ -131,6 +132,8 @@ impl State for Dense {
         self.amp.iter().filter(|a| a.norm_sqr() > 0.0).count()
     }
 }
+
+impl RunApply for Dense {}
 
 #[cfg(test)]
 mod tests {
