@@ -1,0 +1,25 @@
+{
+ "name": "mem-z-d3-p0.001-T12",
+ "kind": "memory",
+ "basis": "z",
+ "d": 3,
+ "p": 0.001,
+ "rounds": 12,
+ "counts": {
+  "shots": 49152,
+  "num_obs": 1,
+  "patterns": {
+   "1": 679
+  },
+  "seconds": 0.013
+ },
+ "seed": 842219372,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 0.0
+}

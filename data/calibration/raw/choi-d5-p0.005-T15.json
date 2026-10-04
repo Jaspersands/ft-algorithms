@@ -1,0 +1,26 @@
+{
+ "name": "choi-d5-p0.005-T15",
+ "kind": "choi",
+ "d": 5,
+ "p": 0.005,
+ "rounds": 15,
+ "counts": {
+  "shots": 16384,
+  "num_obs": 2,
+  "patterns": {
+   "1": 1818,
+   "2": 1869,
+   "3": 403
+  },
+  "seconds": 0.091
+ },
+ "seed": 1364054888,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 0.1
+}

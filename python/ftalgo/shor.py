@@ -161,3 +161,21 @@ def success_table(N: int, a: int, m: int) -> np.ndarray:
 
 def ideal_success(N: int, a: int, m: int) -> float:
     return float((ideal_distribution(N, a, m) * success_table(N, a, m)).sum())
+
+
+def peak_table(N: int, a: int, m: int) -> np.ndarray:
+    """peak[y] = whether y is one of the r ideal peaks round(s·2^m/r), s = 0 … r − 1. The share of
+    shots landing on a peak is the primary score: its random baseline is only r/2^m, whereas for
+    small N almost any outcome yields the factors after post-processing (Smolin, Smith & Vargo
+    2013), which makes factoring success alone a weak test. The order is used to score, never
+    in the circuit."""
+    r = multiplicative_order(a, N)
+    M = 1 << m
+    t = np.zeros(M, dtype=bool)
+    for s in range(r):
+        t[round(s * M / r) % M] = True
+    return t
+
+
+def ideal_peak_probability(N: int, a: int, m: int) -> float:
+    return float((ideal_distribution(N, a, m) * peak_table(N, a, m)).sum())

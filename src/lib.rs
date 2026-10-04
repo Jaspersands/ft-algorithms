@@ -17,6 +17,8 @@ pub mod python;
 pub mod rng;
 pub mod sparse;
 pub mod state;
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
 
 pub use complex::C64;
 pub use gates::{Basis, Gate, Noise};

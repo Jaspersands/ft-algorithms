@@ -1,0 +1,32 @@
+{
+ "name": "xx-x-d9-p0.005",
+ "kind": "xx",
+ "basis": "x",
+ "d": 9,
+ "p": 0.005,
+ "merged": 9,
+ "rounds": 27,
+ "counts": {
+  "shots": 16384,
+  "num_obs": 3,
+  "patterns": {
+   "1": 181,
+   "2": 766,
+   "3": 684,
+   "4": 737,
+   "5": 677,
+   "6": 88,
+   "7": 73
+  },
+  "seconds": 1.413
+ },
+ "seed": 3803258933,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 2.2
+}

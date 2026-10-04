@@ -1,0 +1,38 @@
+{
+ "name": "line-n3-d5-p0.001",
+ "kind": "line",
+ "n": 3,
+ "d": 5,
+ "p": 0.001,
+ "merged": 5,
+ "rounds": 15,
+ "counts": {
+  "shots": 245760,
+  "num_obs": 5,
+  "patterns": {
+   "1": 22,
+   "2": 19,
+   "4": 123,
+   "5": 154,
+   "8": 126,
+   "9": 1,
+   "10": 1,
+   "11": 131,
+   "12": 1,
+   "14": 1,
+   "16": 142,
+   "18": 132,
+   "22": 1
+  },
+  "seconds": 0.804
+ },
+ "seed": 1892985719,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "1.2.0",
+  "ftalgo_git": "68ca13c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py",
+ "wall_seconds": 1.5
+}
