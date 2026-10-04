@@ -1,0 +1,26 @@
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "ftalgo"
+version = "0.1.0"
+description = "Quantum algorithms on a simulated fault-tolerant quantum computer: logical error channels measured by circuit-level simulation, algorithms compiled to Clifford+T+Toffoli and run end to end."
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = ["numpy>=1.22"]
+
+[project.optional-dependencies]
+calibrate = ["stabilizer-qec>=1.2"]
+synth = ["pygridsynth>=2.0", "mpmath"]
+test = ["pytest", "hypothesis", "qiskit>=1.0", "qiskit-aer", "pyscf", "stim", "pymatching"]
+
+[tool.maturin]
+python-source = "python"
+module-name = "ftalgo._ftsim"
+features = ["python"]
+profile = "python"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: long statistical checks"]

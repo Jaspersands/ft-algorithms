@@ -1,0 +1,38 @@
+[package]
+name = "ftsim"
+version = "0.1.0"
+edition = "2021"
+description = "Logical-level simulator for fault-tolerant quantum programs: sparse and dense state vectors, Pauli-channel Monte Carlo stratified by fault count, classical feed-forward."
+license = "MIT"
+rust-version = "1.87"
+
+[lib]
+name = "ftsim"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+rayon = { version = "1.10", optional = true }
+
+[dependencies.pyo3]
+version = "0.29"
+features = ["extension-module", "abi3-py39"]
+optional = true
+
+[features]
+default = []
+parallel = ["dep:rayon"]
+python = ["dep:pyo3", "parallel"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+# The Python module: release, unstripped (Rust 1.90's default strip leaves the cross-built arm64
+# module's symbol table unaligned and macOS refuses to load it).
+[profile.python]
+inherits = "release"
+strip = false
+
+[profile.test]
+opt-level = 2
