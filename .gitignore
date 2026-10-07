@@ -8,3 +8,7 @@ __pycache__/
 dist/
 *.so
 scratch/
+logs/
+# macOS/iCloud sync conflict copies
+* 2.*
+* 2

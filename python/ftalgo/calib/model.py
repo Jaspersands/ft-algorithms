@@ -41,6 +41,9 @@ def load_raw(path: str | None = None) -> dict[str, dict]:
     for f in glob.glob(os.path.join(path, "*.json")):
         with open(f) as fh:
             r = json.load(fh)
+        # Skip copies whose file name is not the experiment's (e.g. sync-conflict duplicates).
+        if os.path.basename(f) != r["name"] + ".json":
+            continue
         out[r["name"]] = r
     return out
 

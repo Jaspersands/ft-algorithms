@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - run: cargo test --lib --features parallel
+      - run: cargo build --release --target wasm32-unknown-unknown --lib
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Python module for the WebAssembly comparison
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -q maturin numpy
+          .venv/bin/maturin build --release --out dist -q
+          .venv/bin/python - <<'PY'
+          import glob, shutil, zipfile
+          whl = glob.glob("dist/ftalgo-*.whl")[0]
+          with zipfile.ZipFile(whl) as z:
+              name = [n for n in z.namelist() if n.startswith("ftalgo/_ftsim")][0]
+              with z.open(name) as src, open("python/" + name, "wb") as dst:
+                  shutil.copyfileobj(src, dst)
+          PY
+          cp target/wasm32-unknown-unknown/release/ftsim.wasm site/wasm/ftsim.wasm
+          PYTHONPATH=python node tools/wasm-smoke.mjs
+
+  python:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build the engine and install the test dependencies
+        run: |
+          pip install -q maturin numpy scipy matplotlib pytest hypothesis mpmath pygridsynth \
+            stabilizer-qec stim pymatching qiskit qiskit-aer pyscf
+          maturin build --release --out dist -q
+          python - <<'PY'
+          import glob, shutil, zipfile
+          whl = glob.glob("dist/ftalgo-*.whl")[0]
+          with zipfile.ZipFile(whl) as z:
+              name = [n for n in z.namelist() if n.startswith("ftalgo/_ftsim")][0]
+              with z.open(name) as src, open("python/" + name, "wb") as dst:
+                  shutil.copyfileobj(src, dst)
+          PY
+      - run: python -m pytest -q tests
+      - run: python tools/readme_tables.py --check

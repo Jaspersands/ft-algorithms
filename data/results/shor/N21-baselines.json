@@ -1,0 +1,39 @@
+{
+ "N": 21,
+ "a": 2,
+ "n": 5,
+ "m": 10,
+ "cutoff": 7,
+ "eps": 0.0001,
+ "logical_qubits": 21,
+ "counts": {
+  "X": 808,
+  "R": 10,
+  "H": 333,
+  "CCX": 6250,
+  "CX": 13740,
+  "M": 10,
+  "S_DAG": 9,
+  "T_DAG": 8,
+  "Z": 8,
+  "T": 309,
+  "S": 205
+ },
+ "toffoli": 6250,
+ "t": 317,
+ "ideal_success_exact_qft": 0.8333320617675782,
+ "scores": [
+  "peak",
+  "factors"
+ ],
+ "ideal_peak_exact_qft": 0.7892843877977527,
+ "noiseless": [
+  0.79015,
+  0.8329
+ ],
+ "random": [
+  0.005859375,
+  0.9990234375
+ ],
+ "order": 6
+}
