@@ -274,6 +274,31 @@ def main():
     V["qpe_table"] = table(["molecule", "logical qubits", "terms", "T gates", "E_HF (Ha)", "E_FCI (Ha)", "noiseless", "best", "d for 90%", "run time", "physical qubits"], qrows)
     V["h2"] = qb.get("H2")
 
+    # Figure: the energies individual runs return (H2, cultivated, p = 0.1%).
+    qh_path = ROOT / "data" / "results" / "qpe_hist.json"
+    V["fig_qpe_hist"] = None
+    if qh_path.exists():
+        qh = jload(qh_path)
+        hrows = [(f"d = {r['d']}", r["energies"]) for r in qh["runs"]] + [("noiseless", qh["noiseless"])]
+        lim, ca, bw = 12.0, 1.6, qh["resolution"] * 1000
+        edges = np.arange(-lim, lim + bw / 2, bw)
+        fig, axs = plt.subplots(len(hrows), 1, figsize=(5.6, 0.62 * len(hrows) + 0.5), sharex=True)
+        for ax, (lab, es) in zip(axs, hrows):
+            err = (np.asarray(es) - qh["e_fci"]) * 1000
+            ok = float(np.mean(np.abs(err) < ca))
+            off = int(np.sum(np.abs(err) >= lim))
+            ax.axvspan(-ca, ca, color="#dff0e5", lw=0, zorder=0)
+            ax.hist(err[np.abs(err) < lim], bins=edges, color=C["ink3"] if lab == "noiseless" else C["s1"], zorder=2)
+            ax.set_yticks([])
+            ax.grid(False)
+            ax.spines["left"].set_visible(False)
+            ax.set_ylabel(lab, rotation=0, ha="right", va="center", fontsize=7.5)
+            ax.text(1.01, 0.5, f"{100 * ok:.0f}% ok" + (f"\n{off} off-scale" if off else ""), transform=ax.transAxes, fontsize=6.8, color=C["ink3"], va="center")
+        axs[-1].set_xlim(-lim, lim)
+        axs[-1].set_xlabel("E − E_FCI (mHa)")
+        V["fig_qpe_hist"] = savefig(fig, "qpe_hist")
+        V["qpe_hist_n"] = len(qh["noiseless"])
+
     # -- scaling -------------------------------------------------------------------------------
     fig, axs = plt.subplots(1, 2, figsize=(7.2, 2.9))
     for f in ("cultivation", "15to1"):
@@ -504,7 +529,9 @@ while every other patch waits.
 Each run uses ≈ {sci(V['h2']['t_count']) if V['h2'] else '—'} T gates for H₂, so the magic-state error sets a floor
 that no distance removes. With cultivated states (2×10⁻⁹) that floor is a few percent; with 15-to-1
 distilled states (4.5×10⁻⁸) most runs fail.
-
+{f'''
+![The answer itself: energies returned by {V.get('qpe_hist_n')} individual H₂ runs at several distances (cultivated states, p = 0.1%), as the error from the exact energy; shaded: chemical accuracy; grey: the same circuit without noise.]({V['fig_qpe_hist']})
+''' if V['fig_qpe_hist'] else ''}
 ## To scale
 
 Operation counts of the textbook circuit are exact; the schedule's shape (rounds per Toffoli in units
@@ -562,7 +589,17 @@ python tools/site_data.py; python tools/report.py
         subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-pdf-header-footer", "--run-all-compositor-stages-before-draw",
                         "--virtual-time-budget=15000", f"--print-to-pdf={REPORT / 'report.pdf'}", (REPORT / "report.html").as_uri()],
                        check=True, capture_output=True)
-    print("report.md, report.html" + ("" if args.no_pdf else ", report.pdf"))
+    # The site serves the report from site/report/.
+    import shutil
+    dst = ROOT / "site" / "report"
+    if dst.exists():
+        shutil.rmtree(dst)
+    dst.mkdir(parents=True)
+    for name in ("report.html", "report.css", "report.pdf"):
+        if (REPORT / name).exists():
+            shutil.copy(REPORT / name, dst / name)
+    shutil.copytree(FIGS, dst / "figures")
+    print("report.md, report.html" + ("" if args.no_pdf else ", report.pdf") + " (copied to site/report/)")
 
 
 if __name__ == "__main__":

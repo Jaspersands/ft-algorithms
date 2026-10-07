@@ -79,6 +79,9 @@ def main():
     for r in qpe_runs:
         r.pop("estimate", None)
     out["qpe"] = {"runs": qpe_runs, "baselines": [r for r in load_dir(os.path.join(ROOT, "data", "results", "qpe")) if "d" not in r]}
+    qh = os.path.join(ROOT, "data", "results", "qpe_hist.json")
+    if os.path.exists(qh):
+        out["qpe_hist"] = json.load(open(qh))
     sc = os.path.join(ROOT, "data", "results", "scaling.json")
     if os.path.exists(sc):
         out["scaling"] = json.load(open(sc))

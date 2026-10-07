@@ -24,7 +24,7 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 ## Results
 
 <!-- results:start -->
-**Calibration**: 421 circuit-level experiments, 1.21 billion shots. Whole surgery experiments predicted from calibrated parts: 0.93–1.26× the measured failure rate (median 1.04×). Stim + PyMatching cross-check: 36 of 36 within 2.2σ.
+**Calibration**: 316 circuit-level experiments, 0.82 billion shots. Whole surgery experiments predicted from calibrated parts: 0.93–1.26× the measured failure rate (median 1.04×). Stim + PyMatching cross-check: 36 of 36 within 2.2σ.
 
 **Shor** (p = 0.1%, cultivated magic states; peak probability = share of runs on one of the r ideal peaks):
 
@@ -32,6 +32,16 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 |---:|---:|---:|---:|---:|---:|---:|
 | 15 | 18 | 3,360 | 1.000 | 13 | 55.4 k | 225 ms |
 | 21 | 21 | 6,250 | 0.790 | 13 | 58.1 k | 418 ms |
+| 35 | 24 | 10,440 | 0.790 | 15 | 63.4 k | 808 ms |
+| 77 | 27 | 16,170 | 0.774 | 15 | 67 k | 1.25 s |
+| 143 | 30 | 23,680 | 0.774 | 15 | 70.8 k | 1.81 s |
+
+**Phase estimation** (chemical accuracy, 1.6 mHa from FCI; p = 0.1%, cultivated):
+
+| molecule | T gates per run | noiseless | d for 90% of it | run time |
+|---|---:|---:|---:|---:|
+| H2 | 1.8e7 | 0.92 | 19 | 7.2 min |
+| HeH+ | 4.4e7 | 0.97 | 21 | 20.3 min |
 
 **To scale** (≤ 0.1 expected faults, p = 0.1%): textbook-arithmetic RSA-2048 needs d = 35, 32.5 M physical qubits and 1.96 years; Gidney's 2025 counts need d = 29 under our measured error model (he assumed d = 25).
 <!-- results:end -->

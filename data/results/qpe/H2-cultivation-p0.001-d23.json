@@ -1,0 +1,122 @@
+{
+ "d": 23,
+ "p": 0.001,
+ "factory": "cultivation",
+ "success": 0.9083896664108804,
+ "sigma": 0.009983450180546345,
+ "scores": [
+  0.9083896664108804,
+  0.9483279746078941
+ ],
+ "score_sigmas": [
+  0.009983450180546345,
+  0.006463010795877879
+ ],
+ "interval": [
+  0.8884149267166596,
+  0.9283644061051012
+ ],
+ "estimate": {
+  "value": [
+   0.9083896664108804,
+   0.9483279746078941
+  ],
+  "sigma": [
+   0.009983450180546345,
+   0.006463010795877879
+  ],
+  "tail": 7.839333128062405e-06,
+  "method": "stratified",
+  "strata": [
+   {
+    "k": 0,
+    "weight": 0.9642282879509854,
+    "shots": 579,
+    "score": [
+     0.9343696027633851,
+     0.9740932642487047
+    ]
+   },
+   {
+    "k": 1,
+    "weight": 0.035124135807168645,
+    "shots": 200,
+    "score": [
+     0.21,
+     0.255
+    ]
+   },
+   {
+    "k": 2,
+    "weight": 0.0006397369087179159,
+    "shots": 200,
+    "score": [
+     0.105,
+     0.19
+    ]
+   }
+  ],
+  "single_fault": {
+   "T": [
+    200,
+    [
+     0.21,
+     0.255
+    ]
+   ]
+  },
+  "shots": 979
+ },
+ "expected_faults": 0.03642719901068354,
+ "budget": {
+  "measure": 2.6807357910114024e-12,
+  "CNOT": 3.122073946811147e-05,
+  "S": 0.00012680842473754427,
+  "T": 0.03614728759052209,
+  "idle": 0.00012289962146475966
+ },
+ "error_budget": {
+  "measure": {
+   "expected_faults": 2.6807357910114024e-12,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "CNOT": {
+   "expected_faults": 3.122073946811147e-05,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "S": {
+   "expected_faults": 0.00012680842473754427,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "T": {
+   "expected_faults": 0.03614728759052209,
+   "single_fault_score": 0.21,
+   "single_fault_shots": 200,
+   "loss": 0.026183996352920326
+  },
+  "idle": {
+   "expected_faults": 0.00012289962146475966,
+   "single_fault_score": null,
+   "loss": null
+  }
+ },
+ "rounds": 522644729,
+ "seconds": 522.644729,
+ "logical_qubits": 3,
+ "physical_qubits": {
+  "data": 13824,
+  "factories": 10302.226734979662,
+  "total": 24126.22673497966
+ },
+ "t_count": 17948015,
+ "ccz_count": 0,
+ "eps_t": 2e-09,
+ "eps_ccz": 1.12e-16,
+ "extrapolated": true,
+ "wall_seconds": 124.4,
+ "molecule": "H2",
+ "algorithm": "qpe"
+}

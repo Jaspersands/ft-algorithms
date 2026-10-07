@@ -1,0 +1,437 @@
+{
+ "note": "any-observable failure rate; correlated matching on both sides",
+ "cases": [
+  {
+   "name": "mem-z-d3-p0.002-T9",
+   "stabilizer_qec": {
+    "failures": 513,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4214,
+    "shots": 127750
+   },
+   "z": 1.1557879976079066
+  },
+  {
+   "name": "cnot-z-d3-p0.002",
+   "stabilizer_qec": {
+    "failures": 1731,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 6709,
+    "shots": 65536
+   },
+   "z": -1.2252341803086413
+  },
+  {
+   "name": "cnot-x-d3-p0.002",
+   "stabilizer_qec": {
+    "failures": 1893,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 7378,
+    "shots": 65536
+   },
+   "z": -1.0625404134979894
+  },
+  {
+   "name": "zz-z-d3-p0.002",
+   "stabilizer_qec": {
+    "failures": 1100,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4080,
+    "shots": 65536
+   },
+   "z": -2.24904425427637
+  },
+  {
+   "name": "mem-z-d5-p0.002-T15",
+   "stabilizer_qec": {
+    "failures": 547,
+    "shots": 49152
+   },
+   "stim_pymatching": {
+    "failures": 3943,
+    "shots": 359429
+   },
+   "z": -0.3145741366649711
+  },
+  {
+   "name": "cnot-z-d5-p0.002",
+   "stabilizer_qec": {
+    "failures": 553,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4188,
+    "shots": 118509
+   },
+   "z": 1.0511947268876676
+  },
+  {
+   "name": "cnot-x-d5-p0.002",
+   "stabilizer_qec": {
+    "failures": 669,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 3775,
+    "shots": 97961
+   },
+   "z": -1.3803289752003505
+  },
+  {
+   "name": "zz-z-d5-p0.002",
+   "stabilizer_qec": {
+    "failures": 970,
+    "shots": 49152
+   },
+   "stim_pymatching": {
+    "failures": 3987,
+    "shots": 202688
+   },
+   "z": -0.09165373409489558
+  },
+  {
+   "name": "mem-z-d7-p0.002-T21",
+   "stabilizer_qec": {
+    "failures": 874,
+    "shots": 245760
+   },
+   "stim_pymatching": {
+    "failures": 3839,
+    "shots": 1124759
+   },
+   "z": -1.0837853635250676
+  },
+  {
+   "name": "cnot-z-d7-p0.002",
+   "stabilizer_qec": {
+    "failures": 1214,
+    "shots": 114688
+   },
+   "stim_pymatching": {
+    "failures": 3906,
+    "shots": 377884
+   },
+   "z": -0.7229010079614518
+  },
+  {
+   "name": "cnot-x-d7-p0.002",
+   "stabilizer_qec": {
+    "failures": 560,
+    "shots": 49152
+   },
+   "stim_pymatching": {
+    "failures": 4051,
+    "shots": 351085
+   },
+   "z": 0.2840365785084731
+  },
+  {
+   "name": "zz-z-d7-p0.002",
+   "stabilizer_qec": {
+    "failures": 649,
+    "shots": 114688
+   },
+   "stim_pymatching": {
+    "failures": 4018,
+    "shots": 706859
+   },
+   "z": 0.10663242028550725
+  },
+  {
+   "name": "mem-z-d3-p0.003-T9",
+   "stabilizer_qec": {
+    "failures": 1058,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4061,
+    "shots": 65536
+   },
+   "z": -1.2200528224348197
+  },
+  {
+   "name": "cnot-z-d3-p0.003",
+   "stabilizer_qec": {
+    "failures": 3184,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 12956,
+    "shots": 65536
+   },
+   "z": 0.9700157399415144
+  },
+  {
+   "name": "cnot-x-d3-p0.003",
+   "stabilizer_qec": {
+    "failures": 3637,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 14558,
+    "shots": 65536
+   },
+   "z": 0.04203373678427956
+  },
+  {
+   "name": "zz-z-d3-p0.003",
+   "stabilizer_qec": {
+    "failures": 1974,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 8110,
+    "shots": 65536
+   },
+   "z": 1.1457611705009827
+  },
+  {
+   "name": "mem-z-d5-p0.003-T15",
+   "stabilizer_qec": {
+    "failures": 604,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4124,
+    "shots": 108503
+   },
+   "z": 0.7222601048845605
+  },
+  {
+   "name": "cnot-z-d5-p0.003",
+   "stabilizer_qec": {
+    "failures": 1847,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 7241,
+    "shots": 65536
+   },
+   "z": -0.813390881391936
+  },
+  {
+   "name": "cnot-x-d5-p0.003",
+   "stabilizer_qec": {
+    "failures": 2105,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 8087,
+    "shots": 65536
+   },
+   "z": -1.7443903453721905
+  },
+  {
+   "name": "zz-z-d5-p0.003",
+   "stabilizer_qec": {
+    "failures": 1105,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4243,
+    "shots": 65536
+   },
+   "z": -1.2375538263412025
+  },
+  {
+   "name": "mem-z-d7-p0.003-T21",
+   "stabilizer_qec": {
+    "failures": 892,
+    "shots": 49152
+   },
+   "stim_pymatching": {
+    "failures": 4151,
+    "shots": 220412
+   },
+   "z": 1.0254911532340147
+  },
+  {
+   "name": "cnot-z-d7-p0.003",
+   "stabilizer_qec": {
+    "failures": 891,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4137,
+    "shots": 73553
+   },
+   "z": 0.9481069822336091
+  },
+  {
+   "name": "cnot-x-d7-p0.003",
+   "stabilizer_qec": {
+    "failures": 1015,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 4030,
+    "shots": 65536
+   },
+   "z": -0.21755069639807556
+  },
+  {
+   "name": "zz-z-d7-p0.003",
+   "stabilizer_qec": {
+    "failures": 543,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 3735,
+    "shots": 120692
+   },
+   "z": -1.4788052517686487
+  },
+  {
+   "name": "mem-z-d3-p0.005-T9",
+   "stabilizer_qec": {
+    "failures": 2464,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 9540,
+    "shots": 65536
+   },
+   "z": -1.5484565046945948
+  },
+  {
+   "name": "cnot-z-d3-p0.005",
+   "stabilizer_qec": {
+    "failures": 6584,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 26087,
+    "shots": 65536
+   },
+   "z": -0.8875110523615436
+  },
+  {
+   "name": "cnot-x-d3-p0.005",
+   "stabilizer_qec": {
+    "failures": 7138,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 28639,
+    "shots": 65536
+   },
+   "z": 0.30649200544178307
+  },
+  {
+   "name": "zz-z-d3-p0.005",
+   "stabilizer_qec": {
+    "failures": 4584,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 18835,
+    "shots": 65536
+   },
+   "z": 1.9387557655675927
+  },
+  {
+   "name": "mem-z-d5-p0.005-T15",
+   "stabilizer_qec": {
+    "failures": 2287,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 9170,
+    "shots": 65536
+   },
+   "z": 0.11087503747537128
+  },
+  {
+   "name": "cnot-z-d5-p0.005",
+   "stabilizer_qec": {
+    "failures": 6210,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 24845,
+    "shots": 65536
+   },
+   "z": 0.018004037320582374
+  },
+  {
+   "name": "cnot-x-d5-p0.005",
+   "stabilizer_qec": {
+    "failures": 6522,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 26596,
+    "shots": 65536
+   },
+   "z": 1.8118007809411356
+  },
+  {
+   "name": "zz-z-d5-p0.005",
+   "stabilizer_qec": {
+    "failures": 4291,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 17082,
+    "shots": 65536
+   },
+   "z": -0.3259093303661378
+  },
+  {
+   "name": "mem-z-d7-p0.005-T21",
+   "stabilizer_qec": {
+    "failures": 2001,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 8384,
+    "shots": 65536
+   },
+   "z": 2.019184447550728
+  },
+  {
+   "name": "cnot-z-d7-p0.005",
+   "stabilizer_qec": {
+    "failures": 5573,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 22504,
+    "shots": 65536
+   },
+   "z": 0.7813675690742811
+  },
+  {
+   "name": "cnot-x-d7-p0.005",
+   "stabilizer_qec": {
+    "failures": 6086,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 24069,
+    "shots": 65536
+   },
+   "z": -0.9946934974016789
+  },
+  {
+   "name": "zz-z-d7-p0.005",
+   "stabilizer_qec": {
+    "failures": 3748,
+    "shots": 16384
+   },
+   "stim_pymatching": {
+    "failures": 14802,
+    "shots": 65536
+   },
+   "z": -0.7909217807386746
+  }
+ ]
+}

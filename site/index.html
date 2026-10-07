@@ -106,6 +106,8 @@
   <p>The Hamiltonians are computed from scratch: STO-3G integrals in closed form, restricted Hartree–Fock, Jordan–Wigner and Z₂ tapering, checked against PySCF to 10⁻⁸ hartree. Iterative phase estimation then reads the ground-state energy from 10 bits of a fourth-order Trotterized <i>e</i><sup>−i(H−E<sub>HF</sub>)τ</sup>, each controlled rotation synthesized to Clifford&nbsp;+&nbsp;T. Reaching chemical accuracy (1.6&nbsp;mHa) takes <span class="n" data-k="qpe.H2.t">1.8×10⁷</span> T gates for H₂ alone.</p>
   <figure class="panel"><div id="fig-qpe"></div>
     <figcaption><b>Figure 6.</b> Probability that a run's energy lies within chemical accuracy of the exact (FCI) energy, against distance (<i>p</i>&nbsp;=&nbsp;0.1%). Dashed: noiseless value of the same circuit (limited by the finite number of bits, the Trotter error and the Hartree–Fock overlap).</figcaption></figure>
+  <figure class="panel"><div id="fig-qpe-hist"></div>
+    <figcaption><b>Figure 7.</b> The answer itself: energies returned by 400 individual runs for H₂ (cultivated states, <i>p</i>&nbsp;=&nbsp;0.1%), as the error from the exact energy in mHa. Shaded: chemical accuracy. At small distance, logical faults scatter runs across the ±0.5&nbsp;Ha window; with distance they collapse onto the bins next to the exact value.</figcaption></figure>
   <div class="tablewrap" id="tab-qpe"></div>
   <p>With <span class="n" data-k="qpe.H2.t">1.8×10⁷</span> T gates, even cultivated magic states at 2×10⁻⁹ <span class="dagger">†</span> leave a floor of a few percent: distance cannot fix the factory.</p>
 </section>
@@ -114,7 +116,7 @@
   <h2><span class="num">7</span>To cryptographic and chemical scale</h2>
   <p>The same measured error model extrapolates. For the textbook circuit the gate counts are exact functions of the modulus size and the schedule's shape is fitted on the compiled instances; for published algorithms, counts and run time come from the papers and only the error model is ours.</p>
   <figure class="panel"><div class="row"><div id="fig-scale-q"></div><div id="fig-scale-t"></div></div>
-    <figcaption><b>Figure 7.</b> Textbook Shor from the simulated sizes to RSA-2048: physical qubits and run time at the smallest distance with ≤&nbsp;0.1 expected faults (<i>p</i>&nbsp;=&nbsp;0.1%, 1&nbsp;µs rounds). With 15-to-1 distilled states the Toffoli count outruns the factory's error floor beyond <span class="n" data-k="scale.distill_max">n = 256</span>.</figcaption></figure>
+    <figcaption><b>Figure 8.</b> Textbook Shor from the simulated sizes to RSA-2048: physical qubits and run time at the smallest distance with ≤&nbsp;0.1 expected faults (<i>p</i>&nbsp;=&nbsp;0.1%, 1&nbsp;µs rounds). With 15-to-1 distilled states the Toffoli count outruns the factory's error floor beyond <span class="n" data-k="scale.distill_max">n = 256</span>.</figcaption></figure>
   <div class="tablewrap" id="tab-scale"></div>
   <p class="note">Gidney's estimate stores most qubits in yoked surface codes (430 physical qubits each) and FeMoco's uses a hand-optimized floor plan; with plain patches throughout, our physical-qubit totals are upper bounds on those designs. The distance comparison is the like-for-like test of the error model.</p>
 </section>

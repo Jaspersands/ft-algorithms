@@ -1,4 +1,4 @@
-import { plot, stacked, fmtSci } from "./plot.js";
+import { plot, stacked, fmtSci, cssVar } from "./plot.js";
 import { initDemo } from "./demo.js";
 
 const P_COLORS = { 0.001: "var(--s1)", 0.002: "var(--s2)", 0.003: "var(--s3)", 0.005: "var(--s4)" };
@@ -215,6 +215,44 @@ function qpeFigures(q) {
   if (base.H2) setK("qpe.H2.t", fmtSci(base.H2.t_count));
 }
 
+function qpeHist(h) {
+  const box = $("fig-qpe-hist");
+  if (!h) { box.closest("figure").style.display = "none"; return; }
+  const rows = [...h.runs.map((r) => ({ label: `d = ${r.d}`, e: r.energies })), { label: "noiseless", e: h.noiseless }];
+  const W = 640, rowH = 46, L = 78, R = 12, T = 6, B = 30;
+  const H = T + rows.length * rowH + B;
+  const lim = 12; // mHa either side
+  const bw = h.resolution * 1000;
+  const nb = Math.ceil((2 * lim) / bw);
+  const sx = (v) => L + ((v + lim) / (2 * lim)) * (W - L - R);
+  const ca = 1.6;
+  let s = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">`;
+  s += `<rect x="${sx(-ca)}" y="${T}" width="${sx(ca) - sx(-ca)}" height="${rows.length * rowH}" fill="${cssVar("var(--ok-soft)")}"/>`;
+  rows.forEach((r, i) => {
+    const y0 = T + i * rowH;
+    const errs = r.e.map((e) => (e - h.e_fci) * 1000);
+    const counts = new Array(nb).fill(0);
+    let out = 0, ok = 0;
+    for (const x of errs) {
+      if (Math.abs(x) < ca) ok++;
+      const k = Math.floor((x + lim) / bw);
+      if (k >= 0 && k < nb) counts[k]++; else out++;
+    }
+    const mx = Math.max(...counts, 1);
+    counts.forEach((c, k) => {
+      if (!c) return;
+      const hgt = (c / mx) * (rowH - 12);
+      s += `<rect x="${sx(-lim + k * bw)}" y="${y0 + rowH - 4 - hgt}" width="${Math.max(sx(-lim + (k + 1) * bw) - sx(-lim + k * bw) - 0.6, 1)}" height="${hgt}" fill="${cssVar(i === rows.length - 1 ? "var(--ink-3)" : "var(--s1)")}"><title>${c} runs</title></rect>`;
+    });
+    s += `<line x1="${L}" x2="${W - R}" y1="${y0 + rowH - 4}" y2="${y0 + rowH - 4}" stroke="${cssVar("var(--rule-soft)")}"/>`;
+    s += `<text x="${L - 8}" y="${y0 + rowH / 2}" text-anchor="end" style="font:500 11px var(--mono);fill:${cssVar("var(--ink-2)")}">${r.label}</text>`;
+    s += `<text x="${L - 8}" y="${y0 + rowH / 2 + 13}" text-anchor="end" style="font:400 10px var(--mono);fill:${cssVar("var(--ink-3)")}">${Math.round((100 * ok) / errs.length)}% ok${out ? `, ${out} off-scale` : ""}</text>`;
+  });
+  for (const t of [-12, -8, -4, 0, 4, 8, 12]) s += `<text x="${sx(t)}" y="${H - 14}" text-anchor="middle" style="font:400 10.5px var(--mono);fill:${cssVar("var(--ink-3)")}">${t}</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 1}" text-anchor="middle" style="font:500 12px var(--sans);fill:${cssVar("var(--ink-2)")}">E − E_FCI (mHa)</text></svg>`;
+  box.innerHTML = s;
+}
+
 // -- scaling ---------------------------------------------------------------------------------
 function scaleFigures(sc) {
   if (!sc) return;
@@ -280,6 +318,7 @@ async function main() {
   figCompose(data.composition);
   shorFigures(data.shor);
   qpeFigures(data.qpe);
+  qpeHist(data.qpe_hist);
   scaleFigures(data.scaling);
   opsTable();
   initDemo(data.demo);
