@@ -22,7 +22,9 @@
 </div>
 
 <nav class="toc"><ol>
-  <li><a href="#demo">Run it</a></li>
+  <li><a href="#demo">Simulation</a></li>
+  <li><a href="#floorplan">Floorplan</a></li>
+  <li><a href="#calculator">Trade-offs</a></li>
   <li><a href="#stack">The stack</a></li>
   <li><a href="#machine">Measuring the machine</a></li>
   <li><a href="#compose">Do the parts add up</a></li>
@@ -35,13 +37,14 @@
 <main class="page">
 
 <section id="demo" class="col">
-  <h2><span class="num">1</span>Factor 15 on a surface code, in your browser</h2>
-  <p>Below, the engine of this project, compiled to WebAssembly, runs Shor's algorithm for <span class="n">N&nbsp;=&nbsp;15</span> on a simulated machine: <span class="n" data-k="demo.qubits">18</span> logical qubits, <span class="n" data-k="demo.toffoli">3,360</span> Toffoli gates and <span class="n" data-k="demo.t">223</span> T gates, every one of them carrying the logical error channel measured for that code distance and noise strength. Pick a distance and press run: below a certain distance the outcomes smear into noise; above it they land on the four peaks that reveal the period.</p>
+  <h2><span class="num">1</span>Fault-tolerant simulation in your browser</h2>
+  <p>Below, the engine of this project, compiled to WebAssembly, runs quantum algorithms on a simulated surface-code machine: Shor order finding (textbook vs. modern windowed + MBU arithmetic) and molecular chemistry (H₂ ground-state phase estimation). Every operation carries its calibrated logical error channel. Pick a distance, physical noise, and magic-state factory, then press run: below threshold outcomes smear into noise; above it they peak sharply at the exact solution.</p>
   <div class="demo" id="demo-widget">
     <div class="bar">
-      <label>arithmetic <select id="demo-arith">
-        <option value="textbook">Textbook (Cuccaro)</option>
-        <option value="modern">Modern (Windowed + MBU)</option>
+      <label>workload <select id="demo-workload">
+        <option value="textbook">Shor Factoring (Textbook Cuccaro)</option>
+        <option value="modern">Shor Factoring (Modern Windowed + MBU)</option>
+        <option value="chem_h2">Molecular Chemistry (H₂ Ground State QPE)</option>
       </select></label>
       <label>distance <span class="seg" id="demo-d"></span></label>
       <label>physical error <span class="seg" id="demo-p"></span></label>
@@ -54,11 +57,62 @@
     </div>
     <div class="log" id="demo-log">Loading the engine…</div>
   </div>
-  <p class="note">Each configuration is a precompiled noisy program (the same file the native runs use), fetched and simulated locally; the distance-and-noise grid is the one measured below. Shots are seeded, so a configuration always gives the same first 500 shots.</p>
+  <p class="note">Each configuration is a precompiled noisy program (the same file the native runs use), fetched and simulated locally via WebAssembly; the distance-and-noise grid is the one measured below. Shots are seeded, so a configuration always gives the same first 500 shots.</p>
+</section>
+
+<section id="floorplan" class="col">
+  <h2><span class="num">2</span>2D Lattice surgery floorplan visualizer</h2>
+  <p>Litinski’s fast-block architecture packs logical data patches, multi-patch routing corridors, and magic-state distillation factories onto a planar surface code layout. Below, scrub through individual syndrome rounds to inspect how multi-body parity merges execute CNOTs, measurement-based uncomputations (MBU), and |CCZ⟩ injections in real space and time:</p>
+  <div class="demo" style="padding:16px 20px;">
+    <div class="bar" style="margin-bottom:12px;">
+      <label>operation <select id="floorplan-mode">
+        <option value="cnot">Lattice Surgery CNOT (2d rounds)</option>
+        <option value="mbu">MBU Carry Uncomputation (Gidney 2018)</option>
+        <option value="distill">Magic State Distillation &amp; Injection</option>
+      </select></label>
+      <label style="flex:1;display:flex;align-items:center;gap:8px;">
+        round progression <input type="range" id="floorplan-scrub" min="0" max="4" value="0" style="flex:1;">
+      </label>
+      <button id="floorplan-play" style="width:72px;">Play</button>
+    </div>
+    <div id="floorplan-canvas" style="min-height:340px;"></div>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--paper);border-radius:4px;border:1px solid var(--rule-soft);">
+      <div id="floorplan-step-title" style="font:600 13px var(--sans);color:var(--ink);">Initial State</div>
+      <div id="floorplan-step-desc" style="font:400 11.5px var(--sans);color:var(--ink-2);margin-top:2px;">Select an operation and scrub to visualize boundary merges across the 2D tile grid.</div>
+    </div>
+  </div>
+</section>
+
+<section id="calculator" class="col">
+  <h2><span class="num">3</span>Interactive resource trade-off calculator</h2>
+  <p>Explore the hardware–algorithm Pareto frontier across physical noise rates, cycle times, distillation factories, and code architectures (standard rotated surface code vs. biased-noise XZZX rectangular patches):</p>
+  <div class="demo" id="calc-container" style="padding:16px 20px;">
+    <div class="bar" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px;margin-bottom:16px;">
+      <label style="flex-direction:column;align-items:flex-start;">workload <select id="calc-preset" style="width:100%;margin-top:4px;"></select></label>
+      <label style="flex-direction:column;align-items:flex-start;">physical noise <i>p</i> <span id="calc-p-val" style="font:500 11px var(--mono);color:var(--accent);">0.10%</span>
+        <input type="range" id="calc-p" min="0.0005" max="0.005" step="0.0001" value="0.001" style="width:100%;margin-top:4px;">
+      </label>
+      <label style="flex-direction:column;align-items:flex-start;">cycle time τ <span id="calc-tau-val" style="font:500 11px var(--mono);color:var(--accent);">1.0 µs</span>
+        <input type="range" id="calc-tau" min="0.2" max="10.0" step="0.2" value="1.0" style="width:100%;margin-top:4px;">
+      </label>
+      <label style="flex-direction:column;align-items:flex-start;">code architecture <select id="calc-arch" style="width:100%;margin-top:4px;">
+        <option value="standard">Standard Surface Code (Square d × d)</option>
+        <option value="xzzx">XZZX Code (Asymmetric dX × dZ)</option>
+      </select></label>
+      <label id="calc-eta-row" style="display:none;flex-direction:column;align-items:flex-start;">dephasing bias η = p_Z/p_X <span id="calc-eta-val" style="font:500 11px var(--mono);color:var(--accent);">100</span>
+        <input type="range" id="calc-eta" min="10" max="1000" step="10" value="100" style="width:100%;margin-top:4px;">
+      </label>
+      <label style="flex-direction:column;align-items:flex-start;">distillation factory <select id="calc-fac" style="width:100%;margin-top:4px;">
+        <option value="cultivation">Magic-State Cultivation (Gidney 2024)</option>
+        <option value="15to1">15-to-1 Distillation (Litinski 2019)</option>
+      </select></label>
+    </div>
+    <div id="calc-output"></div>
+  </div>
 </section>
 
 <section id="stack" class="col">
-  <h2><span class="num">2</span>The stack</h2>
+  <h2><span class="num">4</span>The stack</h2>
   <p>Most resource estimates for quantum algorithms stop at counting gates and multiplying by an assumed error rate. Here the algorithm actually runs, at the logical level, with error channels that were measured one layer down:</p>
   <div class="stack">
     <div><span class="layer">Physical</span><span class="what">Rotated surface code under standard circuit-level noise (SD6) at strength <i>p</i>; memory, lattice-surgery merges and CNOTs simulated qubit by qubit and decoded by correlated matching.<span class="tool">stabilizer-qec · <span data-k="cal.experiments">300</span> experiments · <span data-k="cal.shots">billions of</span> shots</span></span></div>
@@ -71,7 +125,7 @@
 </section>
 
 <section id="machine" class="col">
-  <h2><span class="num">3</span>Measuring the machine</h2>
+  <h2><span class="num">5</span>Measuring the machine</h2>
   <p>The idle error of a patch per round of syndrome extraction falls exponentially in the distance <i>d</i>, by a factor Λ per two units of distance. At <i>p</i>&nbsp;=&nbsp;0.1% the fit gives <span class="n" data-k="cal.lambda_idle">Λ ≈ 11</span>; at 0.5%, close to threshold, barely more than one.</p>
   <figure class="panel"><div id="fig-idle"></div>
     <figcaption><b>Figure 1.</b> Per-round logical flip rate of an idle patch (X- or Y-type errors, from Z-basis memories of <i>d</i>, 2<i>d</i>, 3<i>d</i> and 4<i>d</i> rounds; the slope removes preparation and readout). Points: measured, 1σ bootstrap; lines: per-<i>p</i> fits of log ε against (<i>d</i>&nbsp;+&nbsp;1)/2, dashed beyond the largest measured distance.</figcaption></figure>
@@ -85,7 +139,7 @@
 </section>
 
 <section id="compose" class="col">
-  <h2><span class="num">4</span>Do the parts add up?</h2>
+  <h2><span class="num">6</span>Do the parts add up?</h2>
   <p>Three whole lattice-surgery experiments were rebuilt as logical programs from their calibrated parts (half-memories before and after, each merge's measured channel, idling of patches not in a merge) and simulated by ftsim, then compared with the circuit-level measurement of the same experiment: the CNOT (from a Z⊗Z and an X⊗X merge), three Z⊗Z measurements in a row, and three patches merged at once.</p>
   <figure class="panel"><div id="fig-compose"></div>
     <figcaption><b>Figure 3.</b> Predicted (composed from parts, logical level) against measured (circuit level) observable failure rates over <i>d</i>&nbsp;=&nbsp;3–7 and <i>p</i>&nbsp;=&nbsp;0.1–0.5%. The grey band is ±25%.</figcaption></figure>
@@ -93,7 +147,7 @@
 </section>
 
 <section id="shor" class="col">
-  <h2><span class="num">5</span>Shor's algorithm</h2>
+  <h2><span class="num">7</span>Shor's algorithm</h2>
   <p>The order-finding circuit is made of honest parts: modular addition of a classical constant with a sign flag (Beauregard), controlled modular multiplication with uncomputation by the inverse, and one recycled control qubit read out through a semiclassical approximate QFT whose correction rotations are synthesized into Clifford&nbsp;+&nbsp;T. Every multiplier is the generic circuit, even when its classical constant happens to be 1, so nothing in the circuit uses the period it is meant to find: no “compiled Shor”. Every arithmetic block was verified on every input by an independent bit-level simulator.</p>
   <p>Why not score runs by whether they find the factors? Because for small <i>N</i> almost every outcome does: with the standard classical post-processing, a <em>uniformly random</em> outcome factors 15 with probability <span class="n" data-k="shor.rand15">0.96</span> and 21 with <span class="n" data-k="shor.rand21">0.999</span>, the trap Smolin, Smith and Vargo pointed out. The score used here is the <b>peak probability</b>: the share of runs whose outcome is one of the <i>r</i> ideal peaks. Its random baseline is <i>r</i>/2<sup><i>m</i></sup>, below 1%.</p>
   <figure class="panel"><div class="row"><div id="fig-shor-peak"></div><div id="fig-shor-fac"></div></div>
@@ -111,7 +165,7 @@
 </section>
 
 <section id="chem" class="col">
-  <h2><span class="num">6</span>Molecular energies by phase estimation</h2>
+  <h2><span class="num">8</span>Molecular energies by phase estimation</h2>
   <p>The Hamiltonians are computed from scratch: STO-3G integrals in closed form, restricted Hartree–Fock, Jordan–Wigner and Z₂ tapering, checked against PySCF to 10⁻⁸ hartree. Iterative phase estimation then reads the ground-state energy from 10 bits of a fourth-order Trotterized <i>e</i><sup>−i(H−E<sub>HF</sub>)τ</sup>, each controlled rotation synthesized to Clifford&nbsp;+&nbsp;T. Reaching chemical accuracy (1.6&nbsp;mHa) takes <span class="n" data-k="qpe.H2.t">1.8×10⁷</span> T gates for H₂ alone.</p>
   <figure class="panel"><div id="fig-qpe"></div>
     <figcaption><b>Figure 6.</b> Probability that a run's energy lies within chemical accuracy of the exact (FCI) energy, against distance (<i>p</i>&nbsp;=&nbsp;0.1%). Dashed: noiseless value of the same circuit (limited by the finite number of bits, the Trotter error and the Hartree–Fock overlap).</figcaption></figure>
@@ -122,7 +176,7 @@
 </section>
 
 <section id="scale" class="col">
-  <h2><span class="num">7</span>To cryptographic and chemical scale</h2>
+  <h2><span class="num">9</span>To cryptographic and chemical scale</h2>
   <p>The same measured error model extrapolates. For textbook and modern circuits the gate counts are exact functions of the modulus size and the schedule shape is fitted on compiled instances; for published algorithms, counts and run time come from the papers and only the error model is ours.</p>
   <figure class="panel"><div class="row"><div id="fig-scale-q"></div><div id="fig-scale-t"></div></div>
     <figcaption><b>Figure 8.</b> Shor scaling from simulated sizes to RSA-2048: physical qubits and run time at the smallest distance with ≤&nbsp;0.1 expected faults (<i>p</i>&nbsp;=&nbsp;0.1%, 1&nbsp;µs rounds). Solid: textbook Cuccaro; dashed: modern windowed arithmetic (cuts RSA-2048 runtime from 714 days to 298 days).</figcaption></figure>
@@ -132,11 +186,15 @@
   <p>Compiling Gidney's 2025 RSA-2048 counts under our calibrated SD6 error model requires <b><i>d</i>&nbsp;=&nbsp;29</b> (5.31&nbsp;M physical qubits), whereas Gidney reported <b><i>d</i>&nbsp;=&nbsp;25</b> (898&nbsp;k physical qubits). Our multi-parameter sensitivity campaign shows this is not a modeling artifact: at <i>d</i>&nbsp;=&nbsp;25, circuit-level SD6 noise decodes to an idle logical error rate <b>4.3× higher</b> than Gidney's uncalibrated assumption (4.30&nbsp;×&nbsp;10⁻¹⁵ measured vs. 1.0&nbsp;×&nbsp;10⁻¹⁵ assumed). Feeding Gidney's assumed rate into our compiler reproduces <i>d</i>&nbsp;=&nbsp;25.</p>
   <div class="tablewrap" id="tab-tornado"></div>
 
+  <h3>Biased noise &amp; XZZX surface codes: 3.4×–4.25× footprint reduction</h3>
+  <p>In architectures where phase flips dominate bit flips (such as dual-rail superconducting qubits or Kerr-cat qubits with dephasing bias η = <i>p</i><sub>Z</sub>/<i>p</i><sub>X</sub> &gt;&gt; 1), the <b>XZZX surface code</b> decouples pure dephasing noise into independent 1D repetition codes along diagonals, raising the dephasing threshold to 50%. Matching the suppressed bit-flip rate <i>p</i><sub>X</sub> = <i>p</i>/(2η) requires an asymmetric rectangular patch with distance <i>d</i><sub>Z</sub> substantially smaller than <i>d</i><sub>X</sub> (e.g. <i>d</i><sub>Z</sub> = 7–9 vs. <i>d</i><sub>X</sub> = 33 at <i>p</i> = 0.1%), shrinking the physical qubit footprint by <b>3.4× to 4.25×</b> compared to standard isotropic square codes:</p>
+  <div class="tablewrap" id="tab-biased"></div>
+
   <p class="note">Gidney's estimate stores most qubits in yoked surface codes (430 physical qubits each) and FeMoco's uses a hand-optimized floor plan; with plain patches throughout, our physical-qubit totals are upper bounds on those designs. The distance comparison is the like-for-like test of the error model.</p>
 </section>
 
 <section id="methods" class="col">
-  <h2><span class="num">8</span>How it is checked</h2>
+  <h2><span class="num">10</span>How it is checked</h2>
   <ul class="checks">
     <li><b>Engine.</b> ftsim's dense and sparse backends agree on random circuits; 100 random circuits match Qiskit's statevector to 10⁻¹⁰; noisy outcome distributions match Aer's exact density-matrix results under the same channels, sampled plainly and stratified by fault count; the WebAssembly build returns the same records as the native one.</li>
     <li><b>Programs.</b> Adders, modular adders and multipliers verified on every input; Shor's noiseless outcomes match the exact phase-estimation distribution; every synthesized rotation verified as a matrix; phase estimation matches its exact Trotterized distribution.</li>

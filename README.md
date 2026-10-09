@@ -61,6 +61,17 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 | Gidney 2025 published (assumed model) | 1,409 | 6.50e9 | 25 | 898 k | 4.96 days |
 
 **Headline defensibility (d = 29 vs. d = 25)**: Compiling Gidney's 2025 counts under our measured SD6 model gives d = 29. At d = 25, our circuit-level simulations decoded by correlated matching measure an idle logical error rate of 4.30e-15 per round (1σ: [2.97e-15, 6.25e-15]), which is **4.3× higher** than Gidney's assumed 1.0e-15. Perturbing noise parameters (Λ ± 1σ, prefactor ± 1σ, factory ε_CCZ × 0.1/10×, correlated matching) keeps required distance at d ∈ {29, 31}. Feeding Gidney's assumed error model into our compiler reproduces his published d = 25.
+
+**Biased noise & XZZX surface codes (RSA-2048 Modern, p = 0.1%, target E[faults] ≤ 0.01)**:
+
+| Bias η = p_Z/p_X | XZZX distance (dX × dZ) | Tile qubits | Symmetric distance | Symmetric tile | XZZX physical | Symmetric physical | Qubit savings |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 25 × 21 | 1144 | 25 | 1352 | 19.1 M | 22.5 M | **1.18×** |
+| 10 | 31 × 13 | 896 | 31 | 2048 | 14.9 M | 34.1 M | **2.29×** |
+| 50 | 33 × 11 | 816 | 33 | 2312 | 13.6 M | 38.5 M | **2.83×** |
+| 100 | 33 × 9 | 680 | 33 | 2312 | 11.3 M | 38.5 M | **3.40×** |
+| 500 | 33 × 7 | 544 | 33 | 2312 | 9.06 M | 38.5 M | **4.25×** |
+| 1000 | 33 × 7 | 544 | 33 | 2312 | 9.06 M | 38.5 M | **4.25×** |
 <!-- results:end -->
 
 ## How it is checked

@@ -183,3 +183,45 @@ ul.checks { padding-left: 1.2rem; }
 ul.checks li { margin: 0.35rem 0; }
 footer { padding: 2.5rem 0 4rem; font-size: 0.84rem; color: var(--ink-3); }
 td:first-child { white-space: normal; min-width: 11rem; font-family: var(--sans); font-size: 0.86rem; }
+
+/* Floorplan & Calculator Components ----------------------------------------------------- */
+.calc-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.calc-card {
+  background: var(--paper);
+  border: 1px solid var(--rule-soft);
+  padding: 12px 14px;
+  border-radius: 4px;
+}
+.calc-card.highlight {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.calc-card .card-label {
+  font: 500 0.72rem/1.2 var(--mono);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.calc-card .card-val {
+  font: 600 1.35rem/1.2 var(--mono);
+  color: var(--ink);
+  margin-top: 4px;
+}
+.calc-card .card-sub {
+  font: 400 0.74rem/1.2 var(--sans);
+  color: var(--ink-2);
+  margin-top: 3px;
+}
+.calc-breakdown h4 {
+  margin: 12px 0 6px;
+  font: 600 0.82rem var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+

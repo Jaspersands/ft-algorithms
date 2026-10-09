@@ -119,6 +119,39 @@ def main():
                 })
     out["demo"] = demo
 
+    bx = os.path.join(ROOT, "data", "results", "biased_xzzx.json")
+    if os.path.exists(bx):
+        out["biased_xzzx"] = json.load(open(bx))
+    lih_file = os.path.join(ROOT, "data", "results", "lih.json")
+    if os.path.exists(lih_file):
+        out["lih"] = json.load(open(lih_file))
+    else:
+        import numpy as np
+        from ftalgo.chem.lih import lih_dissociation_curve, lih_problem
+        r_sweep = np.linspace(1.0, 3.0, 15)
+        curve_pts = lih_dissociation_curve(r_sweep)
+        prob = lih_problem(1.595, ncas=2)
+        out["lih"] = {
+            "molecule": "LiH",
+            "r_equilibrium": 1.595,
+            "ncas": 2,
+            "qubits": prob.hamiltonian.n,
+            "terms": len(prob.hamiltonian),
+            "e_hf": prob.e_hf,
+            "e_casci": prob.e_fci,
+            "dissociation_curve": [
+                {
+                    "r_angstrom": round(p.r_angstrom, 4),
+                    "r_bohr": round(p.r_bohr, 4),
+                    "e_hf": p.e_hf,
+                    "e_casci": p.e_casci,
+                    "e_fci": p.e_fci,
+                }
+                for p in curve_pts
+            ],
+            "runs": [],
+        }
+
     # Modern demo: Shor, N = 15, windowed + Gidney MBU
     from ftalgo import arith_modern as am
     os.makedirs(os.path.join(SITE, "demo_modern"), exist_ok=True)
@@ -143,9 +176,54 @@ def main():
                 })
     out["demo_modern"] = demo_mod
 
+    # Chemistry demo: H2 Ground State QPE (m=8 bits)
+    import numpy as np
+    from ftalgo import qpe
+    from ftalgo.chem.qubit import molecule, qubit_problem
+    os.makedirs(os.path.join(SITE, "demo_chem"), exist_ok=True)
+    prob_h2 = qubit_problem(molecule("H2"))
+    c_chem, info_chem = qpe.qpe_circuit(prob_h2.hamiltonian, prob_h2.hf_bits, m=8, tau=2 * math.pi, steps=2, e_ref=prob_h2.e_hf, order=4)
+    M_chem = 1 << info_chem.m
+    y_vals = np.arange(M_chem)
+    phi_vals = np.where(y_vals / M_chem >= 0.5, y_vals / M_chem - 1.0, y_vals / M_chem)
+    e_vals = info_chem.e_ref - 2 * math.pi * phi_vals / info_chem.tau
+    acc_mask = (np.abs(e_vals - prob_h2.e_fci) < qpe.CHEMICAL_ACCURACY).astype(int).tolist()
+    acc4_mask = (np.abs(e_vals - prob_h2.e_fci) < 4 * qpe.CHEMICAL_ACCURACY).astype(int).tolist()
+    demo_chem = {
+        "molecule": "H2",
+        "m": info_chem.m,
+        "tau": info_chem.tau,
+        "e_hf": prob_h2.e_hf,
+        "e_fci": prob_h2.e_fci,
+        "resolution": info_chem.resolution(),
+        "records": info_chem.records,
+        "energies": e_vals.tolist(),
+        "chemical_accuracy": acc_mask,
+        "within_4x": acc4_mask,
+        "logical_qubits": c_chem.num_qubits,
+        "toffoli": c_chem.toffoli_count(),
+        "t": c_chem.t_count(),
+        "configs": [],
+    }
+    for p in DEMO_P:
+        for fac in DEMO_F:
+            for d in DEMO_D:
+                nz = compile_noisy(c_chem, Architecture(model, d, p, FACTORIES[fac]))
+                text = nz.text
+                fname = f"H2-{fac}-p{p}-d{d}.txt.gz"
+                with open(os.path.join(SITE, "demo_chem", fname), "wb") as f:
+                    f.write(gzip.compress(text.encode(), 9, mtime=0))
+                prog = Program(text)
+                demo_chem["configs"].append({
+                    "file": fname, "d": d, "p": p, "factory": fac, "expected_faults": prog.expected_faults,
+                    "p0": float(prog.fault_count_distribution(0)[0]), "rounds": nz.rounds, "qubits": nz.physical_qubits(),
+                    "budget": dict(nz.budget), "extrapolated": bool(nz.arch.extrapolated),
+                })
+    out["demo_chem"] = demo_chem
+
     with open(os.path.join(SITE, "site.json"), "w") as f:
         json.dump(clean(out), f, separators=(",", ":"), allow_nan=False, default=lambda o: float(o) if isinstance(o, (int, float)) else str(o))
-    print("site.json", os.path.getsize(os.path.join(SITE, "site.json")) // 1024, "KiB;", len(demo["configs"]), "demo programs;", len(demo_mod["configs"]), "modern demo programs")
+    print("site.json", os.path.getsize(os.path.join(SITE, "site.json")) // 1024, "KiB;", len(demo["configs"]), "demo programs;", len(demo_mod["configs"]), "modern demo programs;", len(demo_chem["configs"]), "chem demo programs")
 
 
 if __name__ == "__main__":

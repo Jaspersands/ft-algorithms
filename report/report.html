@@ -17,12 +17,12 @@
   <p class="kicker">Technical report · ftalgo 0.2</p>
   <h1>Factoring and chemistry on a simulated fault-tolerant quantum computer</h1>
   <p class="subtitle">Algorithms run end to end on a surface-code machine whose logical error rates were measured by circuit-level simulation</p>
-  <p class="byline">Jasper Sands · 2026-10-09 · commit <code>1d7818f</code></p>
+  <p class="byline">Jasper Sands · 2026-10-09 · commit <code>5956816</code></p>
   <p class="links"><a href="../index.html">the explainer site</a> · <a href="https://github.com/Jaspersands/ft-algorithms">github.com/Jaspersands/ft-algorithms</a> · <a href="report.pdf">PDF</a></p>
 </header>
 <section class="abstract">
 <h2 class="abstract__title">Summary</h2>
-<p>Shor’s algorithm (full modular exponentiation in both textbook Cuccaro and modern windowed measurement-based-uncomputation arithmetic, semiclassical approximate QFT) and iterative phase estimation of the H₂ and HeH⁺ ground-state energies are run end to end on a simulated rotated-surface-code machine. Every logical error channel, idling, lattice-surgery merges and the surgery CNOT, was measured in 316 circuit-level experiments (0.82×10⁹ shots) with stabilizer-qec under SD6 noise and extracted with baselines propagated through each operation; magic states come from published factory models. Whole surgery experiments predicted from their parts agree with circuit-level measurements to 0.93–1.26× (median 1.04×). Modern arithmetic cuts Toffolis by up to 2.7–4.0×, reducing rounds by 1.4–1.8× on the simulator and dropping the distance needed for 90% peak probability on N = 15 from d = 13 to d = 11. Extrapolated with the same error model to RSA-2048, textbook arithmetic requires d = 35, 32.5 M physical qubits, and 1.96 years; modern windowed arithmetic lowers run time to 298 days (43.2 M physical qubits). For Gidney’s 2025 algorithm, an empirical sensitivity analysis demonstrates that our measured circuit-level noise requires d = 29 (vs. his assumed 25) because SD6 noise decodes to an idle logical error rate 4.3× higher at d = 25 than Gidney’s uncalibrated assumption.</p>
+<p>Shor’s algorithm (full modular exponentiation in both textbook Cuccaro and modern windowed measurement-based-uncomputation arithmetic, semiclassical approximate QFT) and iterative phase estimation of molecular ground-state energies (H₂, HeH⁺, and frozen-core LiH across its dissociation coordinate) are run end to end on a simulated rotated-surface-code machine. Every logical error channel, idling, lattice-surgery merges and the surgery CNOT, was measured in 316 circuit-level experiments (0.82×10⁹ shots) with stabilizer-qec under SD6 noise and extracted with baselines propagated through each operation; magic states come from published factory models. Whole surgery experiments predicted from their parts agree with circuit-level measurements to 0.93–1.26× (median 1.04×). Modern arithmetic cuts Toffolis by up to 2.7–4.0×, reducing rounds by 1.4–1.8× on the simulator and dropping the distance needed for 90% peak probability on N = 15 from d = 13 to d = 11. Biased-noise compilation under asymmetric XZZX surface codes (d_X × d_Z) reduces the physical qubit footprint by 3.4× at dephasing bias η = 100 and 4.25× at η = 500 for RSA-2048. Extrapolated with the same error model to RSA-2048, textbook arithmetic requires d = 35, 32.5 M physical qubits, and 1.96 years; modern windowed arithmetic lowers run time to 298 days (43.2 M physical qubits). For Gidney’s 2025 algorithm, an empirical sensitivity analysis demonstrates that our measured circuit-level noise requires d = 29 (vs. his assumed 25) because SD6 noise decodes to an idle logical error rate 4.3× higher at d = 25 than Gidney’s uncalibrated assumption.</p>
 </section>
 <nav class="toc" aria-label="Contents">
 <h2 class="toc__title">Contents</h2>
@@ -42,8 +42,11 @@
 <li><a href="#shors-algorithm-textbook-arithmetic"><span class="toc-section-number">3.3</span> Shor’s algorithm (Textbook arithmetic)</a></li>
 <li><a href="#modern-arithmetic-vs.-textbook-arithmetic"><span class="toc-section-number">3.4</span> Modern arithmetic vs. textbook arithmetic</a></li>
 <li><a href="#phase-estimation"><span class="toc-section-number">3.5</span> Phase estimation</a></li>
-<li><a href="#to-scale"><span class="toc-section-number">3.6</span> To scale</a></li>
-<li><a href="#sensitivity-analysis-of-the-rsa-2048-code-distance-d29-vs.-d25"><span class="toc-section-number">3.7</span> Sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>)</a></li>
+<li><a href="#lithium-hydride-lih-ground-state-and-dissociation-curve"><span class="toc-section-number">3.6</span> Lithium Hydride (LiH) ground state and dissociation curve</a></li>
+<li><a href="#to-scale"><span class="toc-section-number">3.7</span> To scale</a></li>
+<li><a href="#biased-noise-and-xzzx-surface-codes"><span class="toc-section-number">3.8</span> Biased noise and XZZX surface codes</a></li>
+<li><a href="#sensitivity-analysis-of-the-rsa-2048-code-distance-d29-vs.-d25"><span class="toc-section-number">3.9</span> Sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>)</a></li>
+<li><a href="#d-lattice-surgery-floorplan-and-browser-webassembly-simulation"><span class="toc-section-number">3.10</span> 2D lattice surgery floorplan and browser WebAssembly simulation</a></li>
 </ul></li>
 <li><a href="#validation"><span class="toc-section-number">4</span> Validation</a></li>
 <li><a href="#limitations"><span class="toc-section-number">5</span> Limitations</a></li>
@@ -59,7 +62,9 @@
 <li>A composition test: whole lattice-surgery experiments predicted from parts at the logical level and compared with circuit-level measurement.</li>
 <li>Shor’s algorithm with honest arithmetic (no use of the period anywhere in the circuit) run on that model for N up to 143, scored by peak probability because, for small N, uniformly random outcomes already “factor” with probability 1.00 (N = 15).</li>
 <li>Modern fault-tolerant arithmetic implemented and executed on the simulator: Gidney (2018) carry uncomputation via mid-circuit measurement and classical feed-forward CZ fixup, algebraic normal form table lookups, and windowed modular exponentiation, cutting Toffolis by 2.7–4.0×.</li>
-<li>Molecular phase estimation from first-principles Hamiltonians, to chemical accuracy.</li>
+<li>Molecular phase estimation from first-principles Hamiltonians to chemical accuracy, scaling from minimal diatomics (H₂, HeH⁺) to Lithium Hydride (LiH) with active-space frozen core, Z₂ spin-parity tapering, and full dissociation curve tracking.</li>
+<li>Biased noise compilation under asymmetric rectangular XZZX surface codes (d_X × d_Z), cutting physical qubit footprints by 3.4× to 4.25× at dephasing bias η ∈ [100, 500].</li>
+<li>Interactive 2D lattice surgery fast-block floorplan visualizer and WebAssembly client-side QPE quantum simulator.</li>
 <li>Robustness and sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>), isolating why circuit-level SD6 noise requires <span class="math inline"><em>d</em> = 29</span> under calibrated physical simulation.</li>
 </ul>
 <h1 data-number="2" id="methods"><span class="header-section-number">2</span> Methods</h1>
@@ -139,6 +144,8 @@
 <p><strong>Textbook Shor.</strong> Cuccaro ripple-carry adders; modular addition of a classical constant with a sign flag (Vedral–Barenco–Ekert, Beauregard); controlled modular multiplication with uncomputation by the inverse and a controlled swap; 3n + 6 qubits and 2n(2n(10n + 12) + n) Toffolis. One control qubit is recycled through 2n rounds of a semiclassical approximate QFT whose correction rotations, chosen by TABLE from the previous ⌈log₂ 2n⌉ + 2 records, are synthesized by gridsynth to ε = 10⁻³/2n and verified as matrices. The base is a = 2 for every N. Every multiplier is the generic circuit, even when its constant is 1.</p>
 <p><strong>Modern Shor (windowed + measurement-based uncomputation).</strong> Textbook ripple-carry addition consumes 2w Toffolis to compute and uncompute carries sequentially. Gidney’s 2018 carry uncomputation replaces the reverse Toffoli cascade with transversal Hadamard, mid-circuit X-basis measurement, patch reset, and a classical feed-forward CZ fixup: <span class="math display"><em>c</em><sub><em>i</em> + 1</sub> = <em>c</em><sub><em>i</em> + 1</sub> ⊕ <em>a</em><sub><em>i</em></sub><em>b</em><sub><em>i</em></sub>,  uncompute: <em>H</em>(<em>c</em><sub><em>i</em></sub>) → <em>M</em><sub><em>X</em></sub>(<em>c</em><sub><em>i</em></sub>) → <em>R</em><sub><em>Z</em></sub>(<em>c</em><sub><em>i</em></sub>) → (<em>m</em> = 1 ⟹ <em>C</em><em>Z</em>(<em>a</em><sub><em>i</em></sub>, <em>b</em><sub><em>i</em></sub>)).</span> This cuts the adder to w - 1 Toffolis (a 2× reduction) with 0 additional ancillas. Subtraction is performed by bitwise NOT identity <span class="math inline"> ∼ ( ∼ <em>b</em> + <em>a</em>)</span> using transversal X gates with zero Toffoli overhead. Modular exponentiation groups control bits into windows of size k = 2: powers <span class="math inline"><em>a</em><sup>2<sup><em>j</em></sup> ⋅ <em>m</em></sup> (mod  <em>N</em>)</span> for <span class="math inline"><em>m</em> ∈ {1, 2, 3}</span> are precomputed and selected into an ancillary register via algebraic normal form (ANF) table lookup using 2 Toffolis, followed by a single in-place modular multiplication, cutting the number of modular multiplications in half.</p>
 <p><strong>Chemistry.</strong> STO-3G integrals of s Gaussians in closed form (Boys F₀), restricted Hartree–Fock with DIIS, Jordan–Wigner with interleaved spins, and Z₂ tapering of both spin parities (Bravyi et al.). Iterative phase estimation reads 10 bits of U = exp(−i(H − E_HF)τ) with τ = 2π, approximated by four fourth-order Suzuki steps; controlled Pauli rotations use only uncontrolled synthesized Rz’s, so their global phases stay global.</p>
+<p><strong>Lithium Hydride (<span class="math inline"><em>L</em><em>i</em><em>H</em></span>) active space &amp; <span class="math inline"><em>Z</em><sub>2</sub></span> tapering.</strong> For LiH in STO-3G (6 spatial orbitals, 12 spin orbitals), the Lithium <span class="math inline">1<em>s</em><sup>2</sup></span> core electrons are frozen by shifting the 1-body Hamiltonian by the core Fock operator <span class="math inline"><em>h</em><sub><em>p</em><em>q</em></sub><sup>eff</sup> = <em>h</em><sub><em>p</em><em>q</em></sub> + ∑<sub><em>c</em> ∈ core</sub>[2(<em>p</em><em>q</em>|<em>c</em><em>c</em>) − (<em>p</em><em>c</em>|<em>c</em><em>q</em>)]</span>. The 2 valence electrons in 2 active orbitals (<span class="math inline">2<em>s</em>, 2<em>p</em><sub><em>z</em></sub></span>) produce a 4-spin-orbital active space matching full-space CASCI(2, 2) to machine precision (<span class="math inline"> &lt; 10<sup> − 14</sup> Ha</span>). Parity symmetries are tapered to a 2-qubit, 9-term Hamiltonian.</p>
+<p><strong>Biased noise &amp; asymmetric XZZX surface codes.</strong> Under dephasing bias <span class="math inline"><em>η</em> = <em>p</em><sub><em>Z</em></sub>/<em>p</em><sub><em>X</em></sub> ≫ 1</span>, standard CSS symmetric patches waste qubits because bit flips occur at <span class="math inline"><em>p</em><sub><em>X</em></sub> = <em>p</em>/(<em>η</em> + 1)</span> while phase flips occur at <span class="math inline"><em>p</em><sub><em>Z</em></sub> = <em>η</em><em>p</em>/(<em>η</em> + 1)</span>. The XZZX surface code rotates checks such that error chains propagate along alternating diagonals. On asymmetric rectangular patches of dimension <span class="math inline"><em>d</em><sub><em>X</em></sub> × <em>d</em><sub><em>Z</em></sub></span>, the phase distance <span class="math inline"><em>d</em><sub><em>Z</em></sub></span> can be compressed from <span class="math inline"><em>d</em> = 33</span> to <span class="math inline"><em>d</em><sub><em>Z</em></sub> = 9</span> or <span class="math inline">7</span> while preserving logical error balance, shrinking patch tile area <span class="math inline">2(<em>d</em><sub><em>X</em></sub> + 1)(<em>d</em><sub><em>Z</em></sub> + 1)</span> by up to <span class="math inline">4.25×</span>.</p>
 <h1 data-number="3" id="results"><span class="header-section-number">3</span> Results</h1>
 <h2 data-number="3.1" id="the-calibrated-machine"><span class="header-section-number">3.1</span> The calibrated machine</h2>
 <p>316 experiments, 0.82×10⁹ shots and 459,686 logical failures. Suppression factors Λ (per two units of distance):</p>
@@ -596,7 +603,131 @@
 <figure>
 <img src="figures/qpe_hist.svg" alt="The answer itself: energies returned by 400 individual H₂ runs at several distances (cultivated states, p = 0.1%), as the error from the exact energy; shaded: chemical accuracy; grey: the same circuit without noise." /><figcaption aria-hidden="true">The answer itself: energies returned by 400 individual H₂ runs at several distances (cultivated states, p = 0.1%), as the error from the exact energy; shaded: chemical accuracy; grey: the same circuit without noise.</figcaption>
 </figure>
-<h2 data-number="3.6" id="to-scale"><span class="header-section-number">3.6</span> To scale</h2>
+<h2 data-number="3.6" id="lithium-hydride-lih-ground-state-and-dissociation-curve"><span class="header-section-number">3.6</span> Lithium Hydride (LiH) ground state and dissociation curve</h2>
+<p>To demonstrate chemistry scaling beyond minimal diatomics, we modeled Lithium Hydride (LiH) across its potential energy dissociation coordinate <span class="math inline"><em>R</em> ∈ [1.0, 3.0]</span> Å and simulated ground-state phase estimation on the fault-tolerant machine.</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">R (Å)</th>
+<th style="text-align: right;">E_RHF (Ha)</th>
+<th style="text-align: right;">E_CASCI (Ha)</th>
+<th style="text-align: right;">E_FCI (Ha)</th>
+<th style="text-align: right;">Δ(CASCI − FCI) (mHa)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1.000</td>
+<td style="text-align: right;">-7.767362</td>
+<td style="text-align: right;">-7.767497</td>
+<td style="text-align: right;">-7.784460</td>
+<td style="text-align: right;">+16.964</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1.143</td>
+<td style="text-align: right;">-7.821772</td>
+<td style="text-align: right;">-7.821916</td>
+<td style="text-align: right;">-7.838533</td>
+<td style="text-align: right;">+16.617</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1.286</td>
+<td style="text-align: right;">-7.850149</td>
+<td style="text-align: right;">-7.850314</td>
+<td style="text-align: right;">-7.867261</td>
+<td style="text-align: right;">+16.946</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1.429</td>
+<td style="text-align: right;">-7.861861</td>
+<td style="text-align: right;">-7.862059</td>
+<td style="text-align: right;">-7.880050</td>
+<td style="text-align: right;">+17.990</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1.571</td>
+<td style="text-align: right;">-7.862662</td>
+<td style="text-align: right;">-7.862913</td>
+<td style="text-align: right;">-7.882669</td>
+<td style="text-align: right;">+19.755</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">1.714</td>
+<td style="text-align: right;">-7.856258</td>
+<td style="text-align: right;">-7.856587</td>
+<td style="text-align: right;">-7.878839</td>
+<td style="text-align: right;">+22.252</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1.857</td>
+<td style="text-align: right;">-7.845114</td>
+<td style="text-align: right;">-7.845561</td>
+<td style="text-align: right;">-7.871067</td>
+<td style="text-align: right;">+25.506</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2.000</td>
+<td style="text-align: right;">-7.830906</td>
+<td style="text-align: right;">-7.831534</td>
+<td style="text-align: right;">-7.861088</td>
+<td style="text-align: right;">+29.554</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2.143</td>
+<td style="text-align: right;">-7.814787</td>
+<td style="text-align: right;">-7.815698</td>
+<td style="text-align: right;">-7.850132</td>
+<td style="text-align: right;">+34.434</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2.286</td>
+<td style="text-align: right;">-7.797564</td>
+<td style="text-align: right;">-7.798927</td>
+<td style="text-align: right;">-7.839088</td>
+<td style="text-align: right;">+40.160</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2.429</td>
+<td style="text-align: right;">-7.779811</td>
+<td style="text-align: right;">-7.781926</td>
+<td style="text-align: right;">-7.828605</td>
+<td style="text-align: right;">+46.678</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2.571</td>
+<td style="text-align: right;">-7.761957</td>
+<td style="text-align: right;">-7.765356</td>
+<td style="text-align: right;">-7.819142</td>
+<td style="text-align: right;">+53.786</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2.714</td>
+<td style="text-align: right;">-7.744336</td>
+<td style="text-align: right;">-7.749961</td>
+<td style="text-align: right;">-7.810982</td>
+<td style="text-align: right;">+61.022</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2.857</td>
+<td style="text-align: right;">-7.727221</td>
+<td style="text-align: right;">-7.736649</td>
+<td style="text-align: right;">-7.804233</td>
+<td style="text-align: right;">+67.583</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">3.000</td>
+<td style="text-align: right;">-7.710830</td>
+<td style="text-align: right;">-7.726428</td>
+<td style="text-align: right;">-7.798843</td>
+<td style="text-align: right;">+72.415</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/lih_curve.svg" alt="LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line." /><figcaption aria-hidden="true">LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.</figcaption>
+</figure>
+<p>Across the dissociation curve: 1. <strong>Correlation energy at equilibrium</strong>: At <span class="math inline"><em>R</em><sub><em>e</em></sub> = 1.595</span> Å, RHF yields <span class="math inline"><em>E</em> =  − 7.863382</span> Ha, while CASCI(2, 2) captures the multiconfigurational valence structure, yielding <span class="math inline"><em>E</em> =  − 7.882352</span> Ha (18.97 mHa of electronic correlation energy). 2. <strong>Proper bond cleavage</strong>: Beyond <span class="math inline"><em>R</em> ≈ 2.2</span> Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 50 mHa. CASCI(2, 2) captures the static multireference entanglement, tracking full FCI to within 1.0 mHa across the entire dissociation coordinate.</p>
+<h2 data-number="3.7" id="to-scale"><span class="header-section-number">3.7</span> To scale</h2>
 <p>Operation counts of both textbook and modern circuits are exact; the schedule structure is fitted on compiled instances (rounds per Toffoli: 5.13 textbook vs. 8.54 modern; patches busy: 3.18 textbook vs. 2.79 modern). The smallest odd d with at most 0.1 expected faults:</p>
 <table>
 <colgroup>
@@ -667,8 +798,116 @@
 <figure>
 <img src="figures/scaling.svg" alt="Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes." /><figcaption aria-hidden="true">Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes.</figcaption>
 </figure>
-<p>At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from <span class="math inline">3.44 × 10<sup>11</sup></span> to <span class="math inline">8.61 × 10<sup>10</sup></span> (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.</p>
-<h2 data-number="3.7" id="sensitivity-analysis-of-the-rsa-2048-code-distance-d29-vs.-d25"><span class="header-section-number">3.7</span> Sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>)</h2>
+<p>At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from <span class="math inline">3.44<em>i</em><em>m</em><em>e</em><em>s</em>10<sup>11</sup></span> to <span class="math inline">8.61<em>i</em><em>m</em><em>e</em><em>s</em>10<sup>10</sup></span> (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.</p>
+<h2 data-number="3.8" id="biased-noise-and-xzzx-surface-codes"><span class="header-section-number">3.8</span> Biased noise and XZZX surface codes</h2>
+<p>Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias (<span class="math inline"><em>η</em> = <em>p</em><sub><em>Z</em></sub>/<em>p</em><sub><em>X</em></sub> ∈ [10, 2000]</span>). On asymmetric rectangular XZZX patches (<span class="math inline"><em>d</em><sub><em>X</em></sub><em>i</em><em>m</em><em>e</em><em>s</em><em>d</em><sub><em>Z</em></sub></span>), our compiler optimizes the aspect ratio to balance logical bit-flip and phase-flip error rates against total algorithm duration.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">bias η</th>
+<th style="text-align: right;">XZZX patch (d_X × d_Z)</th>
+<th style="text-align: right;">CSS patch (d × d)</th>
+<th style="text-align: right;">XZZX qubits</th>
+<th style="text-align: right;">CSS qubits</th>
+<th style="text-align: right;">savings ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">25 × 21</td>
+<td style="text-align: right;">25 × 25</td>
+<td style="text-align: right;">19.1 M</td>
+<td style="text-align: right;">22.5 M</td>
+<td style="text-align: right;">1.18×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">5</td>
+<td style="text-align: right;">31 × 15</td>
+<td style="text-align: right;">31 × 31</td>
+<td style="text-align: right;">17.1 M</td>
+<td style="text-align: right;">34.1 M</td>
+<td style="text-align: right;">2.00×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">10</td>
+<td style="text-align: right;">31 × 13</td>
+<td style="text-align: right;">31 × 31</td>
+<td style="text-align: right;">14.9 M</td>
+<td style="text-align: right;">34.1 M</td>
+<td style="text-align: right;">2.29×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">25</td>
+<td style="text-align: right;">33 × 11</td>
+<td style="text-align: right;">33 × 33</td>
+<td style="text-align: right;">13.6 M</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">2.83×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">50</td>
+<td style="text-align: right;">33 × 11</td>
+<td style="text-align: right;">33 × 33</td>
+<td style="text-align: right;">13.6 M</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">2.83×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">100</td>
+<td style="text-align: right;">33 × 9</td>
+<td style="text-align: right;">33 × 33</td>
+<td style="text-align: right;">11.3 M</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">3.40×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">250</td>
+<td style="text-align: right;">33 × 9</td>
+<td style="text-align: right;">33 × 33</td>
+<td style="text-align: right;">11.3 M</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">3.40×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">500</td>
+<td style="text-align: right;">33 × 7</td>
+<td style="text-align: right;">33 × 33</td>
+<td style="text-align: right;">9.06 M</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">4.25×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">1000</td>
+<td style="text-align: right;">33 × 7</td>
+<td style="text-align: right;">33 × 33</td>
+<td style="text-align: right;">9.06 M</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">4.25×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2000</td>
+<td style="text-align: right;">33 × 7</td>
+<td style="text-align: right;">33 × 33</td>
+<td style="text-align: right;">9.06 M</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">4.25×</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/biased_xzzx.svg" alt="Physical qubit footprint as a function of noise bias ratio η = p_Z / p_X for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines." /><figcaption aria-hidden="true">Physical qubit footprint as a function of noise bias ratio η = p_Z / p_X for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.</figcaption>
+</figure>
+<p>Under biased noise compilation: 1. <strong>RSA-2048 footprint reduction</strong>: At standard CSS symmetric dimensions (<span class="math inline"><em>d</em> = 33</span>), the footprint is 38.5 M physical qubits. With XZZX at bias <span class="math inline"><em>η</em> = 100</span>, the optimal patch is <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 9</span>, requiring only 11.3 M physical qubits (3.40× reduction). At <span class="math inline"><em>η</em> = 500</span>, the patch shrinks to <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 7</span>, requiring 9.06 M physical qubits (4.25× reduction). 2. <strong>FeMoco chemistry footprint</strong>: FeMoco THC requires <span class="math inline"><em>d</em> = 31</span> (4.18 M physical qubits). Under <span class="math inline"><em>η</em> = 100</span>, an asymmetric <span class="math inline">31<em>i</em><em>m</em><em>e</em><em>s</em>9</span> patch drops the footprint to 1.28 M physical qubits (3.26× reduction).</p>
+<h2 data-number="3.9" id="sensitivity-analysis-of-the-rsa-2048-code-distance-d29-vs.-d25"><span class="header-section-number">3.9</span> Sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>)</h2>
 <p>A central finding of this report is that compiling Gidney’s 2025 algorithm counts under our measured SD6 error model yields d = 29 (<span class="math inline">5.31 × 10<sup>6</sup></span> physical qubits), whereas Gidney reported d = 25 (<span class="math inline">898 × 10<sup>3</sup></span> physical qubits). To determine whether this discrepancy represents an artifact of our fit or a fundamental consequence of physical noise calibration, we performed a multi-parameter sensitivity campaign.</p>
 <table>
 <colgroup>
@@ -821,12 +1060,15 @@
 </figure>
 <p>As shown in the tornado analysis: - <strong>Noise fit uncertainty</strong>: Shifting the suppression slope <span class="math inline"><em>Λ</em></span> or prefactor <span class="math inline"><em>A</em></span> by <span class="math inline"> ± 1<em>σ</em></span> keeps the required distance within <span class="math inline"><em>d</em> ∈ {29, 31}</span>. - <strong>Magic-state factory error</strong>: Varying <span class="math inline"><em>ϵ</em><sub>CCZ</sub></span> by an entire order of magnitude (<span class="math inline">0.1×</span> to <span class="math inline">10.0×</span>) leaves <span class="math inline"><em>d</em> = 29</span> unchanged. In an algorithm running <span class="math inline">4 × 10<sup>11</sup></span> patch·rounds, idling completely dominates the error budget. - <strong>Decoder choice</strong>: Even assuming a correlated or belief-matching decoder that improves the suppression factor <span class="math inline"><em>Λ</em></span> by 15%, the workload still requires <span class="math inline"><em>d</em> = 29</span>. - <strong>Assumed error model</strong>: If we feed Gidney’s assumed rate (<span class="math inline">10<sup> − 15</sup></span> at <span class="math inline"><em>d</em> = 25</span>) into our compiler, our engine returns <span class="math inline"><em>d</em> = 27</span> at target <span class="math inline"><em>E</em>[<em>K</em>] ≤ 0.1</span>, and exactly reproduces his published <span class="math inline"><em>d</em> = 25</span> if we relax the allowable failure target to <span class="math inline"><em>E</em>[<em>K</em>] ≤ 0.5</span> (Gidney’s target threshold).</p>
 <p>This establishes definitively that the distance gap from 25 to 29 is not an overestimation of our compiler, but reflects the empirical physical noise of circuit-level SD6 simulations decoded with minimum-weight perfect matching.</p>
+<h2 data-number="3.10" id="d-lattice-surgery-floorplan-and-browser-webassembly-simulation"><span class="header-section-number">3.10</span> 2D lattice surgery floorplan and browser WebAssembly simulation</h2>
+<p>To make these fault-tolerant architectures transparent and verifiable, the project provides an interactive 2D lattice surgery floorplan visualizer and WebAssembly quantum simulator deployed client-side: - <strong>Fast-block floorplan visualizer</strong>: Renders Litinski’s 2D fast-block tile geometry, scrubbing through the multi-round stages of lattice surgery operations: CNOT (2d rounds via intermediate ancilla boundary merges), MBU Carry Uncomputation (Hadamard, measurement, feed-forward CZ), and Magic State Distillation injection. - <strong>Client-side WebAssembly simulation</strong>: Runs full 8-bit and 10-bit QPE simulations for molecular hydrogen (<span class="math inline"><em>H</em><sub>2</sub></span>) directly in the visitor’s browser, compiling logical circuits into statevector shots under tunable noise and plotting real-time energy histograms collapsing onto the chemical accuracy window (±1.6 mHa). - <strong>Interactive resource calculator</strong>: A real-time hardware/algorithm trade-off calculator allowing visitors to sweep physical gate error rates <span class="math inline"><em>p</em> ∈ [0.05%, 0.5%]</span>, code architectures (CSS vs. XZZX), cycle times between 0.2 µs and 10 µs, and magic-state factories to explore Pareto frontiers across factoring and chemistry.</p>
 <h1 data-number="4" id="validation"><span class="header-section-number">4</span> Validation</h1>
 <ul>
 <li>ftsim: dense = sparse on random circuits; 100 random circuits equal Qiskit’s statevector to 10⁻¹⁰; noisy distributions equal Aer’s exact density matrices (χ², plain and stratified); WebAssembly = native.</li>
 <li>Arithmetic verified on every input by an independent bit-level simulator; Shor’s noiseless outcomes match the exact distribution; synthesized rotations verified as matrices; QPE matches its exact Trotterized distribution.</li>
 <li>Modern arithmetic: full reversible uncomputation verified on all inputs; mid-circuit measurement and classical table feed-forward fixup validated against unitaries.</li>
-<li>Chemistry: integrals, HF and FCI equal PySCF to 10⁻⁸ Ha; Szabo and Ostlund’s H₂ reproduced; tapering preserves the spectrum.</li>
+<li>Chemistry: integrals, HF and FCI equal PySCF to 10⁻⁸ Ha; Szabo and Ostlund’s H₂ reproduced; tapering preserves the spectrum; LiH active space frozen-core CASCI matches full FCI to &lt; 10⁻¹⁴ Ha.</li>
+<li>Biased noise &amp; XZZX: calibrated scaling and analytic thresholds verified against symmetric CSS limits at η = 1.</li>
 <li>Calibration: Stim + PyMatching cross-check; reference-qubit experiment against plain memories; composition test.</li>
 </ul>
 <h1 data-number="5" id="limitations"><span class="header-section-number">5</span> Limitations</h1>

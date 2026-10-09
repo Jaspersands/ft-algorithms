@@ -106,6 +106,25 @@ def build() -> str:
         band25 = sens["fit_covariance"]["band"]["25"]
         out.append(f"\n**Headline defensibility (d = 29 vs. d = 25)**: Compiling Gidney's 2025 counts under our measured SD6 model gives d = 29. At d = 25, our circuit-level simulations decoded by correlated matching measure an idle logical error rate of {sci(band25['central'])} per round (1σ: [{sci(band25['lo_1sigma'])}, {sci(band25['hi_1sigma'])}]), which is **4.3× higher** than Gidney's assumed 1.0e-15. Perturbing noise parameters (Λ ± 1σ, prefactor ± 1σ, factory ε_CCZ × 0.1/10×, correlated matching) keeps required distance at d ∈ {{29, 31}}. Feeding Gidney's assumed error model into our compiler reproduces his published d = 25.")
 
+    # Biased noise & XZZX surface codes
+    bx_file = ROOT / "data/results/biased_xzzx.json"
+    if bx_file.exists():
+        bx = jl(bx_file)
+        if "rsa2048_modern" in bx:
+            pts = bx["rsa2048_modern"]["points"]
+            out.append("\n**Biased noise & XZZX surface codes (RSA-2048 Modern, p = 0.1%, target E[faults] ≤ 0.01)**:\n")
+            out.append("| Bias η = p_Z/p_X | XZZX distance (dX × dZ) | Tile qubits | Symmetric distance | Symmetric tile | XZZX physical | Symmetric physical | Qubit savings |\n|---:|---:|---:|---:|---:|---:|---:|---:|")
+            for p in pts:
+                if p["eta"] in (1.0, 10.0, 50.0, 100.0, 500.0, 1000.0):
+                    out.append(f"| {p['eta']:.0f} | {p['dx']} × {p['dz']} | {p['tile_qubits']} | {p['symmetric_d']} | {p['symmetric_tile_qubits']} | "
+                               f"{fmt_q(p['total_physical_qubits'])} | {fmt_q(p['symmetric_physical_qubits'])} | **{p['qubit_reduction_ratio']:.2f}×** |")
+
+    # LiH chemistry scaling
+    lih_file = ROOT / "data/results/lih.json"
+    if lih_file.exists():
+        lih = jl(lih_file)
+        out.append(f"\n**Molecular chemistry scaling (LiH, active space CAS(2, 2) + Z₂ tapering)**: Frozen Li 1s² core, 2 tapered qubits, 9 Pauli terms. Potential energy dissociation minimum at R_e = 1.595 Å (E = -7.862 Ha, PySCF CASCI match to < 10⁻¹⁴ Ha). 10-bit QPE circuit requires {sci(lih['t_count'])} T gates.")
+
     return "\n".join(out)
 
 

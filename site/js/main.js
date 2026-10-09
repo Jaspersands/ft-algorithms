@@ -1,5 +1,7 @@
 import { plot, stacked, fmtSci, cssVar } from "./plot.js";
 import { initDemo } from "./demo.js";
+import { initFloorplan } from "./floorplan.js";
+import { initCalculator } from "./calculator.js";
 
 const P_COLORS = { 0.001: "var(--s1)", 0.002: "var(--s2)", 0.003: "var(--s3)", 0.005: "var(--s4)" };
 const N_COLORS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)", "var(--s6)", "var(--s7)"];
@@ -344,6 +346,37 @@ function opsTable() {
   table($("tab-ops"), ["operation", "rounds", "logical channel"], rows);
 }
 
+function biasedTable(bx) {
+  const container = $("tab-biased");
+  if (!container || !bx || !bx.rsa2048_modern) return;
+  const pts = bx.rsa2048_modern.points;
+  const rows = pts.map((p) => [
+    p.eta === 1 ? "1 (isotropic)" : `${p.eta}`,
+    `${p.dx} × ${p.dz}`,
+    p.tile_qubits,
+    `${p.symmetric_d} × ${p.symmetric_d}`,
+    p.symmetric_tile_qubits,
+    `${(p.total_physical_qubits / 1e6).toFixed(2)} M`,
+    `${(p.symmetric_physical_qubits / 1e6).toFixed(2)} M`,
+    `<b>${p.qubit_reduction_ratio.toFixed(2)}×</b>`,
+  ]);
+  table(
+    container,
+    [
+      "bias η = p_Z/p_X",
+      "XZZX distance (dX × dZ)",
+      "tile qubits",
+      "symmetric distance",
+      "symmetric tile",
+      "XZZX physical qubits",
+      "symmetric physical qubits",
+      "footprint savings",
+    ],
+    rows,
+    (r, i) => pts[i].eta === 100 || pts[i].eta === 500
+  );
+}
+
 async function main() {
   const data = await (await fetch("data/site.json")).json();
   const cal = data.calibration;
@@ -366,8 +399,12 @@ async function main() {
   qpeHist(data.qpe_hist);
   scaleFigures(data.scaling);
   sensitivityTable(data.sensitivity);
+  biasedTable(data.biased_xzzx);
   opsTable();
-  initDemo(data.demo, data.demo_modern);
+  initFloorplan();
+  initCalculator();
+  initDemo(data.demo, data.demo_modern, data.demo_chem);
 }
 
 main();
+
