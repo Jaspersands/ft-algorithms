@@ -39,6 +39,10 @@
   <p>Below, the engine of this project, compiled to WebAssembly, runs Shor's algorithm for <span class="n">N&nbsp;=&nbsp;15</span> on a simulated machine: <span class="n" data-k="demo.qubits">18</span> logical qubits, <span class="n" data-k="demo.toffoli">3,360</span> Toffoli gates and <span class="n" data-k="demo.t">223</span> T gates, every one of them carrying the logical error channel measured for that code distance and noise strength. Pick a distance and press run: below a certain distance the outcomes smear into noise; above it they land on the four peaks that reveal the period.</p>
   <div class="demo" id="demo-widget">
     <div class="bar">
+      <label>arithmetic <select id="demo-arith">
+        <option value="textbook">Textbook (Cuccaro)</option>
+        <option value="modern">Modern (Windowed + MBU)</option>
+      </select></label>
       <label>distance <span class="seg" id="demo-d"></span></label>
       <label>physical error <span class="seg" id="demo-p"></span></label>
       <label>magic states <select id="demo-f"></select></label>
@@ -59,7 +63,7 @@
   <div class="stack">
     <div><span class="layer">Physical</span><span class="what">Rotated surface code under standard circuit-level noise (SD6) at strength <i>p</i>; memory, lattice-surgery merges and CNOTs simulated qubit by qubit and decoded by correlated matching.<span class="tool">stabilizer-qec · <span data-k="cal.experiments">300</span> experiments · <span data-k="cal.shots">billions of</span> shots</span></span></div>
     <div><span class="layer">Logical</span><span class="what">Each operation's logical <b>Pauli channel</b>, extracted by dividing out matched baselines, fitted in distance and noise, with its uncertainty. Magic states from published factory models <span class="dagger">†</span>.<span class="tool">ftalgo.calib</span></span></div>
-    <div><span class="layer">Program</span><span class="what">Shor's algorithm with the <b>full modular exponentiation</b> in Toffoli arithmetic; phase estimation of H₂ and HeH⁺ Hamiltonians computed from scratch; rotations synthesized to Clifford&nbsp;+&nbsp;T.<span class="tool">ftalgo.shor · ftalgo.qpe · ftalgo.chem</span></span></div>
+    <div><span class="layer">Program</span><span class="what">Shor's algorithm with the <b>full modular exponentiation</b> in both textbook and modern Toffoli arithmetic; phase estimation of H₂ and HeH⁺ Hamiltonians computed from scratch; rotations synthesized to Clifford&nbsp;+&nbsp;T.<span class="tool">ftalgo.shor · ftalgo.arith_modern · ftalgo.qpe · ftalgo.chem</span></span></div>
     <div><span class="layer">Machine</span><span class="what">Every operation scheduled with its duration; every patch that waits accumulates idle error; feed-forward waits for the decoder.<span class="tool">ftalgo.schedule</span></span></div>
     <div><span class="layer">Run</span><span class="what">State-vector Monte Carlo with Pauli faults, <b>stratified by the exact number of faults</b> so a success probability of 0.999 is resolved as well as one of 0.5.<span class="tool">ftsim (Rust; native, Python and WebAssembly)</span></span></div>
   </div>
@@ -90,11 +94,16 @@
 
 <section id="shor" class="col">
   <h2><span class="num">5</span>Shor's algorithm</h2>
-  <p>The order-finding circuit is the textbook one, made of honest parts: Cuccaro ripple-carry adders, modular addition of a classical constant with a sign flag (Vedral–Barenco–Ekert, Beauregard), controlled modular multiplication with uncomputation by the inverse, and one recycled control qubit read out through a semiclassical approximate QFT whose correction rotations are synthesized into Clifford&nbsp;+&nbsp;T. Every multiplier is the generic circuit, even when its classical constant happens to be 1, so nothing in the circuit uses the period it is meant to find: no “compiled Shor”. Every arithmetic block was verified on every input by an independent bit-level simulator.</p>
+  <p>The order-finding circuit is made of honest parts: modular addition of a classical constant with a sign flag (Beauregard), controlled modular multiplication with uncomputation by the inverse, and one recycled control qubit read out through a semiclassical approximate QFT whose correction rotations are synthesized into Clifford&nbsp;+&nbsp;T. Every multiplier is the generic circuit, even when its classical constant happens to be 1, so nothing in the circuit uses the period it is meant to find: no “compiled Shor”. Every arithmetic block was verified on every input by an independent bit-level simulator.</p>
   <p>Why not score runs by whether they find the factors? Because for small <i>N</i> almost every outcome does: with the standard classical post-processing, a <em>uniformly random</em> outcome factors 15 with probability <span class="n" data-k="shor.rand15">0.96</span> and 21 with <span class="n" data-k="shor.rand21">0.999</span>, the trap Smolin, Smith and Vargo pointed out. The score used here is the <b>peak probability</b>: the share of runs whose outcome is one of the <i>r</i> ideal peaks. Its random baseline is <i>r</i>/2<sup><i>m</i></sup>, below 1%.</p>
   <figure class="panel"><div class="row"><div id="fig-shor-peak"></div><div id="fig-shor-fac"></div></div>
     <figcaption><b>Figure 4.</b> Left: peak probability against distance for each <i>N</i> (<i>p</i>&nbsp;=&nbsp;0.1%, cultivated magic states); faint lines are each instance's noiseless value. Right: the same runs scored by whether they found the factors, with each <i>N</i>'s random-outcome baseline: the noisy runs look successful long before they are. Open markers: beyond the measured distance range (channels extrapolated). Error bars 2σ.</figcaption></figure>
   <div class="tablewrap" id="tab-shor"></div>
+
+  <h3>Modern arithmetic: measurement-based uncomputation &amp; windowing</h3>
+  <p>Replacing textbook reversible adders with Gidney (2018) carry uncomputation (transversal Hadamard, mid-circuit X measurement, patch reset, and classical feed-forward CZ fixup) cuts Toffolis in half per adder with zero ancilla overhead. Combining this with <i>k</i>&nbsp;=&nbsp;2 windowed modular exponentiation cuts Toffoli volume by 2.6–3.0× across the simulated moduli and reduces circuit duration:</p>
+  <div class="tablewrap" id="tab-shor-mod"></div>
+
   <h3>Which magic states, and what fails</h3>
   <p>Each Toffoli consumes a |CCZ⟩ state and each rotation's T gates a |T⟩ state. Their error sets a floor no distance can lower: with injected states (error ≈ <i>p</i>, distilled once into |CCZ⟩) the peak probability of <span data-k="shor.factN">N = 35</span> saturates at <span class="n" data-k="shor.inj">—</span>; distilled and cultivated states lower the floor below what the distances shown can resolve.</p>
   <figure class="panel"><div class="row"><div id="fig-shor-fact"></div><div id="fig-shor-budget"></div></div>
@@ -114,10 +123,15 @@
 
 <section id="scale" class="col">
   <h2><span class="num">7</span>To cryptographic and chemical scale</h2>
-  <p>The same measured error model extrapolates. For the textbook circuit the gate counts are exact functions of the modulus size and the schedule's shape is fitted on the compiled instances; for published algorithms, counts and run time come from the papers and only the error model is ours.</p>
+  <p>The same measured error model extrapolates. For textbook and modern circuits the gate counts are exact functions of the modulus size and the schedule shape is fitted on compiled instances; for published algorithms, counts and run time come from the papers and only the error model is ours.</p>
   <figure class="panel"><div class="row"><div id="fig-scale-q"></div><div id="fig-scale-t"></div></div>
-    <figcaption><b>Figure 8.</b> Textbook Shor from the simulated sizes to RSA-2048: physical qubits and run time at the smallest distance with ≤&nbsp;0.1 expected faults (<i>p</i>&nbsp;=&nbsp;0.1%, 1&nbsp;µs rounds). With 15-to-1 distilled states the Toffoli count outruns the factory's error floor beyond <span class="n" data-k="scale.distill_max">n = 256</span>.</figcaption></figure>
+    <figcaption><b>Figure 8.</b> Shor scaling from simulated sizes to RSA-2048: physical qubits and run time at the smallest distance with ≤&nbsp;0.1 expected faults (<i>p</i>&nbsp;=&nbsp;0.1%, 1&nbsp;µs rounds). Solid: textbook Cuccaro; dashed: modern windowed arithmetic (cuts RSA-2048 runtime from 714 days to 298 days).</figcaption></figure>
   <div class="tablewrap" id="tab-scale"></div>
+
+  <h3>Headline sensitivity: why Gidney 2025 needs d = 29 under measured noise</h3>
+  <p>Compiling Gidney's 2025 RSA-2048 counts under our calibrated SD6 error model requires <b><i>d</i>&nbsp;=&nbsp;29</b> (5.31&nbsp;M physical qubits), whereas Gidney reported <b><i>d</i>&nbsp;=&nbsp;25</b> (898&nbsp;k physical qubits). Our multi-parameter sensitivity campaign shows this is not a modeling artifact: at <i>d</i>&nbsp;=&nbsp;25, circuit-level SD6 noise decodes to an idle logical error rate <b>4.3× higher</b> than Gidney's uncalibrated assumption (4.30&nbsp;×&nbsp;10⁻¹⁵ measured vs. 1.0&nbsp;×&nbsp;10⁻¹⁵ assumed). Feeding Gidney's assumed rate into our compiler reproduces <i>d</i>&nbsp;=&nbsp;25.</p>
+  <div class="tablewrap" id="tab-tornado"></div>
+
   <p class="note">Gidney's estimate stores most qubits in yoked surface codes (430 physical qubits each) and FeMoco's uses a hand-optimized floor plan; with plain patches throughout, our physical-qubit totals are upper bounds on those designs. The distance comparison is the like-for-like test of the error model.</p>
 </section>
 
@@ -126,13 +140,14 @@
   <ul class="checks">
     <li><b>Engine.</b> ftsim's dense and sparse backends agree on random circuits; 100 random circuits match Qiskit's statevector to 10⁻¹⁰; noisy outcome distributions match Aer's exact density-matrix results under the same channels, sampled plainly and stratified by fault count; the WebAssembly build returns the same records as the native one.</li>
     <li><b>Programs.</b> Adders, modular adders and multipliers verified on every input; Shor's noiseless outcomes match the exact phase-estimation distribution; every synthesized rotation verified as a matrix; phase estimation matches its exact Trotterized distribution.</li>
+    <li><b>Modern arithmetic.</b> Full reversible uncomputation verified on all inputs; mid-circuit X measurements, patch resets, and classical feed-forward CZ fixups match unitaries.</li>
     <li><b>Chemistry.</b> Integrals, Hartree–Fock and FCI energies equal PySCF's to 10⁻⁸; Szabo &amp; Ostlund's H₂ and HeH⁺ reproduced; tapering preserves the spectrum.</li>
-    <li><b>Calibration.</b> stabilizer-qec against Stim + PyMatching; the reference-qubit experiment against plain memories; composition (Section 4).</li>
+    <li><b>Calibration.</b> stabilizer-qec against Stim + PyMatching; the reference-qubit experiment against plain memories; composition (Section 4); sensitivity analysis across physical noise bounds.</li>
   </ul>
   <h3>Assumptions</h3>
   <div class="tablewrap" id="tab-ops"></div>
   <p class="note"><span class="dagger">†</span> Cited inputs, not measured here: magic-state error rates and factory footprints (<span data-k="fac.sources">Litinski 2019; Gidney, Shutty &amp; Jones 2024; Gidney 2025</span>), operation durations of H and S in the fast-block layout, 1&nbsp;µs per round and 10&nbsp;µs decoder reaction time.</p>
-  <p>Everything reproduces from the repository: <code>python tools/calibrate.py</code>, <code>tools/fit_model.py</code>, <code>tools/run_shor.py</code>, <code>tools/run_qpe.py</code>, <code>tools/scale.py</code>; every dataset records its seed.</p>
+  <p>Everything reproduces from the repository: <code>python tools/calibrate.py</code>, <code>tools/fit_model.py</code>, <code>tools/run_shor.py</code>, <code>tools/run_shor_modern.py</code>, <code>tools/run_qpe.py</code>, <code>tools/scale.py</code>, <code>tools/sensitivity.py</code>; every dataset records its seed.</p>
 </section>
 </main>
 <footer class="page"><div class="col">Fault-tolerant algorithms · numbers on this page are read from the committed data at load time.</div></footer>

@@ -56,6 +56,26 @@ def fit_structure(model: LogicalModel, Ns=(77, 143, 391, 899)) -> Structure:
     return Structure(*mean)
 
 
+def fit_modern_structure(model: LogicalModel, Ns=(15, 21, 35)) -> Structure:
+    from . import arith_modern as am
+    from .schedule import compile_noisy
+
+    rows = []
+    for N in Ns:
+        c, info = am.order_finding_modern(N)
+        r = []
+        for d in (11, 21):
+            nz = compile_noisy(c, Architecture(model, d, 0.001, FACTORIES["cultivation"]))
+            r.append((nz.rounds, nz.idle_qubit_rounds))
+        R1 = (r[1][0] - r[0][0]) / 10
+        cnt = c.counts()
+        tof = c.toffoli_count()
+        Q = c.num_qubits
+        rows.append((R1 / tof, cnt["CX"] / tof, Q - r[1][1] / r[1][0], (cnt["T"] + cnt["T_DAG"]) / info.n, (cnt["S"] + cnt["S_DAG"]) / info.n))
+    mean = [sum(x[i] for x in rows) / len(rows) for i in range(5)]
+    return Structure(*mean)
+
+
 @dataclass
 class Workload:
     name: str
@@ -73,6 +93,22 @@ def textbook_shor(n: int, st: Structure) -> Workload:
     tof = textbook_toffolis(n)
     return Workload(f"Shor, textbook arithmetic, n = {n}", 3 * n + 6, tof, st.cx_per_toffoli * tof, st.t_per_n * n, st.s_per_n * n,
                     st.rounds_per_toffoli * tof, None, "this work: exact counts from the generator, schedule shape fitted on compiled instances")
+
+
+def modern_shor(n: int, st: Structure, k: int = 2) -> Workload:
+    from . import arith_modern as am
+    tof = am.modern_toffolis(n, k=k)
+    return Workload(
+        f"Shor, modern windowed arithmetic (k={k}), n = {n}",
+        4 * n + 7,
+        tof,
+        st.cx_per_toffoli * tof,
+        st.t_per_n * n,
+        st.s_per_n * n,
+        st.rounds_per_toffoli * tof,
+        None,
+        "this work: modern windowed arithmetic (k=2) with Gidney carry uncomputation",
+    )
 
 
 GIDNEY_2025 = Workload(

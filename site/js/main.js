@@ -29,6 +29,7 @@ function fitValue(fit, d) {
 }
 
 function table(container, head, rows, highlight = () => false) {
+  if (!container) return;
   const t = document.createElement("table");
   t.innerHTML = `<thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead>`;
   const tb = document.createElement("tbody");
@@ -188,6 +189,28 @@ function shorFigures(shor) {
   stacked($("fig-shor-budget"), brs, BUDGET_COLORS, { width: 420, labelW: 52, noteW: 92 });
 }
 
+function shorModernTable(shor, shorMod) {
+  if (!shorMod || !shorMod.baselines) return;
+  const baseTb = Object.fromEntries(shor.baselines.map((b) => [b.N, b]));
+  const baseMod = Object.fromEntries(shorMod.baselines.map((b) => [b.N, b]));
+  const rows = [];
+  for (const N of [15, 21, 35]) {
+    if (!baseTb[N] || !baseMod[N]) continue;
+    const bTb = baseTb[N], bMod = baseMod[N];
+    const rsTb = shor.runs.filter((r) => r.N === N && r.factory === "cultivation" && r.p === 0.001);
+    const rsMod = shorMod.runs.filter((r) => r.N === N && r.factory === "cultivation" && r.p === 0.001);
+    const hitTb = rsTb.find((r) => r.scores[0] >= 0.9 * bTb.noiseless[0]);
+    const hitMod = rsMod.find((r) => r.scores[0] >= 0.9 * bMod.noiseless[0]);
+    const d11Tb = rsTb.find((r) => r.d === 11);
+    const d11Mod = rsMod.find((r) => r.d === 11);
+    rows.push([`${N} (Textbook Cuccaro)`, bTb.logical_qubits, fmtInt(bTb.toffoli), d11Tb ? fmtInt(d11Tb.rounds) : "—",
+      d11Tb ? d11Tb.scores[0].toFixed(3) : "—", hitTb ? hitTb.d : "—", hitTb ? fmtQ(hitTb.physical_qubits.total) : "—", hitTb ? fmtTime(hitTb.seconds) : "—"]);
+    rows.push([`${N} (Modern windowed + MBU)`, bMod.logical_qubits, fmtInt(bMod.toffoli), d11Mod ? fmtInt(d11Mod.rounds) : "—",
+      d11Mod ? d11Mod.scores[0].toFixed(3) : "—", hitMod ? hitMod.d : "—", hitMod ? fmtQ(hitMod.physical_qubits.total) : "—", hitMod ? fmtTime(hitMod.seconds) : "—"]);
+  }
+  table($("tab-shor-mod"), ["N / Arithmetic", "logical qubits", "Toffolis", "rounds (d = 11)", "peak (d = 11)", "d for 90%", "physical qubits", "run time"], rows, (r, i) => i % 2 === 1);
+}
+
 // -- chemistry -------------------------------------------------------------------------------
 function qpeFigures(q) {
   if (!q || !q.runs.length) return;
@@ -259,8 +282,13 @@ function scaleFigures(sc) {
   const sq = [], st = [];
   for (const f of ["cultivation", "15to1"]) {
     const rows = sc.textbook.filter((r) => r.factory === f && r.d);
-    sq.push({ label: `textbook arithmetic, ${F_LABEL[f]}`, color: F_COLORS[f], points: rows.map((r) => ({ x: r.n, y: r.physical_qubits, title: `n = ${r.n}: d = ${r.d}` })) });
-    st.push({ label: `textbook arithmetic, ${F_LABEL[f]}`, color: F_COLORS[f], points: rows.map((r) => ({ x: r.n, y: r.seconds, title: `n = ${r.n}: d = ${r.d}` })) });
+    sq.push({ label: `textbook, ${F_LABEL[f]}`, color: F_COLORS[f], points: rows.map((r) => ({ x: r.n, y: r.physical_qubits, title: `n = ${r.n}: d = ${r.d}` })) });
+    st.push({ label: `textbook, ${F_LABEL[f]}`, color: F_COLORS[f], points: rows.map((r) => ({ x: r.n, y: r.seconds, title: `n = ${r.n}: d = ${r.d}` })) });
+    if (sc.modern) {
+      const mrows = sc.modern.filter((r) => r.factory === f && r.d);
+      sq.push({ label: `modern, ${F_LABEL[f]}`, color: F_COLORS[f], dash: true, points: mrows.map((r) => ({ x: r.n, y: r.physical_qubits, title: `n = ${r.n}: d = ${r.d}` })) });
+      st.push({ label: `modern, ${F_LABEL[f]}`, color: F_COLORS[f], dash: true, points: mrows.map((r) => ({ x: r.n, y: r.seconds, title: `n = ${r.n}: d = ${r.d}` })) });
+    }
     const lastOk = Math.max(...rows.map((r) => r.n));
     if (f === "15to1") setK("scale.distill_max", `n = ${lastOk}`);
   }
@@ -277,12 +305,28 @@ function scaleFigures(sc) {
   const rows = [];
   const n = 2048;
   if (tb) rows.push(["RSA-2048, textbook arithmetic (this work)", fmtInt(3 * n + 6), fmtSci(2 * n * (2 * n * (10 * n + 12) + n)), "—", "—", tb.d, fmtQ(tb.physical_qubits), fmtTime(tb.seconds)]);
+  if (sc.modern) {
+    const mod = sc.modern.find((r) => r.n === 2048 && r.factory === "cultivation");
+    if (mod) rows.push(["RSA-2048, modern arithmetic (k=2, MBU, this work)", fmtInt(2 * n + 2 * 2 + 20), fmtSci(86107386880.0), "—", "—", mod.d, fmtQ(mod.physical_qubits), fmtTime(mod.seconds)]);
+  }
   const pubs = { "RSA-2048, Gidney 2025": { d: 25, q: "898 k", t: "4.96 days" }, "FeMoco (THC), Lee et al. 2021": { d: 31, q: "≈ 4 M", t: "< 4 days" } };
   for (const p of sc.published) {
     const pub = pubs[p.name] || {};
     rows.push([p.name, fmtInt(p.logical_qubits), fmtSci(p.toffolis), pub.d ?? "—", pub.q ?? "—", p.estimate.d, fmtQ(p.estimate.physical_qubits), fmtTime(p.estimate.seconds)]);
   }
-  table($("tab-scale"), ["workload", "logical qubits", "Toffolis", "published d", "published qubits", "our d", "our qubits", "run time"], rows);
+  table($("tab-scale"), ["workload", "logical qubits", "Toffolis", "published d", "published qubits", "our d", "our qubits", "run time"], rows, (r) => r[0].includes("modern"));
+}
+
+function sensitivityTable(sens) {
+  if (!sens || !sens.experiments) return;
+  const rows = sens.experiments.map((e) => [
+    e.category,
+    e.name,
+    e.d,
+    fmtQ(e.physical_qubits),
+    `${e.delta_d >= 0 ? "+" : ""}${e.delta_d}`
+  ]);
+  table($("tab-tornado"), ["category", "scenario", "required d", "physical qubits", "Δd vs baseline"], rows, (r) => r[0] === "Assumed Model");
 }
 
 function opsTable() {
@@ -317,11 +361,13 @@ async function main() {
   xcheckTable(data.xcheck);
   figCompose(data.composition);
   shorFigures(data.shor);
+  shorModernTable(data.shor, data.shor_modern);
   qpeFigures(data.qpe);
   qpeHist(data.qpe_hist);
   scaleFigures(data.scaling);
+  sensitivityTable(data.sensitivity);
   opsTable();
-  initDemo(data.demo);
+  initDemo(data.demo, data.demo_modern);
 }
 
 main();

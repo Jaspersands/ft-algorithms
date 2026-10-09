@@ -1,0 +1,226 @@
+{
+ "baseline": {
+  "workload": "RSA-2048, Gidney 2025",
+  "d": 29,
+  "physical_qubits": 5305796.88024958,
+  "rounds": 400032000000.0,
+  "expected_faults": 0.0696590431959713
+ },
+ "fit_covariance": {
+  "channel": "idle_xy",
+  "p": 0.001,
+  "n_points": 5,
+  "a": -1.9909860917662598,
+  "b": -2.391405187338343,
+  "se_a": 0.13575986191836018,
+  "se_b": 0.038364979610959596,
+  "cov_ab": -0.004942575343677992,
+  "lambda": 10.928840226224057,
+  "lambda_lo": 10.51749654231822,
+  "lambda_hi": 11.35627173346394,
+  "band": {
+   "3": {
+    "central": 0.0011433457271675155,
+    "lo_1sigma": 0.0010687828788327408,
+    "hi_1sigma": 0.001223110397557923,
+    "lo_2sigma": 0.0009990826177449293,
+    "hi_2sigma": 0.0013084397912785622
+   },
+   "5": {
+    "central": 0.0001046172973069938,
+    "lo_1sigma": 0.00010001705996846256,
+    "hi_1sigma": 0.0001094291203847728,
+    "lo_2sigma": 9.561910450984585e-05,
+    "hi_2sigma": 0.00011446226098773966
+   },
+   "7": {
+    "central": 9.572589144085175e-06,
+    "lo_1sigma": 9.111218998713813e-06,
+    "hi_1sigma": 1.0057321960364794e-05,
+    "lo_2sigma": 8.672085513438914e-06,
+    "hi_2sigma": 1.0566600476834978e-05
+   },
+   "9": {
+    "central": 8.759016460974038e-07,
+    "lo_1sigma": 8.116623300399256e-07,
+    "hi_1sigma": 9.45225206642771e-07,
+    "lo_2sigma": 7.521343759783037e-07,
+    "hi_2sigma": 1.0200354060911485e-06
+   },
+   "11": {
+    "central": 8.014589178416693e-08,
+    "lo_1sigma": 7.179507117516445e-08,
+    "hi_1sigma": 8.946803540604865e-08,
+    "lo_2sigma": 6.431436634242084e-08,
+    "hi_2sigma": 9.987448116460158e-08
+   },
+   "13": {
+    "central": 7.333430640870256e-09,
+    "lo_1sigma": 6.336364330759208e-09,
+    "hi_1sigma": 8.487391531984564e-09,
+    "lo_2sigma": 5.474860934575234e-09,
+    "hi_2sigma": 9.822935341576341e-09
+   },
+   "15": {
+    "central": 6.71016364872229e-10,
+    "lo_1sigma": 5.587090130094696e-10,
+    "hi_1sigma": 8.05898869432967e-10,
+    "lo_2sigma": 4.6519843264546256e-10,
+    "hi_2sigma": 9.678944087704939e-10
+   },
+   "17": {
+    "central": 6.139868009618317e-11,
+    "lo_1sigma": 4.924162595271542e-11,
+    "hi_1sigma": 7.655713727189698e-11,
+    "lo_2sigma": 3.949169139578749e-11,
+    "hi_2sigma": 9.545800102032492e-11
+   },
+   "19": {
+    "central": 5.618041697494608e-12,
+    "lo_1sigma": 4.338771319025046e-12,
+    "hi_1sigma": 7.274500127810471e-12,
+    "lo_2sigma": 3.350800434106688e-12,
+    "hi_2sigma": 9.419359086123114e-12
+   },
+   "21": {
+    "central": 5.140565312698012e-13,
+    "lo_1sigma": 3.822361209390289e-13,
+    "hi_1sigma": 6.913373772524541e-13,
+    "lo_2sigma": 2.8421864768377665e-13,
+    "hi_2sigma": 9.297564374986078e-13
+   },
+   "23": {
+    "central": 4.703669562633995e-14,
+    "lo_1sigma": 3.367060232671771e-14,
+    "hi_1sigma": 6.57086770820658e-14,
+    "lo_2sigma": 2.4102659550113147e-14,
+    "hi_2sigma": 9.179280530619125e-14
+   },
+   "25": {
+    "central": 4.3039055062287465e-15,
+    "lo_1sigma": 2.965775454336075e-15,
+    "hi_1sigma": 6.245787279500181e-15,
+    "lo_2sigma": 2.0436842846137675e-15,
+    "hi_2sigma": 9.063827884768841e-15
+   },
+   "27": {
+    "central": 3.9381173273092647e-16,
+    "lo_1sigma": 2.612177665892077e-16,
+    "hi_1sigma": 5.937103086882536e-16,
+    "lo_2sigma": 1.7326736587727681e-16,
+    "hi_2sigma": 8.95077270040461e-16
+   },
+   "29": {
+    "central": 3.6034174219691145e-17,
+    "lo_1sigma": 2.3006474329629482e-17,
+    "hi_1sigma": 5.643896987826581e-17,
+    "lo_2sigma": 1.4688774546432133e-17,
+    "hi_2sigma": 8.839823278589615e-17
+   },
+   "31": {
+    "central": 3.2971636032546377e-18,
+    "lo_1sigma": 2.0262095518457194e-18,
+    "hi_1sigma": 5.3653324340141455e-18,
+    "lo_2sigma": 1.2451687698900528e-18,
+    "hi_2sigma": 8.73077456607511e-18
+   },
+   "33": {
+    "central": 3.0169382432209056e-19,
+    "lo_1sigma": 1.7844666293648588e-19,
+    "hi_1sigma": 5.100636915047534e-19,
+    "lo_2sigma": 1.0554810521799738e-19,
+    "hi_2sigma": 8.62347679724794e-19
+   },
+   "35": {
+    "central": 2.7605291877007023e-20,
+    "lo_1sigma": 1.5715361173097528e-20,
+    "hi_1sigma": 4.849090843163536e-20,
+    "lo_2sigma": 8.946566401154693e-21,
+    "hi_2sigma": 8.517816841066482e-20
+   }
+  }
+ },
+ "experiments": [
+  {
+   "category": "Idle Slope",
+   "name": "Lambda +1sigma (Lambda = 11.36)",
+   "param": "slope",
+   "value": "+1sigma",
+   "d": 31,
+   "physical_qubits": 6031444.88024958,
+   "delta_d": 2
+  },
+  {
+   "category": "Idle Slope",
+   "name": "Lambda -1sigma (Lambda = 10.52)",
+   "param": "slope",
+   "value": "-1sigma",
+   "d": 29,
+   "physical_qubits": 5305796.88024958,
+   "delta_d": 0
+  },
+  {
+   "category": "Idle Prefactor",
+   "name": "Prefactor A -1sigma (0.87x)",
+   "param": "prefactor",
+   "value": "-1sigma",
+   "d": 29,
+   "physical_qubits": 5305796.88024958,
+   "delta_d": 0
+  },
+  {
+   "category": "Idle Prefactor",
+   "name": "Prefactor A +1sigma (1.15x)",
+   "param": "prefactor",
+   "value": "+1sigma",
+   "d": 29,
+   "physical_qubits": 5305796.88024958,
+   "delta_d": 0
+  },
+  {
+   "category": "Decoder",
+   "name": "Correlated / Belief-matching (+15% Lambda)",
+   "param": "decoder",
+   "value": "correlated",
+   "d": 29,
+   "physical_qubits": 5305796.88024958,
+   "delta_d": 0
+  },
+  {
+   "category": "Magic States",
+   "name": "epsilon_CCZ 0.1x",
+   "param": "eps_ccz",
+   "value": "0.1x",
+   "d": 29,
+   "physical_qubits": 5305796.88024958,
+   "delta_d": 0
+  },
+  {
+   "category": "Magic States",
+   "name": "epsilon_CCZ 10.0x",
+   "param": "eps_ccz",
+   "value": "10.0x",
+   "d": 29,
+   "physical_qubits": 5305796.88024958,
+   "delta_d": 0
+  },
+  {
+   "category": "Assumed Model",
+   "name": "Gidney assumed model (target E[faults] <= 0.1)",
+   "param": "assumed_model",
+   "value": "target_0.1",
+   "d": 27,
+   "physical_qubits": 4626964.88024958,
+   "delta_d": -2
+  },
+  {
+   "category": "Assumed Model",
+   "name": "Gidney assumed model (target E[faults] <= 0.5, Gidney's target)",
+   "param": "assumed_model",
+   "value": "target_0.5",
+   "d": 27,
+   "physical_qubits": 4626964.88024958,
+   "delta_d": -2
+  }
+ ]
+}

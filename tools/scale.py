@@ -16,13 +16,21 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "data", "results", "scaling.
 
 model = LogicalModel.load()
 st = scale.fit_structure(model)
-print("structure", st)
+st_mod = scale.fit_modern_structure(model)
+print("textbook structure", st)
+print("modern structure", st_mod)
 rows = []
+rows_mod = []
 for factory in ("cultivation", "15to1"):
     for n in (4, 5, 6, 8, 10, 16, 32, 64, 128, 256, 512, 1024, 2048):
         e = scale.estimate(scale.textbook_shor(n, st), model, factory=factory)
         rows.append({"kind": "textbook_shor", "n": n, "factory": factory, **dataclasses.asdict(e)})
-        print(factory, n, e.d, f"{e.physical_qubits:.3g} qubits", f"{e.seconds:.3g} s", "extrap" if e.extrapolated else "")
+        print(f"textbook {factory} n={n}: d={e.d}, {e.physical_qubits:.3g} qubits, {e.seconds:.3g} s")
+
+        e_mod = scale.estimate(scale.modern_shor(n, st_mod), model, factory=factory)
+        rows_mod.append({"kind": "modern_shor", "n": n, "factory": factory, **dataclasses.asdict(e_mod)})
+        print(f"modern   {factory} n={n}: d={e_mod.d}, {e_mod.physical_qubits:.3g} qubits, {e_mod.seconds:.3g} s")
+
 published = []
 for w in (scale.GIDNEY_2025, scale.FEMOCO_THC):
     e = scale.estimate(w, model)
@@ -30,4 +38,12 @@ for w in (scale.GIDNEY_2025, scale.FEMOCO_THC):
     print(w.name, e.d, f"{e.physical_qubits:.3g} qubits", f"{e.seconds / 86400:.2f} days")
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w") as f:
-    json.dump({"structure": dataclasses.asdict(st), "target_expected_faults": 0.1, "p": 1e-3, "textbook": rows, "published": published}, f, indent=1)
+    json.dump({
+        "structure": dataclasses.asdict(st),
+        "structure_modern": dataclasses.asdict(st_mod),
+        "target_expected_faults": 0.1,
+        "p": 1e-3,
+        "textbook": rows,
+        "modern": rows_mod,
+        "published": published
+    }, f, indent=1)

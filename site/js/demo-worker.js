@@ -20,6 +20,7 @@ self.onmessage = async (ev) => {
       if (prog) prog.free();
       const t0 = performance.now();
       prog = engine.program(text);
+      if (msg.records) records = msg.records;
       self.postMessage({ type: "loaded", key: msg.key, parseMs: performance.now() - t0, expectedFaults: prog.expectedFaults });
     } else if (msg.type === "run") {
       const t0 = performance.now();

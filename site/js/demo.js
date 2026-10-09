@@ -1,5 +1,5 @@
 // The browser demo: Shor's algorithm for N = 15 on the simulated machine at a chosen distance,
-// physical error rate and magic-state source.
+// physical error rate, magic-state source, and arithmetic variant (Textbook vs Modern).
 import { cssVar } from "./plot.js";
 
 const SHOTS = 500;
@@ -55,10 +55,29 @@ export function explain(y, m, N, a) {
   return { text: `y = ${y} → no order found`, ok: false };
 }
 
-export function initDemo(demo) {
+export function initDemo(demo_tb, demo_mod) {
   const $ = (id) => document.getElementById(id);
-  const state = { d: 13, p: 0.001, f: "cultivation" };
-  const cfgOf = () => demo.configs.find((c) => c.d === state.d && c.p === state.p && c.factory === state.f);
+  const state = { arith: "textbook", d: 13, p: 0.001, f: "cultivation" };
+  const curDemo = () => (state.arith === "modern" && demo_mod ? demo_mod : demo_tb);
+  const cfgOf = () => curDemo().configs.find((c) => c.d === state.d && c.p === state.p && c.factory === state.f) || curDemo().configs[0];
+
+  function updateHeaderCounts() {
+    const cd = curDemo();
+    document.querySelectorAll('[data-k="demo.qubits"]').forEach((e) => (e.textContent = cd.logical_qubits));
+    document.querySelectorAll('[data-k="demo.toffoli"]').forEach((e) => (e.textContent = cd.toffoli.toLocaleString("en-US")));
+    document.querySelectorAll('[data-k="demo.t"]').forEach((e) => (e.textContent = cd.t.toLocaleString("en-US")));
+  }
+
+  const arithSel = $("demo-arith");
+  if (arithSel) {
+    arithSel.value = state.arith;
+    arithSel.onchange = () => {
+      state.arith = arithSel.value;
+      updateHeaderCounts();
+      refresh();
+    };
+  }
+
   const seg = (container, values, label, key) => {
     container.innerHTML = "";
     for (const v of values) {
@@ -69,8 +88,8 @@ export function initDemo(demo) {
       container.appendChild(b);
     }
   };
-  const ds = [...new Set(demo.configs.map((c) => c.d))].sort((a, b) => a - b);
-  const ps = [...new Set(demo.configs.map((c) => c.p))].sort();
+  const ds = [...new Set(demo_tb.configs.map((c) => c.d))].sort((a, b) => a - b);
+  const ps = [...new Set(demo_tb.configs.map((c) => c.p))].sort();
   seg($("demo-d"), ds, String, "d");
   seg($("demo-p"), ps, (p) => `${(p * 100).toFixed(1)}%`, "p");
   const sel = $("demo-f");
@@ -86,13 +105,14 @@ export function initDemo(demo) {
   const worker = new Worker(new URL("./demo-worker.js", import.meta.url), { type: "module" });
   const runBtn = $("demo-run");
   let ready = false, loadedKey = null, busy = false;
-  let counts = new Array(1 << demo.m).fill(0), total = 0, nextShot = 0;
+  let counts = new Array(1 << demo_tb.m).fill(0), total = 0, nextShot = 0;
   const log = $("demo-log");
 
   function key() { return cfgOf().file; }
 
   function drawHist() {
-    const M = 1 << demo.m;
+    const cd = curDemo();
+    const M = 1 << cd.m;
     const W = 640, H = 220, L = 40, B = 26, T = 8;
     const iw = W - L - 8, ih = H - B - T;
     const maxc = Math.max(1, ...counts) / Math.max(total, 1);
@@ -105,7 +125,7 @@ export function initDemo(demo) {
       s += `<text x="${L - 6}" y="${y + 3.5}" text-anchor="end" style="font:400 10.5px var(--mono);fill:${cssVar("var(--ink-3)")}">${t.toFixed(2)}</text>`;
     }
     for (let y = 0; y < M; y++) {
-      const ideal = demo.ideal[y];
+      const ideal = cd.ideal[y];
       if (ideal > 0.002) {
         const hh = (ideal / ymax) * ih;
         s += `<rect x="${L + y * bw - 1}" y="${T + ih - hh}" width="${bw + 2}" height="${hh}" fill="none" stroke="${cssVar("var(--ink-3)")}" stroke-dasharray="2 2"/>`;
@@ -113,7 +133,7 @@ export function initDemo(demo) {
       if (!counts[y]) continue;
       const v = counts[y] / total;
       const hh = (v / ymax) * ih;
-      s += `<rect x="${L + y * bw}" y="${T + ih - hh}" width="${Math.max(bw, 1.2)}" height="${hh}" fill="${cssVar(demo.peaks[y] ? "var(--accent)" : "var(--ink-2)")}"><title>y = ${y}: ${counts[y]} shots</title></rect>`;
+      s += `<rect x="${L + y * bw}" y="${T + ih - hh}" width="${Math.max(bw, 1.2)}" height="${hh}" fill="${cssVar(cd.peaks[y] ? "var(--accent)" : "var(--ink-2)")}"><title>y = ${y}: ${counts[y]} shots</title></rect>`;
     }
     s += `<line x1="${L}" x2="${L + iw}" y1="${T + ih}" y2="${T + ih}" stroke="${cssVar("var(--ink)")}"/>`;
     for (const y of [0, 64, 128, 192, 255]) s += `<text x="${L + (y + 0.5) * bw}" y="${H - 9}" text-anchor="middle" style="font:400 10.5px var(--mono);fill:${cssVar("var(--ink-3)")}">${y}</text>`;
@@ -122,14 +142,16 @@ export function initDemo(demo) {
   }
 
   function drawStats(lastMs) {
+    const cd = curDemo();
     const c = cfgOf();
-    const peak = total ? counts.reduce((a, n, y) => a + (demo.peaks[y] ? n : 0), 0) / total : NaN;
-    const fac = total ? counts.reduce((a, n, y) => a + (demo.factors[y] ? n : 0), 0) / total : NaN;
+    const peak = total ? counts.reduce((a, n, y) => a + (cd.peaks[y] ? n : 0), 0) / total : NaN;
+    const fac = total ? counts.reduce((a, n, y) => a + (cd.factors[y] ? n : 0), 0) / total : NaN;
     const fmt = (x) => (Number.isFinite(x) ? `${(100 * x).toFixed(1)}%` : "—");
     const q = c.qubits.total;
-    const randPeak = demo.peaks.reduce((a, b) => a + b, 0) / demo.peaks.length;
-    const randFac = demo.factors.reduce((a, b) => a + b, 0) / demo.factors.length;
+    const randPeak = cd.peaks.reduce((a, b) => a + b, 0) / cd.peaks.length;
+    const randFac = cd.factors.reduce((a, b) => a + b, 0) / cd.factors.length;
     $("demo-stats").innerHTML = `
+      <dt>arithmetic</dt><dd>${state.arith === "modern" ? "Modern (Windowed + MBU)" : "Textbook (Cuccaro)"}</dd>
       <dt>on a peak</dt><dd>${fmt(peak)} <small>ideal 100%, random ${(100 * randPeak).toFixed(1)}%</small></dd>
       <dt>factors found</dt><dd>${fmt(fac)} <small>random outcomes: ${(100 * randFac).toFixed(0)}%</small></dd>
       <dt>expected faults per run</dt><dd>${c.expected_faults < 0.01 ? c.expected_faults.toExponential(1) : c.expected_faults.toPrecision(3)}</dd>
@@ -142,7 +164,7 @@ export function initDemo(demo) {
   function refresh() {
     document.querySelectorAll("#demo-d button").forEach((b) => b.classList.toggle("on", +b.dataset.v === state.d));
     document.querySelectorAll("#demo-p button").forEach((b) => b.classList.toggle("on", +b.dataset.v === state.p));
-    counts = new Array(1 << demo.m).fill(0);
+    counts = new Array(1 << curDemo().m).fill(0);
     total = 0;
     nextShot = 0;
     drawHist();
@@ -153,8 +175,15 @@ export function initDemo(demo) {
   function load() {
     busy = true;
     runBtn.disabled = true;
-    log.textContent = `Fetching and parsing the noisy program (d = ${state.d}, p = ${(state.p * 100).toFixed(1)}%, ${F_LABEL[state.f]} magic states)…`;
-    worker.postMessage({ type: "load", url: new URL(`../data/demo/${key()}`, import.meta.url).href, key: key() });
+    const cd = curDemo();
+    const folder = state.arith === "modern" ? "demo_modern" : "demo";
+    log.textContent = `Fetching and parsing the noisy program (${state.arith === "modern" ? "modern" : "textbook"}, d = ${state.d}, p = ${(state.p * 100).toFixed(1)}%, ${F_LABEL[state.f]} magic states)…`;
+    worker.postMessage({
+      type: "load",
+      url: new URL(`../data/${folder}/${key()}`, import.meta.url).href,
+      key: `${state.arith}:${key()}`,
+      records: cd.records,
+    });
   }
 
   worker.onmessage = (ev) => {
@@ -166,16 +195,17 @@ export function initDemo(demo) {
       loadedKey = m.key;
       busy = false;
       runBtn.disabled = false;
-      log.textContent = `Program ready (parsed in ${m.parseMs.toFixed(0)} ms). Press run.`;
+      log.textContent = `Program ready (${state.arith === "modern" ? "modern" : "textbook"} parsed in ${m.parseMs.toFixed(0)} ms). Press run.`;
     } else if (m.type === "result") {
-      if (m.key !== key()) return;
+      if (m.key !== `${state.arith}:${key()}`) return;
       for (const y of m.ys) counts[y]++;
       total += m.ys.length;
       nextShot += m.ys.length;
       drawHist();
       drawStats(m.ms);
+      const cd = curDemo();
       const lines = m.ys.slice(0, 14).map((y, i) => {
-        const e = explain(y, demo.m, demo.N, demo.a);
+        const e = explain(y, cd.m, cd.N, cd.a);
         return `<div class="${e.ok ? "ok" : "bad"}">shot ${m.firstShot + i}: ${e.text}</div>`;
       });
       log.innerHTML = lines.join("");
@@ -189,12 +219,13 @@ export function initDemo(demo) {
   };
 
   runBtn.onclick = () => {
-    if (busy || loadedKey !== key()) return;
+    if (busy || loadedKey !== `${state.arith}:${key()}`) return;
     busy = true;
     runBtn.disabled = true;
-    worker.postMessage({ type: "run", shots: SHOTS, seed: 2026, firstShot: nextShot, key: key() });
+    worker.postMessage({ type: "run", shots: SHOTS, seed: 2026, firstShot: nextShot, key: `${state.arith}:${key()}` });
   };
 
-  worker.postMessage({ type: "init", wasm: new URL("../wasm/ftsim.wasm", import.meta.url).href, records: demo.records });
+  updateHeaderCounts();
+  worker.postMessage({ type: "init", wasm: new URL("../wasm/ftsim.wasm", import.meta.url).href, records: demo_tb.records });
   refresh();
 }

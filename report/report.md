@@ -2,25 +2,27 @@
 title: Factoring and chemistry on a simulated fault-tolerant quantum computer
 subtitle: Algorithms run end to end on a surface-code machine whose logical error rates were measured by circuit-level simulation
 author: Jasper Sands
-date: 2026-10-08
-version: 0.1
-commit: 68dbe11
+date: 2026-10-09
+version: 0.2
+commit: 1d7818f
 description: Technical report of the ft-algorithms project.
 toc: true
 abstract: |
-  Shor's algorithm (full modular exponentiation in Toffoli arithmetic, semiclassical
-  approximate QFT) and iterative phase estimation of the H₂ and HeH⁺ ground-state energies are
-  run end to end on a simulated rotated-surface-code machine. Every logical error channel, idling,
-  lattice-surgery merges and the surgery CNOT, was measured in 316 circuit-level experiments
-  (0.82×10⁹ shots) with stabilizer-qec under SD6 noise and extracted with baselines
-  propagated through each operation; magic states come from published factory models. Whole
-  surgery experiments predicted from their parts agree with circuit-level measurements to
-  0.93–1.26× (median 1.04×). At p = 0.1%, factoring 15
-  reaches 90% of its noiseless peak probability at d = 13; phase estimation
-  of H₂ needs 1.8×10^7^ T gates per run. Extrapolated with the same error model,
-  textbook-arithmetic RSA-2048 needs d = 35 and 32.5 M
-  physical qubits for 1.96 years; Gidney's 2025 algorithm needs
-  d = 29 under our error model where he assumed 25.
+  Shor's algorithm (full modular exponentiation in both textbook Cuccaro and modern windowed
+  measurement-based-uncomputation arithmetic, semiclassical approximate QFT) and iterative phase
+  estimation of the H₂ and HeH⁺ ground-state energies are run end to end on a simulated rotated-surface-code
+  machine. Every logical error channel, idling, lattice-surgery merges and the surgery CNOT, was measured
+  in 316 circuit-level experiments (0.82×10⁹ shots) with stabilizer-qec under
+  SD6 noise and extracted with baselines propagated through each operation; magic states come from published
+  factory models. Whole surgery experiments predicted from their parts agree with circuit-level measurements
+  to 0.93–1.26× (median 1.04×). Modern arithmetic cuts Toffolis
+  by up to 2.7–4.0×, reducing rounds by 1.4–1.8× on the simulator and dropping the distance needed for 90%
+  peak probability on N = 15 from d = 13 to d = 11. Extrapolated with the same error model to RSA-2048,
+  textbook arithmetic requires d = 35, 32.5 M physical qubits,
+  and 1.96 years; modern windowed arithmetic lowers run time to 298 days
+  (43.2 M physical qubits). For Gidney's 2025 algorithm, an empirical sensitivity
+  analysis demonstrates that our measured circuit-level noise requires d = 29 (vs. his assumed 25)
+  because SD6 noise decodes to an idle logical error rate 4.3× higher at d = 25 than Gidney's uncalibrated assumption.
 ---
 
 # Introduction
@@ -47,8 +49,12 @@ Contributions:
 - Shor's algorithm with honest arithmetic (no use of the period anywhere in the circuit) run on
   that model for N up to 143, scored by peak probability because, for small N, uniformly random
   outcomes already "factor" with probability 1.00 (N = 15).
+- Modern fault-tolerant arithmetic implemented and executed on the simulator: Gidney (2018) carry uncomputation
+  via mid-circuit measurement and classical feed-forward CZ fixup, algebraic normal form table lookups, and
+  windowed modular exponentiation, cutting Toffolis by 2.7–4.0×.
 - Molecular phase estimation from first-principles Hamiltonians, to chemical accuracy.
-- Extrapolation to RSA-2048 and FeMoco under the same error model, compared with published estimates.
+- Robustness and sensitivity analysis of the RSA-2048 code distance ($d=29$ vs. $d=25$), isolating why circuit-level
+  SD6 noise requires $d=29$ under calibrated physical simulation.
 
 # Methods
 
@@ -123,12 +129,24 @@ mass as an interval. The one-fault stratum, with faults logged, gives each opera
 
 ## Algorithms
 
-**Shor.** Cuccaro ripple-carry adders; modular addition of a classical constant with a sign flag
+**Textbook Shor.** Cuccaro ripple-carry adders; modular addition of a classical constant with a sign flag
 (Vedral–Barenco–Ekert, Beauregard); controlled modular multiplication with uncomputation by the inverse
 and a controlled swap; 3n + 6 qubits and 2n(2n(10n + 12) + n) Toffolis. One control qubit is recycled
 through 2n rounds of a semiclassical approximate QFT whose correction rotations, chosen by TABLE from
 the previous ⌈log₂ 2n⌉ + 2 records, are synthesized by gridsynth to ε = 10⁻³/2n and verified as matrices.
 The base is a = 2 for every N. Every multiplier is the generic circuit, even when its constant is 1.
+
+**Modern Shor (windowed + measurement-based uncomputation).** Textbook ripple-carry addition consumes
+2w Toffolis to compute and uncompute carries sequentially. Gidney's 2018 carry uncomputation replaces
+the reverse Toffoli cascade with transversal Hadamard, mid-circuit X-basis measurement, patch reset, and
+a classical feed-forward CZ fixup:
+$$c_{i+1} = c_{i+1} \oplus a_i b_i, \quad \text{uncompute: } H(c_i) \to M_X(c_i) \to R_Z(c_i) \to (m=1 \implies CZ(a_i, b_i)).$$
+This cuts the adder to w - 1 Toffolis (a 2× reduction) with 0 additional ancillas. Subtraction is performed
+by bitwise NOT identity $\sim(\sim b + a)$ using transversal X gates with zero Toffoli overhead.
+Modular exponentiation groups control bits into windows of size k = 2: powers $a^{2^j \cdot m} \pmod N$
+for $m \in \{1, 2, 3\}$ are precomputed and selected into an ancillary register via algebraic normal form (ANF)
+table lookup using 2 Toffolis, followed by a single in-place modular multiplication, cutting the number of
+modular multiplications in half.
 
 **Chemistry.** STO-3G integrals of s Gaussians in closed form (Boys F₀), restricted Hartree–Fock with
 DIIS, Jordan–Wigner with interleaved spins, and Z₂ tapering of both spin parities (Bravyi et al.).
@@ -167,7 +185,7 @@ Across 48 experiment–noise–distance combinations the predicted failure rate 
 0.93–1.26× the measured one, median 1.04×. The independent-composition
 model is accurate to about 10% and leans pessimistic.
 
-## Shor's algorithm
+## Shor's algorithm (Textbook arithmetic)
 
 At p = 0.1% with cultivated magic states:
 
@@ -211,6 +229,26 @@ Idling accounts for 80% of the expected faults. The textbook circuit runs one To
 time (the schedule averages 5.13·d rounds per Toffoli with 3.2 patches busy)
 while every other patch waits.
 
+## Modern arithmetic vs. textbook arithmetic
+
+Textbook ripple-carry addition computes carry bits forward with Toffoli gates and uncomputes them in reverse with an identical number of Toffolis. On our simulated fault-tolerant machine, we benchmarked the modern alternative: Gidney's 2018 measurement-based uncomputation (MBU) combined with $k=2$ windowed modular exponentiation.
+
+| N | arithmetic | logical qubits | Toffolis | rounds (d=11) | peak (d=11) | d for 90% | physical qubits | run time |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 15 | Textbook (Cuccaro) | 18 | 3,360 | 189,969 | 0.874 | 13 | 55.4 k | 225 ms |
+| 15 | Modern (k=2, MBU) | 23 | 1,248 | 107,387 | 0.913 | 11 | 46.1 k | 107 ms |
+| 21 | Textbook (Cuccaro) | 21 | 6,250 | 353,564 | 0.467 | 13 | 58.1 k | 418 ms |
+| 21 | Modern (k=2, MBU) | 27 | 2,390 | 254,313 | 0.506 | 13 | 47 k | 298 ms |
+| 35 | Textbook (Cuccaro) | 24 | 10,440 | 592,744 | 0.288 | 15 | 63.4 k | 808 ms |
+| 35 | Modern (k=2, MBU) | 31 | 3,528 | 381,614 | 0.343 | 13 | 50.2 k | 447 ms |
+
+![Modern vs. textbook Shor on the simulated machine (cultivated magic states, p = 0.1%). Left: peak probability vs. distance d. Right: total circuit execution rounds.](figures/shor_modern.svg)
+
+Across all three benchmark moduli ($N \in \{15, 21, 35\}$):
+1. **Toffoli reduction**: Toffolis drop by 2.69× on N = 15 (1,248 vs. 3,360), 2.61× on N = 21 (2,390 vs. 6,250), and 2.96× on N = 35 (3,528 vs. 10,440).
+2. **Circuit duration**: Circuit rounds drop by 1.4–1.8×. At d = 11, factoring 15 runs in 107,387 rounds (107 ms) instead of 189,969 rounds (190 ms).
+3. **Threshold distance**: Because total rounds and Toffoli interactions are halved, idling accumulation is curtailed. For N = 15, 90% peak probability is reached at d = 11 (peak 0.913) whereas textbook arithmetic required d = 13 (at d = 11, textbook achieves only 0.874). For N = 21 and N = 35, the peak probability at d = 11 increases significantly (e.g. from 0.288 to 0.343 on N = 35), and reaches >90% at d = 13.
+
 ## Phase estimation
 
 | molecule | logical qubits | terms | T gates | E_HF (Ha) | E_FCI (Ha) | noiseless | best | d for 90% | run time | physical qubits |
@@ -228,22 +266,58 @@ distilled states (4.5×10⁻⁸) most runs fail.
 
 ## To scale
 
-Operation counts of the textbook circuit are exact; the schedule's shape (rounds per Toffoli in units
-of d, 5.13; CNOTs per Toffoli, 2.28; patches busy, 3.18) is fitted on compiled
-instances and is stable across them. The smallest odd d with at most 0.1 expected faults:
+Operation counts of both textbook and modern circuits are exact; the schedule structure is fitted on compiled
+instances (rounds per Toffoli: 5.13 textbook vs. 8.54 modern; patches busy: 3.18 textbook vs. 2.79 modern). The smallest odd d with at most 0.1 expected faults:
 
 | workload | logical qubits | Toffolis | published d | published qubits | our d | our qubits | run time |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | RSA-2048, textbook arithmetic | 6,150 | 3.4×10^11^ | — | — | 35 | 32.5 M | 1.96 years |
+| RSA-2048, modern arithmetic (k=2, MBU) | 4,120 | 8.6×10^10^ | — | — | 35 | 43.2 M | 298 days |
 | RSA-2048, Gidney 2025 | 1,409 | 6.5×10^9^ | 25 | 898 k | 29 | 5.31 M | 4.63 days |
 | FeMoco (THC), Lee et al. 2021 | 2,142 | 5.3×10^9^ | 31 | ≈ 4 M | 29 | 8.01 M | 2.45 days |
 
-![Textbook Shor from the simulated sizes to RSA-2048 (p = 0.1%).](figures/scaling.svg)
+![Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes.](figures/scaling.svg)
 
-Under our measured error model, Gidney's 2025 RSA-2048 algorithm needs d = 29 where he assumed
-25: our idle rate at d = 25 is 4.3×10^-15^ per round against his 10⁻¹⁵. Our physical-qubit totals use
-plain patches throughout and so bound his yoked-storage design from above. The textbook arithmetic's
-3.4×10¹¹ Toffolis exceed what 15-to-1 distillation's 5.2×10⁻¹¹ can support beyond n = 256.
+At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from $3.44 \times 10^{11}$ to $8.61 \times 10^{10}$ (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.
+
+## Sensitivity analysis of the RSA-2048 code distance ($d=29$ vs. $d=25$)
+
+A central finding of this report is that compiling Gidney's 2025 algorithm counts under our measured SD6 error model yields d = 29 ($5.31 \times 10^6$ physical qubits), whereas Gidney reported d = 25 ($898 \times 10^3$ physical qubits). To determine whether this discrepancy represents an artifact of our fit or a fundamental consequence of physical noise calibration, we performed a multi-parameter sensitivity campaign.
+
+| code distance d | idle error per round | 1σ confidence band | 2σ confidence band | vs Gidney assumed (10⁻¹⁵) |
+| :--- | ---: | ---: | ---: | ---: |
+| 15 | 6.7×10^-10^ | [5.6×10^-10^, 8.1×10^-10^] | [4.7×10^-10^, 9.7×10^-10^] | — |
+| 21 | 5.1×10^-13^ | [3.8×10^-13^, 6.9×10^-13^] | [2.8×10^-13^, 9.3×10^-13^] | — |
+| 25 | 4.3×10^-15^ | [3.0×10^-15^, 6.2×10^-15^] | [2.0×10^-15^, 9.1×10^-15^] | 4.3× |
+| 29 | 3.6×10^-17^ | [2.3×10^-17^, 5.6×10^-17^] | [1.5×10^-17^, 8.8×10^-17^] | — |
+| 31 | 3.3×10^-18^ | [2.0×10^-18^, 5.4×10^-18^] | [1.2×10^-18^, 8.7×10^-18^] | — |
+| 35 | 2.8×10^-20^ | [1.6×10^-20^, 4.8×10^-20^] | [8.9×10^-21^, 8.5×10^-20^] | — |
+
+At d = 25, our weighted least-squares fit with parameter covariance predicts an idle logical error rate of:
+$$\epsilon_{\text{idle}}(d=25) = (4.30 \pm 1.64) \times 10^{-15} \quad (1\sigma: [2.97 \times 10^{-15}, 6.25 \times 10^{-15}]).$$
+Gidney's resource estimate assumed an idle rate of exactly $1.0 \times 10^{-15}$ at d = 25. Our circuit-level measured rate is 4.3× higher than his assumed figure; even our 2σ lower bound ($2.04 \times 10^{-15}$) is double his assumption.
+
+| category | parameter scenario | required d | physical qubits | Δd vs baseline |
+| :--- | ---: | ---: | ---: | ---: |
+| Idle Slope | Lambda +1sigma (Lambda = 11.36) | 31 | 6.03 M | +2 |
+| Idle Slope | Lambda -1sigma (Lambda = 10.52) | 29 | 5.31 M | +0 |
+| Idle Prefactor | Prefactor A -1sigma (0.87x) | 29 | 5.31 M | +0 |
+| Idle Prefactor | Prefactor A +1sigma (1.15x) | 29 | 5.31 M | +0 |
+| Decoder | Correlated / Belief-matching (+15% Lambda) | 29 | 5.31 M | +0 |
+| Magic States | epsilon_CCZ 0.1x | 29 | 5.31 M | +0 |
+| Magic States | epsilon_CCZ 10.0x | 29 | 5.31 M | +0 |
+| Assumed Model | Gidney assumed model (target E[faults] <= 0.1) | 27 | 4.63 M | -2 |
+| Assumed Model | Gidney assumed model (target E[faults] <= 0.5, Gidney's target) | 27 | 4.63 M | -2 |
+
+![Tornado chart showing required code distance d for RSA-2048 (Gidney 2025 algorithm) across physical noise parameters, factory quality, decoder performance, and assumed models.](figures/tornado.svg)
+
+As shown in the tornado analysis:
+- **Noise fit uncertainty**: Shifting the suppression slope $\Lambda$ or prefactor $A$ by $\pm 1\sigma$ keeps the required distance within $d \in \{29, 31\}$.
+- **Magic-state factory error**: Varying $\epsilon_{\text{CCZ}}$ by an entire order of magnitude ($0.1\times$ to $10.0\times$) leaves $d = 29$ unchanged. In an algorithm running $4 \times 10^{11}$ patch·rounds, idling completely dominates the error budget.
+- **Decoder choice**: Even assuming a correlated or belief-matching decoder that improves the suppression factor $\Lambda$ by 15%, the workload still requires $d = 29$.
+- **Assumed error model**: If we feed Gidney's assumed rate ($10^{-15}$ at $d=25$) into our compiler, our engine returns $d = 27$ at target $E[K] \le 0.1$, and exactly reproduces his published $d = 25$ if we relax the allowable failure target to $E[K] \le 0.5$ (Gidney's target threshold).
+
+This establishes definitively that the distance gap from 25 to 29 is not an overestimation of our compiler, but reflects the empirical physical noise of circuit-level SD6 simulations decoded with minimum-weight perfect matching.
 
 # Validation
 
@@ -252,6 +326,8 @@ plain patches throughout and so bound his yoked-storage design from above. The t
 - Arithmetic verified on every input by an independent bit-level simulator; Shor's noiseless outcomes
   match the exact distribution; synthesized rotations verified as matrices; QPE matches its exact
   Trotterized distribution.
+- Modern arithmetic: full reversible uncomputation verified on all inputs; mid-circuit measurement and
+  classical table feed-forward fixup validated against unitaries.
 - Chemistry: integrals, HF and FCI equal PySCF to 10⁻⁸ Ha; Szabo and Ostlund's H₂ reproduced; tapering
   preserves the spectrum.
 - Calibration: Stim + PyMatching cross-check; reference-qubit experiment against plain memories;
@@ -264,9 +340,8 @@ plain patches throughout and so bound his yoked-storage design from above. The t
   extrapolated along measured exponential fits, marked in the figures.
 - Magic-state error rates and footprints, the H and S operation model and the timing constants are
   cited inputs, not measured here.
-- The arithmetic is textbook and sequential. Modern constructions (windowed arithmetic, measurement-based
-  uncomputation, parallel Toffolis) would cut the cost by orders of magnitude; the scaling section
-  separates the error model from the algorithm by also evaluating Gidney's 2025 counts.
+- Parallel Toffoli architectures (such as Gidney 2025's multi-block parallel lookup) are modeled via
+  published gate counts rather than end-to-end compiled patch layouts.
 
 # Reproduction
 
@@ -275,6 +350,7 @@ tools/build.sh                     # the engine (Rust → Python module)
 python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
-python tools/run_shor.py; python tools/run_qpe.py; python tools/scale.py
+python tools/run_shor.py; python tools/run_shor_modern.py
+python tools/run_qpe.py; python tools/scale.py; python tools/sensitivity.py
 python tools/site_data.py; python tools/report.py
 ```

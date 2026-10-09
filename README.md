@@ -17,7 +17,7 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 |---|---|---|
 | physical | rotated surface code, SD6 circuit noise; memory, lattice-surgery merges and CNOTs simulated and decoded (correlated matching) | [stabilizer-qec](https://pypi.org/project/stabilizer-qec/) |
 | logical | each operation's Pauli channel, extracted with baselines pushed through the operation; fits in d and p; logical Y from a reference-qubit experiment | `python/ftalgo/calib/` |
-| program | Shor with the full modular exponentiation (Toffoli arithmetic, semiclassical AQFT); STO-3G chemistry from scratch; iterative QPE with Suzuki-4 steps; gridsynth rotations | `python/ftalgo/{shor,arith,phase,qpe,synth}.py`, `chem/` |
+| program | Shor with full modular exponentiation (Textbook Cuccaro & Modern Windowed + MBU); STO-3G chemistry from scratch; iterative QPE with Suzuki-4 steps; gridsynth rotations | `python/ftalgo/{shor,arith,arith_modern,phase,qpe,synth}.py`, `chem/` |
 | machine | per-qubit clocks, measured idle channel for every gap, decoder reaction time, magic-state factories (cited) | `python/ftalgo/{arch,schedule}.py` |
 | run | **ftsim**: Rust state-vector Monte Carlo (sparse and dense), feed-forward, seeded, stratified by the exact number of faults; Python module and WebAssembly | `src/` |
 
@@ -26,7 +26,7 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 <!-- results:start -->
 **Calibration**: 316 circuit-level experiments, 0.82 billion shots. Whole surgery experiments predicted from calibrated parts: 0.93–1.26× the measured failure rate (median 1.04×). Stim + PyMatching cross-check: 36 of 36 within 2.2σ.
 
-**Shor** (p = 0.1%, cultivated magic states; peak probability = share of runs on one of the r ideal peaks):
+**Shor (Textbook Cuccaro)** (p = 0.1%, cultivated magic states; peak probability = share of runs on one of the r ideal peaks):
 
 | N | logical qubits | Toffolis | noiseless peak | d for 90% of it | physical qubits | run time |
 |---:|---:|---:|---:|---:|---:|---:|
@@ -36,14 +36,31 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 | 77 | 27 | 16,170 | 0.774 | 15 | 67 k | 1.25 s |
 | 143 | 30 | 23,680 | 0.774 | 15 | 70.8 k | 1.81 s |
 
+**Shor (Modern Windowed + MBU)** (p = 0.1%, cultivated magic states; 2.7–3.0× Toffoli reduction):
+
+| N | logical qubits | Toffolis | noiseless peak | d for 90% of it | physical qubits | run time |
+|---:|---:|---:|---:|---:|---:|---:|
+| 15 | 23 | 1,248 | 1.000 | 11 | 46.1 k | 107 ms |
+| 21 | 27 | 2,390 | 0.793 | 13 | 47 k | 298 ms |
+| 35 | 31 | 3,528 | 0.784 | 13 | 50.2 k | 447 ms |
+
 **Phase estimation** (chemical accuracy, 1.6 mHa from FCI; p = 0.1%, cultivated):
 
 | molecule | T gates per run | noiseless | d for 90% of it | run time |
 |---|---:|---:|---:|---:|
-| H2 | 1.8e7 | 0.92 | 19 | 7.2 min |
-| HeH+ | 4.4e7 | 0.97 | 21 | 20.3 min |
+| H2 | 1.79e7 | 0.92 | 19 | 7.2 min |
+| HeH+ | 4.37e7 | 0.97 | 21 | 20.3 min |
 
-**To scale** (≤ 0.1 expected faults, p = 0.1%): textbook-arithmetic RSA-2048 needs d = 35, 32.5 M physical qubits and 1.96 years; Gidney's 2025 counts need d = 29 under our measured error model (he assumed d = 25).
+**Cryptographic scale (RSA-2048, p = 0.1%, cultivated magic states, target E[faults] ≤ 0.1)**:
+
+| Workload / Implementation | Logical qubits | Toffolis | Distance d | Physical qubits | Quantum run time |
+|---|---:|---:|---:|---:|---:|
+| Textbook Cuccaro (this work) | 6,150 | 3.44e11 | 35 | 32.5 M | 1.96 years (1.96 yr) |
+| Modern Windowed + MBU (this work) | 4,120 | 8.61e10 | 35 | 43.2 M | 298 days (0.81 yr) |
+| Gidney 2025 counts (our measured model) | 1,409 | 6.50e9 | 29 | 5.31 M | 4.63 days |
+| Gidney 2025 published (assumed model) | 1,409 | 6.50e9 | 25 | 898 k | 4.96 days |
+
+**Headline defensibility (d = 29 vs. d = 25)**: Compiling Gidney's 2025 counts under our measured SD6 model gives d = 29. At d = 25, our circuit-level simulations decoded by correlated matching measure an idle logical error rate of 4.30e-15 per round (1σ: [2.97e-15, 6.25e-15]), which is **4.3× higher** than Gidney's assumed 1.0e-15. Perturbing noise parameters (Λ ± 1σ, prefactor ± 1σ, factory ε_CCZ × 0.1/10×, correlated matching) keeps required distance at d ∈ {29, 31}. Feeding Gidney's assumed error model into our compiler reproduces his published d = 25.
 <!-- results:end -->
 
 ## How it is checked
@@ -52,6 +69,9 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
   stratified), dense against sparse, WebAssembly against native.
 - **Arithmetic** verified on every input by an independent bit-level simulator; Shor's noiseless output
   against the exact phase-estimation distribution; every synthesized rotation as a matrix.
+- **Modern arithmetic** verified on all inputs: Gidney measurement-based carry uncomputation,
+  classical feed-forward CZ fixups, and windowed modular exponentiation match exact algebra.
+- **Sensitivity analysis**: parameter covariance, 1σ/2σ bands, and multi-factor tornado analysis.
 - **Chemistry** against PySCF (integrals, HF and FCI to 1e-8 Ha) and Szabo & Ostlund.
 - **Calibration** against Stim + PyMatching; the reference-qubit experiment against plain memories;
   **composition**: whole surgery experiments predicted from their parts vs measured.

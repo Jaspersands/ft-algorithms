@@ -79,6 +79,16 @@ def main():
     for r in qpe_runs:
         r.pop("estimate", None)
     out["qpe"] = {"runs": qpe_runs, "baselines": [r for r in load_dir(os.path.join(ROOT, "data", "results", "qpe")) if "d" not in r]}
+    shor_modern_runs = [r for r in load_dir(os.path.join(ROOT, "data", "results", "shor_modern")) if "d" in r]
+    for r in shor_modern_runs:
+        r.pop("estimate", None)
+    out["shor_modern"] = {
+        "runs": shor_modern_runs,
+        "baselines": [r for r in load_dir(os.path.join(ROOT, "data", "results", "shor_modern")) if "d" not in r]
+    }
+    sens = os.path.join(ROOT, "data", "results", "sensitivity.json")
+    if os.path.exists(sens):
+        out["sensitivity"] = json.load(open(sens))
     qh = os.path.join(ROOT, "data", "results", "qpe_hist.json")
     if os.path.exists(qh):
         out["qpe_hist"] = json.load(open(qh))
@@ -108,9 +118,34 @@ def main():
                     "budget": dict(nz.budget), "extrapolated": bool(nz.arch.extrapolated),
                 })
     out["demo"] = demo
+
+    # Modern demo: Shor, N = 15, windowed + Gidney MBU
+    from ftalgo import arith_modern as am
+    os.makedirs(os.path.join(SITE, "demo_modern"), exist_ok=True)
+    c_mod, info_mod = am.order_finding_modern(15)
+    demo_mod = {"N": 15, "a": info_mod.a, "m": info_mod.m, "records": info_mod.records, "peaks": shor.peak_table(15, info_mod.a, info_mod.m).astype(int).tolist(),
+                "factors": shor.success_table(15, info_mod.a, info_mod.m).astype(int).tolist(), "configs": [],
+                "ideal": shor.ideal_distribution(15, info_mod.a, info_mod.m).tolist(), "logical_qubits": c_mod.num_qubits,
+                "toffoli": c_mod.toffoli_count(), "t": c_mod.t_count()}
+    for p in DEMO_P:
+        for fac in DEMO_F:
+            for d in DEMO_D:
+                nz = compile_noisy(c_mod, Architecture(model, d, p, FACTORIES[fac]))
+                text = nz.text
+                fname = f"N15-{fac}-p{p}-d{d}.txt.gz"
+                with open(os.path.join(SITE, "demo_modern", fname), "wb") as f:
+                    f.write(gzip.compress(text.encode(), 9, mtime=0))
+                prog = Program(text)
+                demo_mod["configs"].append({
+                    "file": fname, "d": d, "p": p, "factory": fac, "expected_faults": prog.expected_faults,
+                    "p0": float(prog.fault_count_distribution(0)[0]), "rounds": nz.rounds, "qubits": nz.physical_qubits(),
+                    "budget": dict(nz.budget), "extrapolated": bool(nz.arch.extrapolated),
+                })
+    out["demo_modern"] = demo_mod
+
     with open(os.path.join(SITE, "site.json"), "w") as f:
         json.dump(clean(out), f, separators=(",", ":"), allow_nan=False, default=lambda o: float(o) if isinstance(o, (int, float)) else str(o))
-    print("site.json", os.path.getsize(os.path.join(SITE, "site.json")) // 1024, "KiB;", len(demo["configs"]), "demo programs")
+    print("site.json", os.path.getsize(os.path.join(SITE, "site.json")) // 1024, "KiB;", len(demo["configs"]), "demo programs;", len(demo_mod["configs"]), "modern demo programs")
 
 
 if __name__ == "__main__":
