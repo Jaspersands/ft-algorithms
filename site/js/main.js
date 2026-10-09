@@ -377,6 +377,34 @@ function biasedTable(bx) {
   );
 }
 
+function lihTable(lih) {
+  const container = $("tab-lih");
+  if (!container || !lih || !lih.runs) return;
+  const rows = lih.runs.map((r) => [
+    `d = ${r.d}`,
+    r.factory === "cultivation" ? "cultivated" : "15-to-1 distilled",
+    `${(r.p * 100).toFixed(1)}%`,
+    `${(100 * r.scores[0]).toFixed(1)}% ± ${(100 * r.score_sigmas[0]).toFixed(1)}%`,
+    r.expected_faults < 0.1 ? r.expected_faults.toPrecision(2) : r.expected_faults.toFixed(2),
+    fmtQ(r.physical_qubits.total),
+    fmtTime(r.seconds),
+  ]);
+  table(
+    container,
+    [
+      "code distance",
+      "magic-state factory",
+      "physical noise p",
+      "chem. accuracy (|ΔE| ≤ 1.6 mHa)",
+      "E[faults]",
+      "physical qubits",
+      "circuit duration",
+    ],
+    rows,
+    (r) => r[0] === "d = 23"
+  );
+}
+
 async function main() {
   const data = await (await fetch("data/site.json")).json();
   const cal = data.calibration;
@@ -400,6 +428,7 @@ async function main() {
   scaleFigures(data.scaling);
   sensitivityTable(data.sensitivity);
   biasedTable(data.biased_xzzx);
+  lihTable(data.lih);
   opsTable();
   initFloorplan();
   initCalculator();

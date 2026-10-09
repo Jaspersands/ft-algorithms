@@ -171,8 +171,11 @@
     <figcaption><b>Figure 6.</b> Probability that a run's energy lies within chemical accuracy of the exact (FCI) energy, against distance (<i>p</i>&nbsp;=&nbsp;0.1%). Dashed: noiseless value of the same circuit (limited by the finite number of bits, the Trotter error and the Hartree–Fock overlap).</figcaption></figure>
   <figure class="panel"><div id="fig-qpe-hist"></div>
     <figcaption><b>Figure 7.</b> The answer itself: energies returned by 400 individual runs for H₂ (cultivated states, <i>p</i>&nbsp;=&nbsp;0.1%), as the error from the exact energy in mHa. Shaded: chemical accuracy. At small distance, logical faults scatter runs across the ±0.5&nbsp;Ha window; with distance they collapse onto the bins next to the exact value.</figcaption></figure>
-  <div class="tablewrap" id="tab-qpe"></div>
   <p>With <span class="n" data-k="qpe.H2.t">1.8×10⁷</span> T gates, even cultivated magic states at 2×10⁻⁹ <span class="dagger">†</span> leave a floor of a few percent: distance cannot fix the factory.</p>
+
+  <h3>Scaling to multi-electron chemistry: Lithium Hydride (LiH)</h3>
+  <p>Beyond minimal diatomics, Lithium Hydride (LiH) features 4 electrons across 12 spin orbitals in STO-3G. Freezing the Li 1s² core and tapering Z₂ spin and parity symmetries yields a 2-qubit, 9-term Hamiltonian matching PySCF CASCI to &lt; 10⁻¹⁴ Ha across the dissociation curve (equilibrium at <i>R</i> = 1.595 Å, <i>E</i> = −7.882 Ha). 10-bit QPE requires 4.19 × 10⁷ T gates. Simulating across code distances directly confirms the magic-state distillation error floor:</p>
+  <div class="tablewrap" id="tab-lih"></div>
 </section>
 
 <section id="scale" class="col">
