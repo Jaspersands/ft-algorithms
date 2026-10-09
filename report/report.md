@@ -4,7 +4,7 @@ subtitle: Algorithms run end to end on a surface-code machine whose logical erro
 author: Jasper Sands
 date: 2026-10-09
 version: 0.2
-commit: 5956816
+commit: 761d009
 description: Technical report of the ft-algorithms project.
 toc: true
 abstract: |

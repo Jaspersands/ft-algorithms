@@ -66,60 +66,88 @@ def main():
 
     # Noiseless sampling baseline
     p_noiseless = Program(c.to_text())
-    noiseless_shots = p_noiseless.sample(500, seed=1, faults="none")
+    noiseless_shots = p_noiseless.sample(300, seed=1, faults="none")
     noiseless_score = score(noiseless_shots).mean(axis=0)
 
     model = LogicalModel.load()
     runs = []
-    distances = [13, 15, 17, 19, 21, 23]
-    for fac in ("cultivation", "15to1"):
-        for d in distances:
-            cfg_tag = f"LiH-{fac}-p0.001-d{d}"
-            seed = zlib.crc32(cfg_tag.encode())
-            print(f"Running QPE simulation: {cfg_tag}...")
-            res = run_config(
-                c,
-                score,
-                model,
-                d=d,
-                p=0.001,
-                factory=fac,
-                seed=seed,
-                shots=500,
-            )
-            runs.append(
-                {
-                    "d": d,
-                    "p": 0.001,
-                    "factory": fac,
-                    "scores": [float(s) for s in res["scores"]],
-                    "score_sigmas": [float(s) for s in res["score_sigmas"]],
-                    "expected_faults": float(res["expected_faults"]),
-                    "rounds": int(res["rounds"]),
-                    "seconds": float(res["seconds"]),
-                    "physical_qubits": res["physical_qubits"],
-                    "extrapolated": bool(res.get("extrapolated", d > 9)),
-                }
-            )
+    if OUT.exists():
+        try:
+            prev = json.loads(OUT.read_text())
+            runs = prev.get("runs", [])
+            print(f"Loaded {len(runs)} existing runs from {OUT}", flush=True)
+        except Exception:
+            runs = []
 
-    result = {
-        "molecule": "LiH",
-        "r_equilibrium": 1.595,
-        "ncas": 2,
-        "qubits": prob.hamiltonian.n,
-        "terms": len(prob.hamiltonian),
-        "e_hf": prob.e_hf,
-        "e_casci": prob.e_fci,
-        "t_count": c.t_count(),
-        "rotations_per_run": info.rotations_per_run,
-        "noiseless": [float(s) for s in noiseless_score],
-        "dissociation_curve": curve_data,
-        "runs": runs,
-    }
+    def save_current():
+        result = {
+            "molecule": "LiH",
+            "r_equilibrium": 1.595,
+            "ncas": 2,
+            "qubits": prob.hamiltonian.n,
+            "terms": len(prob.hamiltonian),
+            "e_hf": prob.e_hf,
+            "e_casci": prob.e_fci,
+            "t_count": c.t_count(),
+            "rotations_per_run": info.rotations_per_run,
+            "noiseless": [float(s) for s in noiseless_score],
+            "dissociation_curve": curve_data,
+            "runs": runs,
+        }
+        OUT.parent.mkdir(parents=True, exist_ok=True)
+        OUT.write_text(json.dumps(result, indent=2))
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(result, indent=2))
-    print(f"Saved LiH results to {OUT}")
+    save_current()
+
+    configs = []
+    for d in [13, 15, 17, 19, 21, 23]:
+        configs.append(("cultivation", d))
+    for d in [15, 17, 19, 21]:
+        configs.append(("15to1", d))
+
+    done_keys = {(r["factory"], r["d"]) for r in runs}
+
+    for fac, d in configs:
+        if (fac, d) in done_keys:
+            print(f"Skipping already computed LiH-{fac}-p0.001-d{d}", flush=True)
+            continue
+        cfg_tag = f"LiH-{fac}-p0.001-d{d}"
+        seed = zlib.crc32(cfg_tag.encode())
+        print(f"Running QPE simulation: {cfg_tag}...", flush=True)
+        res = run_config(
+            c,
+            score,
+            model,
+            d=d,
+            p=0.001,
+            factory=fac,
+            seed=seed,
+            shots=150,
+            min_shots=30,
+        )
+        run_record = {
+            "d": d,
+            "p": 0.001,
+            "factory": fac,
+            "scores": [float(s) for s in res["scores"]],
+            "score_sigmas": [float(s) for s in res["score_sigmas"]],
+            "expected_faults": float(res["expected_faults"]),
+            "rounds": int(res["rounds"]),
+            "seconds": float(res["seconds"]),
+            "physical_qubits": res["physical_qubits"],
+            "extrapolated": bool(res.get("extrapolated", d > 9)),
+            "wall_seconds": res.get("wall_seconds", 0),
+        }
+        runs.append(run_record)
+        done_keys.add((fac, d))
+        save_current()
+        print(
+            f"{cfg_tag}: chem.acc. {res['scores'][0]:.3f} ± {res['score_sigmas'][0]:.3f}  "
+            f"E[faults] {res['expected_faults']:.3g}  ({res['wall_seconds']} s) [saved to {OUT}]",
+            flush=True,
+        )
+
+    print(f"Completed all LiH runs! Total runs: {len(runs)}", flush=True)
 
 
 if __name__ == "__main__":

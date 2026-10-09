@@ -859,13 +859,12 @@ python tools/site_data.py; python tools/report.py
                     "--template", str(REPORT / "template.html"), "--toc", "--toc-depth=2", "--number-sections", "-o", str(REPORT / "report.html")],
                    check=True, cwd=REPORT)
     if not args.no_pdf:
-        tmp_profile = tempfile.mkdtemp()
         try:
-            subprocess.run([CHROME, "--headless=new", f"--user-data-dir={tmp_profile}", "--disable-gpu", "--no-pdf-header-footer", "--run-all-compositor-stages-before-draw",
-                            "--virtual-time-budget=15000", f"--print-to-pdf={REPORT / 'report.pdf'}", (REPORT / "report.html").as_uri()],
-                           check=True, capture_output=True)
-        finally:
-            shutil.rmtree(tmp_profile, ignore_errors=True)
+            subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+                            f"--print-to-pdf={REPORT / 'report.pdf'}", (REPORT / "report.html").as_uri()],
+                           check=True, capture_output=True, timeout=30)
+        except Exception as e:
+            print(f"Warning: PDF generation failed or timed out: {e}")
     # The site serves the report from site/report/.
     dst = ROOT / "site" / "report"
     if dst.exists():

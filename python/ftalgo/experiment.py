@@ -26,13 +26,14 @@ def run_config(
     factory: str,
     seed: int,
     shots: int = 4000,
+    min_shots: int = 200,
     threads: int = 0,
 ) -> dict:
     t0 = time.time()
     arch = Architecture(model, d, p, FACTORIES[factory])
     noisy = compile_noisy(circ, arch)
     prog = Program(noisy.text)
-    est = stratified(prog, score, seed=seed, shots=shots, threads=threads)
+    est = stratified(prog, score, seed=seed, shots=shots, min_shots=min_shots, threads=threads)
     vals = est.value if isinstance(est.value, list) else [est.value]
     sigs = est.sigma if isinstance(est.sigma, list) else [est.sigma]
     return {
