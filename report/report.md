@@ -2,9 +2,9 @@
 title: Factoring and chemistry on a simulated fault-tolerant quantum computer
 subtitle: Algorithms run end to end on a surface-code machine whose logical error rates were measured by circuit-level simulation
 author: Jasper Sands
-date: 2026-10-09
+date: 2026-10-14
 version: 0.2
-commit: 761d009
+commit: 9d60da6
 description: Technical report of the ft-algorithms project.
 toc: true
 abstract: |
@@ -288,29 +288,48 @@ distilled states (4.5×10⁻⁸) most runs fail.
 
 To demonstrate chemistry scaling beyond minimal diatomics, we modeled Lithium Hydride (LiH) across its potential energy dissociation coordinate $R \in [1.0, 3.0]$ Å and simulated ground-state phase estimation on the fault-tolerant machine.
 
-| R (Å) | E_RHF (Ha) | E_CASCI (Ha) | E_FCI (Ha) | Δ(CASCI − FCI) (mHa) |
-| :--- | ---: | ---: | ---: | ---: |
-| 1.000 | -7.767362 | -7.767497 | -7.784460 | +16.964 |
-| 1.143 | -7.821772 | -7.821916 | -7.838533 | +16.617 |
-| 1.286 | -7.850149 | -7.850314 | -7.867261 | +16.946 |
-| 1.429 | -7.861861 | -7.862059 | -7.880050 | +17.990 |
-| 1.571 | -7.862662 | -7.862913 | -7.882669 | +19.755 |
-| 1.714 | -7.856258 | -7.856587 | -7.878839 | +22.252 |
-| 1.857 | -7.845114 | -7.845561 | -7.871067 | +25.506 |
-| 2.000 | -7.830906 | -7.831534 | -7.861088 | +29.554 |
-| 2.143 | -7.814787 | -7.815698 | -7.850132 | +34.434 |
-| 2.286 | -7.797564 | -7.798927 | -7.839088 | +40.160 |
-| 2.429 | -7.779811 | -7.781926 | -7.828605 | +46.678 |
-| 2.571 | -7.761957 | -7.765356 | -7.819142 | +53.786 |
-| 2.714 | -7.744336 | -7.749961 | -7.810982 | +61.022 |
-| 2.857 | -7.727221 | -7.736649 | -7.804233 | +67.583 |
-| 3.000 | -7.710830 | -7.726428 | -7.798843 | +72.415 |
+| R (Å) | E_RHF (Ha) | E_CASCI (Ha) | E_CASSCF (Ha) | E_FCI (Ha) | Δ(CASSCF − FCI) (mHa) |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| 1.000 | -7.767362 | -7.767497 | -7.782355 | -7.784460 | +2.105 |
+| 1.143 | -7.821772 | -7.821916 | -7.836724 | -7.838533 | +1.809 |
+| 1.286 | -7.850149 | -7.850314 | -7.865659 | -7.867261 | +1.602 |
+| 1.429 | -7.861861 | -7.862059 | -7.878610 | -7.880050 | +1.440 |
+| 1.571 | -7.862662 | -7.862913 | -7.881364 | -7.882669 | +1.304 |
+| 1.714 | -7.856258 | -7.856587 | -7.877654 | -7.878839 | +1.185 |
+| 1.857 | -7.845114 | -7.845561 | -7.869990 | -7.871067 | +1.077 |
+| 2.000 | -7.830906 | -7.831534 | -7.860107 | -7.861088 | +0.981 |
+| 2.143 | -7.814787 | -7.815698 | -7.849237 | -7.850132 | +0.895 |
+| 2.286 | -7.797564 | -7.798927 | -7.838270 | -7.839088 | +0.817 |
+| 2.429 | -7.779811 | -7.781926 | -7.827858 | -7.828605 | +0.747 |
+| 2.571 | -7.761957 | -7.765356 | -7.818461 | -7.819142 | +0.681 |
+| 2.714 | -7.744336 | -7.749961 | -7.810364 | -7.810982 | +0.618 |
+| 2.857 | -7.727221 | -7.736649 | -7.803674 | -7.804233 | +0.559 |
+| 3.000 | -7.710830 | -7.726428 | -7.798338 | -7.798843 | +0.505 |
 
-![LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.](figures/lih_curve.svg)
+![LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) on canonical RHF orbitals, orbital-optimised CASSCF(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.](figures/lih_curve.svg)
 
 Across the dissociation curve:
-1. **Correlation energy at equilibrium**: At $R_e = 1.595$ Å, RHF yields $E = -7.863382$ Ha, while CASCI(2, 2) captures the multiconfigurational valence structure, yielding $E = -7.882352$ Ha (18.97 mHa of electronic correlation energy).
-2. **Proper bond cleavage**: Beyond $R \approx 2.2$ Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 50 mHa. CASCI(2, 2) captures the static multireference entanglement, tracking full FCI to within 1.0 mHa across the entire dissociation coordinate.
+1. **Correlation energy at equilibrium**: At $R_e = 1.595$ Å, RHF yields $E = -7.862024$ Ha, while orbital-optimised CASSCF(2, 2) captures valence static correlation, yielding $E = -7.881118$ Ha (recovering 19.09 mHa of electronic correlation energy). Full STO-3G FCI yields $E = -7.882402$ Ha (CASSCF captures >93% of the total electron correlation).
+2. **Proper bond cleavage**: Beyond $R \approx 2.2$ Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 80 mHa. In contrast, orbital-optimised CASSCF(2, 2) captures the multireference valence entanglement, tracking full STO-3G FCI to within 0.50–2.11 mHa across the entire dissociation coordinate. (Unrelaxed CASCI on canonical RHF orbitals lacks virtual orbital relaxation, leaving a 17–72 mHa gap).
+
+### Fault-tolerant phase estimation on LiH
+
+Using our 10-bit QPE iterative circuit (41,918,987 T gates), we simulated the fault-tolerant success probability on the calibrated surface-code machine across distances and distillation factories (stratified Monte Carlo, 400 shots per configuration, minimum 60 per stratum):
+
+| distance | factory | noise p | chem. acc. (CASSCF) | chem. acc. (full FCI) | E[faults] | physical qubits | quantum time |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| d = 13 | cultivated | 0.1% | 3.0% ± 0.9% | 1.5% | 41.80 | 22.1 k | 12.4 min |
+| d = 15 | cultivated | 0.1% | 10.8% ± 1.3% | 7.2% | 5.21 | 21.3 k | 14.3 min |
+| d = 17 | cultivated | 0.1% | 57.7% ± 1.8% | 36.6% | 0.72 | 21.1 k | 16.2 min |
+| d = 19 | cultivated | 0.1% | 76.5% ± 1.7% | 50.8% | 0.17 | 21.5 k | 18.1 min |
+| d = 21 | cultivated | 0.1% | 79.4% ± 1.7% | 51.0% | 9.66e-02 | 22.4 k | 20 min |
+| d = 23 | cultivated | 0.1% | 82.2% ± 1.6% | 52.8% | 8.78e-02 | 23.7 k | 21.9 min |
+| d = 15 | 15-to-1 distilled | 0.1% | 10.0% ± 1.2% | 5.1% | 7.07 | 16.1 k | 14.3 min |
+| d = 17 | 15-to-1 distilled | 0.1% | 25.4% ± 1.9% | 14.9% | 2.58 | 16.5 k | 16.2 min |
+| d = 19 | 15-to-1 distilled | 0.1% | 28.5% ± 1.9% | 17.4% | 2.03 | 17.4 k | 18.1 min |
+| d = 21 | 15-to-1 distilled | 0.1% | 28.1% ± 1.8% | 19.0% | 1.96 | 18.7 k | 20 min |
+
+At $d=23$, magic-state cultivation ($\varepsilon_T = 2\times 10^{-9}$) reaches 82.2% chemical accuracy to the active-space ground state (and 52.8% to full STO-3G FCI). In contrast, 15-to-1 distillation ($\varepsilon_T = 4.5\times 10^{-8}$) floors at 28.1% accuracy regardless of code distance, directly exposing the distillation error ceiling across $4.19 \times 10^7$ T gates.
 
 ## To scale
 
@@ -326,11 +345,11 @@ instances (rounds per Toffoli: 5.13 textbook vs. 8.54 modern; patches busy: 3.18
 
 ![Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes.](figures/scaling.svg)
 
-At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from $3.44 	imes 10^{11}$ to $8.61 	imes 10^{10}$ (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.
+At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from $3.44 \times 10^{11}$ to $8.61 \times 10^{10}$ (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.
 
 ## Biased noise and XZZX surface codes
 
-Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias ($\eta = p_Z / p_X \in [10, 2000]$). On asymmetric rectangular XZZX patches ($d_X 	imes d_Z$), our compiler optimizes the aspect ratio to balance logical bit-flip and phase-flip error rates against total algorithm duration.
+Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias ($\eta = p_Z / (2 p_X) \in [10, 2000]$ when $p_X = p_Y$). On asymmetric rectangular XZZX patches ($d_X \times d_Z$), our model balances logical bit-flip and phase-flip error rates against total algorithm duration. (Note: current projections use the asymmetric threshold scaling model with CSS baseline prefactors; direct circuit-level Stim calibration of XZZX and dual-rail erasure is implemented in Phase 2).
 
 | bias η | XZZX patch (d_X × d_Z) | CSS patch (d × d) | XZZX qubits | CSS qubits | savings ratio |
 | :--- | ---: | ---: | ---: | ---: | ---: |
@@ -345,11 +364,11 @@ Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noi
 | 1000 | 33 × 7 | 33 × 33 | 9.06 M | 38.5 M | 4.25× |
 | 2000 | 33 × 7 | 33 × 33 | 9.06 M | 38.5 M | 4.25× |
 
-![Physical qubit footprint as a function of noise bias ratio η = p_Z / p_X for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.](figures/biased_xzzx.svg)
+![Physical qubit footprint as a function of noise bias ratio η = p_Z / (2 p_X) for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.](figures/biased_xzzx.svg)
 
 Under biased noise compilation:
 1. **RSA-2048 footprint reduction**: At standard CSS symmetric dimensions ($d=33$), the footprint is 38.5 M physical qubits. With XZZX at bias $\eta = 100$, the optimal patch is $d_X = 33, d_Z = 9$, requiring only 11.3 M physical qubits (3.40× reduction). At $\eta = 500$, the patch shrinks to $d_X = 33, d_Z = 7$, requiring 9.06 M physical qubits (4.25× reduction).
-2. **FeMoco chemistry footprint**: FeMoco THC requires $d=31$ (4.18 M physical qubits). Under $\eta = 100$, an asymmetric $31 	imes 9$ patch drops the footprint to 1.28 M physical qubits (3.26× reduction).
+2. **FeMoco chemistry footprint**: FeMoco THC requires $d=31$ (4.18 M physical qubits). Under $\eta = 100$, an asymmetric $31 \times 9$ patch drops the footprint to 1.28 M physical qubits (3.26× reduction).
 
 ## Sensitivity analysis of the RSA-2048 code distance ($d=29$ vs. $d=25$)
 

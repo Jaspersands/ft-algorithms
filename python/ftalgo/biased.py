@@ -2,7 +2,7 @@
 
 In platforms such as dual-rail superconducting qubits, Kerr-cat qubits, and acoustic-wave resonators,
 dephasing noise dwarfs bit-flip noise:
-    η = p_Z / p_X >> 1  (often η in [10, 1000]).
+    η = p_Z / (p_X + p_Y) >> 1  (often η in [10, 1000]).
 
 In the XZZX surface code (Bonilla Ataides et al., Nature Comms 12, 3812, 2021), stabilizer generators
 X-Z-Z-X decouple pure dephasing noise into independent 1D repetition codes along diagonals, raising
@@ -40,7 +40,7 @@ from .calib.model import LogicalModel
 @dataclass(frozen=True)
 class BiasedNoise:
     p_total: float
-    eta: float  # bias = p_Z / (2 * p_X) when p_X == p_Y
+    eta: float  # bias ratio η = p_Z / (p_X + p_Y) = p_Z / (2 * p_X) when p_X == p_Y
 
     @property
     def px(self) -> float:

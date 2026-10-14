@@ -73,7 +73,7 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 | 500 | 33 × 7 | 544 | 33 | 2312 | 9.06 M | 38.5 M | **4.25×** |
 | 1000 | 33 × 7 | 544 | 33 | 2312 | 9.06 M | 38.5 M | **4.25×** |
 
-**Molecular chemistry scaling (LiH, active space CAS(2, 2) + Z₂ tapering)**: Frozen Li 1s² core, 2 tapered qubits, 9 Pauli terms. Potential energy dissociation minimum at R_e = 1.595 Å (E = -7.862 Ha, PySCF CASCI match to < 10⁻¹⁴ Ha). 10-bit QPE circuit requires 4.19e7 T gates.
+**Molecular chemistry scaling (LiH, active space CAS(2, 2) + Z₂ tapering)**: Frozen Li 1s² core, 2 tapered qubits, 9 Pauli terms. Potential energy dissociation minimum at R_e = 1.595 Å (E_HF = -7.8620 Ha, E_CASSCF = -7.8811 Ha, PySCF CASSCF match to < 10⁻¹⁰ Ha). 10-bit QPE circuit requires 4.32e7 T gates.
 <!-- results:end -->
 
 ## How it is checked

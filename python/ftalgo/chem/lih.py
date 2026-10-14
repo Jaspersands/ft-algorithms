@@ -5,7 +5,8 @@ LiH (4 electrons, 6 spatial STO-3G orbitals):
 - Active space: 2 electrons in 2 spatial orbitals (HOMO and LUMO: σ and σ*).
 - Under Jordan-Wigner, this yields 4 qubits.
 - Under Z₂ spin-parity tapering (spin-up and spin-down parity), this tapers to 2 qubits.
-- Exact ground state matches PySCF CASCI to < 1e-12 Hartree.
+- Orbitals: CASSCF(2,2)-optimised by default (within ~2 mHa of STO-3G FCI along the curve);
+  the active-space Hamiltonian reproduces PySCF CASSCF/CASCI energies to < 1e-10 Hartree.
 """
 
 from __future__ import annotations
@@ -26,28 +27,52 @@ class LiHDissociationPoint:
     r_bohr: float
     e_hf: float
     e_casci: float
+    e_casscf: float
     e_fci: float
     e_nuc: float
 
 
-def lih_problem(r_angstrom: float = 1.595, ncas: int = 2) -> QubitProblem:
+def _casscf(mf, ncas: int, mo_guess=None):
+    """Orbital-optimised CAS(2, ncas) on top of RHF; returns the converged CASSCF object."""
+    mc = mcscf.CASSCF(mf, ncas, 2)
+    mc.verbose = 0
+    if mo_guess is not None:
+        mo_guess = mcscf.project_init_guess(mc, mo_guess)
+    mc.kernel(mo_guess)
+    if not mc.converged:
+        raise RuntimeError("CASSCF did not converge")
+    return mc
+
+
+def lih_problem(r_angstrom: float = 1.595, ncas: int = 2, orbitals: str = "casscf", mo_guess=None) -> QubitProblem:
     """Constructs the active-space tapered Hamiltonian for LiH at internuclear distance r_angstrom.
 
     Freezes the 1s² core orbital of Li (orbital 0), keeping ncas active valence orbitals.
     For ncas = 2 (default), active space has 2 electrons in 2 spatial orbitals (4 spin-orbitals),
     which tapers to 2 qubits with 9 Pauli terms.
+
+    orbitals = "casscf" (default) uses orbital-optimised CASSCF(2, ncas) orbitals: with ncas = 2 this
+    stays within ~2 mHa of full STO-3G FCI over R in [1, 3] Å. orbitals = "rhf" uses canonical RHF
+    orbitals, whose CAS(2, 2) recovers well under 1 mHa of correlation (kept for comparison).
+    The exact ground energy of the returned Hamiltonian is stored as e_fci (the active-space target).
     """
     r_bohr = r_angstrom * 1.8897261254578281
     mol = gto.M(atom=f"Li 0 0 0; H 0 0 {r_angstrom}", basis="sto-3g", verbose=0)
     mf = scf.RHF(mol).run()
 
-    # CASCI reference in active space
-    mc = mcscf.CASCI(mf, ncas=ncas, nelecas=2)
-    e_casci = float(mc.kernel()[0])
+    if orbitals == "casscf":
+        mc = _casscf(mf, ncas, mo_guess)
+        mo = mc.mo_coeff
+        e_active = float(mc.e_tot)
+    elif orbitals == "rhf":
+        mo = mf.mo_coeff
+        e_active = float(mcscf.CASCI(mf, ncas=ncas, nelecas=2).kernel()[0])
+    else:
+        raise ValueError(f"unknown orbitals {orbitals!r}")
 
     # Transform integrals to MO basis
-    h_mo = mf.mo_coeff.T @ mf.get_hcore() @ mf.mo_coeff
-    eri_mo = ao2mo.kernel(mol, mf.mo_coeff, compact=False).reshape((mol.nao, mol.nao, mol.nao, mol.nao))
+    h_mo = mo.T @ mf.get_hcore() @ mo
+    eri_mo = ao2mo.kernel(mol, mo, compact=False).reshape((mol.nao, mol.nao, mol.nao, mol.nao))
 
     core = [0]
     active = list(range(1, 1 + ncas))
@@ -79,7 +104,7 @@ def lih_problem(r_angstrom: float = 1.595, ncas: int = 2) -> QubitProblem:
     return QubitProblem(
         molecule=m_obj,
         e_hf=float(mf.e_tot),
-        e_fci=e_casci,
+        e_fci=e_active,
         hamiltonian=tapered,
         hf_bits=hf_t,
         full=full,
@@ -89,15 +114,21 @@ def lih_problem(r_angstrom: float = 1.595, ncas: int = 2) -> QubitProblem:
 
 
 def lih_dissociation_curve(r_values: Sequence[float] | None = None) -> list[LiHDissociationPoint]:
-    """Computes the dissociation potential energy curve of LiH across a range of bond lengths."""
+    """Computes the dissociation potential energy curve of LiH across a range of bond lengths.
+
+    Each point carries RHF, CASCI(2,2) on RHF orbitals, CASSCF(2,2) and full STO-3G FCI energies.
+    CASSCF orbitals are carried along the curve as the initial guess for the next geometry.
+    """
     if r_values is None:
         r_values = [1.0, 1.2, 1.4, 1.595, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0]
     pts = []
+    mo = None
     for r in r_values:
         mol = gto.M(atom=f"Li 0 0 0; H 0 0 {r}", basis="sto-3g", verbose=0)
         mf = scf.RHF(mol).run()
-        mc = mcscf.CASCI(mf, ncas=2, nelecas=2)
-        e_cas = float(mc.kernel()[0])
+        e_cas = float(mcscf.CASCI(mf, ncas=2, nelecas=2).kernel()[0])
+        mc = _casscf(mf, 2, mo)
+        mo = mc.mo_coeff
         e_full_fci = float(fci.FCI(mf).kernel()[0])
         pts.append(
             LiHDissociationPoint(
@@ -105,6 +136,7 @@ def lih_dissociation_curve(r_values: Sequence[float] | None = None) -> list[LiHD
                 r_bohr=float(r * 1.8897261254578281),
                 e_hf=float(mf.e_tot),
                 e_casci=e_cas,
+                e_casscf=float(mc.e_tot),
                 e_fci=e_full_fci,
                 e_nuc=float(mol.energy_nuc()),
             )

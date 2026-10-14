@@ -17,7 +17,7 @@
   <p class="kicker">Technical report · ftalgo 0.2</p>
   <h1>Factoring and chemistry on a simulated fault-tolerant quantum computer</h1>
   <p class="subtitle">Algorithms run end to end on a surface-code machine whose logical error rates were measured by circuit-level simulation</p>
-  <p class="byline">Jasper Sands · 2026-10-09 · commit <code>761d009</code></p>
+  <p class="byline">Jasper Sands · 2026-10-14 · commit <code>9d60da6</code></p>
   <p class="links"><a href="../index.html">the explainer site</a> · <a href="https://github.com/Jaspersands/ft-algorithms">github.com/Jaspersands/ft-algorithms</a> · <a href="report.pdf">PDF</a></p>
 </header>
 <section class="abstract">
@@ -611,8 +611,9 @@
 <th style="text-align: left;">R (Å)</th>
 <th style="text-align: right;">E_RHF (Ha)</th>
 <th style="text-align: right;">E_CASCI (Ha)</th>
+<th style="text-align: right;">E_CASSCF (Ha)</th>
 <th style="text-align: right;">E_FCI (Ha)</th>
-<th style="text-align: right;">Δ(CASCI − FCI) (mHa)</th>
+<th style="text-align: right;">Δ(CASSCF − FCI) (mHa)</th>
 </tr>
 </thead>
 <tbody>
@@ -620,113 +621,257 @@
 <td style="text-align: left;">1.000</td>
 <td style="text-align: right;">-7.767362</td>
 <td style="text-align: right;">-7.767497</td>
+<td style="text-align: right;">-7.782355</td>
 <td style="text-align: right;">-7.784460</td>
-<td style="text-align: right;">+16.964</td>
+<td style="text-align: right;">+2.105</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1.143</td>
 <td style="text-align: right;">-7.821772</td>
 <td style="text-align: right;">-7.821916</td>
+<td style="text-align: right;">-7.836724</td>
 <td style="text-align: right;">-7.838533</td>
-<td style="text-align: right;">+16.617</td>
+<td style="text-align: right;">+1.809</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1.286</td>
 <td style="text-align: right;">-7.850149</td>
 <td style="text-align: right;">-7.850314</td>
+<td style="text-align: right;">-7.865659</td>
 <td style="text-align: right;">-7.867261</td>
-<td style="text-align: right;">+16.946</td>
+<td style="text-align: right;">+1.602</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1.429</td>
 <td style="text-align: right;">-7.861861</td>
 <td style="text-align: right;">-7.862059</td>
+<td style="text-align: right;">-7.878610</td>
 <td style="text-align: right;">-7.880050</td>
-<td style="text-align: right;">+17.990</td>
+<td style="text-align: right;">+1.440</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1.571</td>
 <td style="text-align: right;">-7.862662</td>
 <td style="text-align: right;">-7.862913</td>
+<td style="text-align: right;">-7.881364</td>
 <td style="text-align: right;">-7.882669</td>
-<td style="text-align: right;">+19.755</td>
+<td style="text-align: right;">+1.304</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1.714</td>
 <td style="text-align: right;">-7.856258</td>
 <td style="text-align: right;">-7.856587</td>
+<td style="text-align: right;">-7.877654</td>
 <td style="text-align: right;">-7.878839</td>
-<td style="text-align: right;">+22.252</td>
+<td style="text-align: right;">+1.185</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1.857</td>
 <td style="text-align: right;">-7.845114</td>
 <td style="text-align: right;">-7.845561</td>
+<td style="text-align: right;">-7.869990</td>
 <td style="text-align: right;">-7.871067</td>
-<td style="text-align: right;">+25.506</td>
+<td style="text-align: right;">+1.077</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2.000</td>
 <td style="text-align: right;">-7.830906</td>
 <td style="text-align: right;">-7.831534</td>
+<td style="text-align: right;">-7.860107</td>
 <td style="text-align: right;">-7.861088</td>
-<td style="text-align: right;">+29.554</td>
+<td style="text-align: right;">+0.981</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2.143</td>
 <td style="text-align: right;">-7.814787</td>
 <td style="text-align: right;">-7.815698</td>
+<td style="text-align: right;">-7.849237</td>
 <td style="text-align: right;">-7.850132</td>
-<td style="text-align: right;">+34.434</td>
+<td style="text-align: right;">+0.895</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2.286</td>
 <td style="text-align: right;">-7.797564</td>
 <td style="text-align: right;">-7.798927</td>
+<td style="text-align: right;">-7.838270</td>
 <td style="text-align: right;">-7.839088</td>
-<td style="text-align: right;">+40.160</td>
+<td style="text-align: right;">+0.817</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2.429</td>
 <td style="text-align: right;">-7.779811</td>
 <td style="text-align: right;">-7.781926</td>
+<td style="text-align: right;">-7.827858</td>
 <td style="text-align: right;">-7.828605</td>
-<td style="text-align: right;">+46.678</td>
+<td style="text-align: right;">+0.747</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2.571</td>
 <td style="text-align: right;">-7.761957</td>
 <td style="text-align: right;">-7.765356</td>
+<td style="text-align: right;">-7.818461</td>
 <td style="text-align: right;">-7.819142</td>
-<td style="text-align: right;">+53.786</td>
+<td style="text-align: right;">+0.681</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">2.714</td>
 <td style="text-align: right;">-7.744336</td>
 <td style="text-align: right;">-7.749961</td>
+<td style="text-align: right;">-7.810364</td>
 <td style="text-align: right;">-7.810982</td>
-<td style="text-align: right;">+61.022</td>
+<td style="text-align: right;">+0.618</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2.857</td>
 <td style="text-align: right;">-7.727221</td>
 <td style="text-align: right;">-7.736649</td>
+<td style="text-align: right;">-7.803674</td>
 <td style="text-align: right;">-7.804233</td>
-<td style="text-align: right;">+67.583</td>
+<td style="text-align: right;">+0.559</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3.000</td>
 <td style="text-align: right;">-7.710830</td>
 <td style="text-align: right;">-7.726428</td>
+<td style="text-align: right;">-7.798338</td>
 <td style="text-align: right;">-7.798843</td>
-<td style="text-align: right;">+72.415</td>
+<td style="text-align: right;">+0.505</td>
 </tr>
 </tbody>
 </table>
 <figure>
-<img src="figures/lih_curve.svg" alt="LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line." /><figcaption aria-hidden="true">LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.</figcaption>
+<img src="figures/lih_curve.svg" alt="LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) on canonical RHF orbitals, orbital-optimised CASSCF(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line." /><figcaption aria-hidden="true">LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) on canonical RHF orbitals, orbital-optimised CASSCF(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.</figcaption>
 </figure>
-<p>Across the dissociation curve: 1. <strong>Correlation energy at equilibrium</strong>: At <span class="math inline"><em>R</em><sub><em>e</em></sub> = 1.595</span> Å, RHF yields <span class="math inline"><em>E</em> =  − 7.863382</span> Ha, while CASCI(2, 2) captures the multiconfigurational valence structure, yielding <span class="math inline"><em>E</em> =  − 7.882352</span> Ha (18.97 mHa of electronic correlation energy). 2. <strong>Proper bond cleavage</strong>: Beyond <span class="math inline"><em>R</em> ≈ 2.2</span> Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 50 mHa. CASCI(2, 2) captures the static multireference entanglement, tracking full FCI to within 1.0 mHa across the entire dissociation coordinate.</p>
+<p>Across the dissociation curve: 1. <strong>Correlation energy at equilibrium</strong>: At <span class="math inline"><em>R</em><sub><em>e</em></sub> = 1.595</span> Å, RHF yields <span class="math inline"><em>E</em> =  − 7.862024</span> Ha, while orbital-optimised CASSCF(2, 2) captures valence static correlation, yielding <span class="math inline"><em>E</em> =  − 7.881118</span> Ha (recovering 19.09 mHa of electronic correlation energy). Full STO-3G FCI yields <span class="math inline"><em>E</em> =  − 7.882402</span> Ha (CASSCF captures &gt;93% of the total electron correlation). 2. <strong>Proper bond cleavage</strong>: Beyond <span class="math inline"><em>R</em> ≈ 2.2</span> Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 80 mHa. In contrast, orbital-optimised CASSCF(2, 2) captures the multireference valence entanglement, tracking full STO-3G FCI to within 0.50–2.11 mHa across the entire dissociation coordinate. (Unrelaxed CASCI on canonical RHF orbitals lacks virtual orbital relaxation, leaving a 17–72 mHa gap).</p>
+<h3 data-number="3.6.1" id="fault-tolerant-phase-estimation-on-lih"><span class="header-section-number">3.6.1</span> Fault-tolerant phase estimation on LiH</h3>
+<p>Using our 10-bit QPE iterative circuit (41,918,987 T gates), we simulated the fault-tolerant success probability on the calibrated surface-code machine across distances and distillation factories (stratified Monte Carlo, 400 shots per configuration, minimum 60 per stratum):</p>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">distance</th>
+<th style="text-align: right;">factory</th>
+<th style="text-align: right;">noise p</th>
+<th style="text-align: right;">chem. acc. (CASSCF)</th>
+<th style="text-align: right;">chem. acc. (full FCI)</th>
+<th style="text-align: right;">E[faults]</th>
+<th style="text-align: right;">physical qubits</th>
+<th style="text-align: right;">quantum time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">d = 13</td>
+<td style="text-align: right;">cultivated</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">3.0% ± 0.9%</td>
+<td style="text-align: right;">1.5%</td>
+<td style="text-align: right;">41.80</td>
+<td style="text-align: right;">22.1 k</td>
+<td style="text-align: right;">12.4 min</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">d = 15</td>
+<td style="text-align: right;">cultivated</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">10.8% ± 1.3%</td>
+<td style="text-align: right;">7.2%</td>
+<td style="text-align: right;">5.21</td>
+<td style="text-align: right;">21.3 k</td>
+<td style="text-align: right;">14.3 min</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">d = 17</td>
+<td style="text-align: right;">cultivated</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">57.7% ± 1.8%</td>
+<td style="text-align: right;">36.6%</td>
+<td style="text-align: right;">0.72</td>
+<td style="text-align: right;">21.1 k</td>
+<td style="text-align: right;">16.2 min</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">d = 19</td>
+<td style="text-align: right;">cultivated</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">76.5% ± 1.7%</td>
+<td style="text-align: right;">50.8%</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">21.5 k</td>
+<td style="text-align: right;">18.1 min</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">d = 21</td>
+<td style="text-align: right;">cultivated</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">79.4% ± 1.7%</td>
+<td style="text-align: right;">51.0%</td>
+<td style="text-align: right;">9.66e-02</td>
+<td style="text-align: right;">22.4 k</td>
+<td style="text-align: right;">20 min</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">d = 23</td>
+<td style="text-align: right;">cultivated</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">82.2% ± 1.6%</td>
+<td style="text-align: right;">52.8%</td>
+<td style="text-align: right;">8.78e-02</td>
+<td style="text-align: right;">23.7 k</td>
+<td style="text-align: right;">21.9 min</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">d = 15</td>
+<td style="text-align: right;">15-to-1 distilled</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">10.0% ± 1.2%</td>
+<td style="text-align: right;">5.1%</td>
+<td style="text-align: right;">7.07</td>
+<td style="text-align: right;">16.1 k</td>
+<td style="text-align: right;">14.3 min</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">d = 17</td>
+<td style="text-align: right;">15-to-1 distilled</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">25.4% ± 1.9%</td>
+<td style="text-align: right;">14.9%</td>
+<td style="text-align: right;">2.58</td>
+<td style="text-align: right;">16.5 k</td>
+<td style="text-align: right;">16.2 min</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">d = 19</td>
+<td style="text-align: right;">15-to-1 distilled</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">28.5% ± 1.9%</td>
+<td style="text-align: right;">17.4%</td>
+<td style="text-align: right;">2.03</td>
+<td style="text-align: right;">17.4 k</td>
+<td style="text-align: right;">18.1 min</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">d = 21</td>
+<td style="text-align: right;">15-to-1 distilled</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">28.1% ± 1.8%</td>
+<td style="text-align: right;">19.0%</td>
+<td style="text-align: right;">1.96</td>
+<td style="text-align: right;">18.7 k</td>
+<td style="text-align: right;">20 min</td>
+</tr>
+</tbody>
+</table>
+<p>At <span class="math inline"><em>d</em> = 23</span>, magic-state cultivation (<span class="math inline"><em>ε</em><sub><em>T</em></sub> = 2 × 10<sup> − 9</sup></span>) reaches 82.2% chemical accuracy to the active-space ground state (and 52.8% to full STO-3G FCI). In contrast, 15-to-1 distillation (<span class="math inline"><em>ε</em><sub><em>T</em></sub> = 4.5 × 10<sup> − 8</sup></span>) floors at 28.1% accuracy regardless of code distance, directly exposing the distillation error ceiling across <span class="math inline">4.19 × 10<sup>7</sup></span> T gates.</p>
 <h2 data-number="3.7" id="to-scale"><span class="header-section-number">3.7</span> To scale</h2>
 <p>Operation counts of both textbook and modern circuits are exact; the schedule structure is fitted on compiled instances (rounds per Toffoli: 5.13 textbook vs. 8.54 modern; patches busy: 3.18 textbook vs. 2.79 modern). The smallest odd d with at most 0.1 expected faults:</p>
 <table>
@@ -798,9 +943,9 @@
 <figure>
 <img src="figures/scaling.svg" alt="Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes." /><figcaption aria-hidden="true">Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes.</figcaption>
 </figure>
-<p>At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from <span class="math inline">3.44<em>i</em><em>m</em><em>e</em><em>s</em>10<sup>11</sup></span> to <span class="math inline">8.61<em>i</em><em>m</em><em>e</em><em>s</em>10<sup>10</sup></span> (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.</p>
+<p>At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from <span class="math inline">3.44 × 10<sup>11</sup></span> to <span class="math inline">8.61 × 10<sup>10</sup></span> (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.</p>
 <h2 data-number="3.8" id="biased-noise-and-xzzx-surface-codes"><span class="header-section-number">3.8</span> Biased noise and XZZX surface codes</h2>
-<p>Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias (<span class="math inline"><em>η</em> = <em>p</em><sub><em>Z</em></sub>/<em>p</em><sub><em>X</em></sub> ∈ [10, 2000]</span>). On asymmetric rectangular XZZX patches (<span class="math inline"><em>d</em><sub><em>X</em></sub><em>i</em><em>m</em><em>e</em><em>s</em><em>d</em><sub><em>Z</em></sub></span>), our compiler optimizes the aspect ratio to balance logical bit-flip and phase-flip error rates against total algorithm duration.</p>
+<p>Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias (<span class="math inline"><em>η</em> = <em>p</em><sub><em>Z</em></sub>/(2<em>p</em><sub><em>X</em></sub>) ∈ [10, 2000]</span> when <span class="math inline"><em>p</em><sub><em>X</em></sub> = <em>p</em><sub><em>Y</em></sub></span>). On asymmetric rectangular XZZX patches (<span class="math inline"><em>d</em><sub><em>X</em></sub> × <em>d</em><sub><em>Z</em></sub></span>), our model balances logical bit-flip and phase-flip error rates against total algorithm duration. (Note: current projections use the asymmetric threshold scaling model with CSS baseline prefactors; direct circuit-level Stim calibration of XZZX and dual-rail erasure is implemented in Phase 2).</p>
 <table style="width:100%;">
 <colgroup>
 <col style="width: 16%" />
@@ -904,9 +1049,9 @@
 </tbody>
 </table>
 <figure>
-<img src="figures/biased_xzzx.svg" alt="Physical qubit footprint as a function of noise bias ratio η = p_Z / p_X for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines." /><figcaption aria-hidden="true">Physical qubit footprint as a function of noise bias ratio η = p_Z / p_X for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.</figcaption>
+<img src="figures/biased_xzzx.svg" alt="Physical qubit footprint as a function of noise bias ratio η = p_Z / (2 p_X) for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines." /><figcaption aria-hidden="true">Physical qubit footprint as a function of noise bias ratio η = p_Z / (2 p_X) for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.</figcaption>
 </figure>
-<p>Under biased noise compilation: 1. <strong>RSA-2048 footprint reduction</strong>: At standard CSS symmetric dimensions (<span class="math inline"><em>d</em> = 33</span>), the footprint is 38.5 M physical qubits. With XZZX at bias <span class="math inline"><em>η</em> = 100</span>, the optimal patch is <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 9</span>, requiring only 11.3 M physical qubits (3.40× reduction). At <span class="math inline"><em>η</em> = 500</span>, the patch shrinks to <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 7</span>, requiring 9.06 M physical qubits (4.25× reduction). 2. <strong>FeMoco chemistry footprint</strong>: FeMoco THC requires <span class="math inline"><em>d</em> = 31</span> (4.18 M physical qubits). Under <span class="math inline"><em>η</em> = 100</span>, an asymmetric <span class="math inline">31<em>i</em><em>m</em><em>e</em><em>s</em>9</span> patch drops the footprint to 1.28 M physical qubits (3.26× reduction).</p>
+<p>Under biased noise compilation: 1. <strong>RSA-2048 footprint reduction</strong>: At standard CSS symmetric dimensions (<span class="math inline"><em>d</em> = 33</span>), the footprint is 38.5 M physical qubits. With XZZX at bias <span class="math inline"><em>η</em> = 100</span>, the optimal patch is <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 9</span>, requiring only 11.3 M physical qubits (3.40× reduction). At <span class="math inline"><em>η</em> = 500</span>, the patch shrinks to <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 7</span>, requiring 9.06 M physical qubits (4.25× reduction). 2. <strong>FeMoco chemistry footprint</strong>: FeMoco THC requires <span class="math inline"><em>d</em> = 31</span> (4.18 M physical qubits). Under <span class="math inline"><em>η</em> = 100</span>, an asymmetric <span class="math inline">31 × 9</span> patch drops the footprint to 1.28 M physical qubits (3.26× reduction).</p>
 <h2 data-number="3.9" id="sensitivity-analysis-of-the-rsa-2048-code-distance-d29-vs.-d25"><span class="header-section-number">3.9</span> Sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>)</h2>
 <p>A central finding of this report is that compiling Gidney’s 2025 algorithm counts under our measured SD6 error model yields d = 29 (<span class="math inline">5.31 × 10<sup>6</sup></span> physical qubits), whereas Gidney reported d = 25 (<span class="math inline">898 × 10<sup>3</sup></span> physical qubits). To determine whether this discrepancy represents an artifact of our fit or a fundamental consequence of physical noise calibration, we performed a multi-parameter sensitivity campaign.</p>
 <table>

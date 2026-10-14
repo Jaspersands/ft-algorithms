@@ -380,29 +380,30 @@ function biasedTable(bx) {
 function lihTable(lih) {
   const container = $("tab-lih");
   if (!container || !lih || !lih.runs) return;
-  const rows = lih.runs.map((r) => [
-    `d = ${r.d}`,
-    r.factory === "cultivation" ? "cultivated" : "15-to-1 distilled",
-    `${(r.p * 100).toFixed(1)}%`,
-    `${(100 * r.scores[0]).toFixed(1)}% ± ${(100 * r.score_sigmas[0]).toFixed(1)}%`,
-    r.expected_faults < 0.1 ? r.expected_faults.toPrecision(2) : r.expected_faults.toFixed(2),
-    fmtQ(r.physical_qubits.total),
-    fmtTime(r.seconds),
-  ]);
-  table(
-    container,
-    [
-      "code distance",
-      "magic-state factory",
-      "physical noise p",
-      "chem. accuracy (|ΔE| ≤ 1.6 mHa)",
-      "E[faults]",
-      "physical qubits",
-      "circuit duration",
-    ],
-    rows,
-    (r) => r[0] === "d = 23"
-  );
+  const hasFciAcc = lih.runs.some((r) => r.scores && r.scores.length >= 3);
+  const rows = lih.runs.map((r) => {
+    const accActive = `${(100 * r.scores[0]).toFixed(1)}% ± ${(100 * r.score_sigmas[0]).toFixed(1)}%`;
+    const accFci = hasFciAcc && r.scores[2] != null ? `${(100 * r.scores[2]).toFixed(1)}%` : "—";
+    const faultStr = r.expected_faults < 0.1 ? r.expected_faults.toPrecision(2) : r.expected_faults.toFixed(2);
+    const row = [
+      `d = ${r.d}`,
+      r.factory === "cultivation" ? "cultivated" : "15-to-1 distilled",
+      `${(r.p * 100).toFixed(1)}%`,
+      accActive,
+    ];
+    if (hasFciAcc) row.push(accFci);
+    row.push(faultStr, fmtQ(r.physical_qubits.total), fmtTime(r.seconds));
+    return row;
+  });
+  const headers = [
+    "code distance",
+    "magic-state factory",
+    "physical noise p",
+    "chem. acc. (|ΔE_active| ≤ 1.6 mHa)",
+  ];
+  if (hasFciAcc) headers.push("chem. acc. (|ΔE_FCI| ≤ 1.6 mHa)");
+  headers.push("E[faults]", "physical qubits", "circuit duration");
+  table(container, headers, rows, (r) => r[0] === "d = 23");
 }
 
 async function main() {
@@ -417,6 +418,21 @@ async function main() {
   setK("demo.qubits", data.demo.logical_qubits);
   setK("demo.toffoli", fmtInt(data.demo.toffoli));
   setK("demo.t", fmtInt(data.demo.t));
+
+  if (data.lih) {
+    const eAct = data.lih.e_active ?? data.lih.e_casci;
+    if (eAct != null) setK("lih.e_casscf", eAct.toFixed(4));
+    if (data.lih.e_fci_full != null) setK("lih.e_fci", data.lih.e_fci_full.toFixed(4));
+    if (data.lih.t_count != null) setK("lih.t", fmtSci(data.lih.t_count));
+  }
+  if (data.biased_xzzx && data.biased_xzzx.rsa2048_modern) {
+    const pts = data.biased_xzzx.rsa2048_modern.points;
+    const p100 = pts.find((p) => p.eta === 100);
+    const p500 = pts.find((p) => p.eta === 500);
+    if (p100) setK("biased.ratio_lo", `${p100.qubit_reduction_ratio.toFixed(2)}×`);
+    if (p500) setK("biased.ratio_hi", `${p500.qubit_reduction_ratio.toFixed(2)}×`);
+  }
+
   figIdle(cal);
   figOps(cal);
   xcheckTable(data.xcheck);

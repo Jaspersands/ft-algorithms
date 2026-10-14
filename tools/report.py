@@ -440,6 +440,7 @@ def main():
         r_pts = [p["r_angstrom"] for p in curve]
         e_hf = [p["e_hf"] for p in curve]
         e_casci = [p["e_casci"] for p in curve]
+        e_casscf = [p.get("e_casscf", p["e_casci"]) for p in curve]
         e_fci = [p["e_fci"] for p in curve]
     else:
         from ftalgo.chem.lih import lih_dissociation_curve
@@ -448,21 +449,47 @@ def main():
         r_pts = [round(p.r_angstrom, 4) for p in c_pts]
         e_hf = [p.e_hf for p in c_pts]
         e_casci = [p.e_casci for p in c_pts]
+        e_casscf = [p.e_casscf for p in c_pts]
         e_fci = [p.e_fci for p in c_pts]
 
     ax.plot(r_pts, e_hf, "--", color=C["s2"], lw=1.2, label="RHF (restricted HF)")
-    ax.plot(r_pts, e_casci, "-o", color=C["s1"], ms=3.5, lw=1.2, label="CASCI (2e in 2 active orb)")
-    ax.plot(r_pts, e_fci, ":", color=C["s3"], lw=1.2, label="Full FCI (4e in 6 orb)")
+    ax.plot(r_pts, e_casci, ":", color=C["ink3"], lw=1.0, label="CASCI (canonical RHF orbitals)")
+    ax.plot(r_pts, e_casscf, "-o", color=C["s1"], ms=3.5, lw=1.2, label="CASSCF (orbital-optimised active space)")
+    ax.plot(r_pts, e_fci, "-.", color=C["s3"], lw=1.2, label="Full FCI (4e in 6 orb, STO-3G)")
     ax.axvline(1.595, color=C["ink3"], ls=":", lw=0.9, label="R_e = 1.595 Å")
     ax.set_xlabel("internuclear separation R (Å)")
     ax.set_ylabel("ground state energy (Ha)")
-    ax.legend(fontsize=7.5, loc="upper right")
+    ax.legend(fontsize=7.2, loc="upper right")
     V["fig_lih_curve"] = savefig(fig, "lih_curve")
 
     lrows = []
-    for r, ehf, ecas, efci in zip(r_pts, e_hf, e_casci, e_fci):
-        lrows.append([f"{r:.3f}", f"{ehf:.6f}", f"{ecas:.6f}", f"{efci:.6f}", f"{(ecas - efci) * 1000:+.3f}"])
-    V["lih_table"] = table(["R (Å)", "E_RHF (Ha)", "E_CASCI (Ha)", "E_FCI (Ha)", "Δ(CASCI − FCI) (mHa)"], lrows)
+    for r, ehf, ecas, ecasscf, efci in zip(r_pts, e_hf, e_casci, e_casscf, e_fci):
+        lrows.append([f"{r:.3f}", f"{ehf:.6f}", f"{ecas:.6f}", f"{ecasscf:.6f}", f"{efci:.6f}", f"{(ecasscf - efci) * 1000:+.3f}"])
+    V["lih_table"] = table(["R (Å)", "E_RHF (Ha)", "E_CASCI (Ha)", "E_CASSCF (Ha)", "E_FCI (Ha)", "Δ(CASSCF − FCI) (mHa)"], lrows)
+
+    # LiH QPE simulation table
+    qpe_lrows = []
+    if lih and "runs" in lih:
+        for r in lih["runs"]:
+            fac_name = "cultivated" if r["factory"] == "cultivation" else "15-to-1 distilled"
+            acc_active = f"{100 * r['scores'][0]:.1f}% ± {100 * r['score_sigmas'][0]:.1f}%"
+            acc_fci = f"{100 * r['scores'][2]:.1f}%" if len(r["scores"]) >= 3 else "—"
+            ef = r["expected_faults"]
+            ef_str = f"{ef:.2e}" if ef < 0.1 else f"{ef:.2f}"
+            qpe_lrows.append([
+                f"d = {r['d']}",
+                fac_name,
+                f"{r['p'] * 100:.1f}%",
+                acc_active,
+                acc_fci,
+                ef_str,
+                fmt_q(r["physical_qubits"]["total"]),
+                fmt_time(r["seconds"]),
+            ])
+    V["lih_qpe_table"] = table(
+        ["distance", "factory", "noise p", "chem. acc. (CASSCF)", "chem. acc. (full FCI)", "E[faults]", "physical qubits", "quantum time"],
+        qpe_lrows
+    )
 
     # -- Biased Noise & XZZX -------------------------------------------------------------------
     fig, ax = plt.subplots(figsize=(5.6, 3.2))
@@ -755,15 +782,23 @@ distilled states (4.5×10⁻⁸) most runs fail.
 
 ## Lithium Hydride (LiH) ground state and dissociation curve
 
-To demonstrate chemistry scaling beyond minimal diatomics, we modeled Lithium Hydride (LiH) across its potential energy dissociation coordinate $R \in [1.0, 3.0]$ Å and simulated ground-state phase estimation on the fault-tolerant machine.
+To demonstrate chemistry scaling beyond minimal diatomics, we modeled Lithium Hydride (LiH) across its potential energy dissociation coordinate $R \\in [1.0, 3.0]$ Å and simulated ground-state phase estimation on the fault-tolerant machine.
 
 {V['lih_table']}
 
-![LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.]({V['fig_lih_curve']})
+![LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) on canonical RHF orbitals, orbital-optimised CASSCF(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.]({V['fig_lih_curve']})
 
 Across the dissociation curve:
-1. **Correlation energy at equilibrium**: At $R_e = 1.595$ Å, RHF yields $E = -7.863382$ Ha, while CASCI(2, 2) captures the multiconfigurational valence structure, yielding $E = -7.882352$ Ha (18.97 mHa of electronic correlation energy).
-2. **Proper bond cleavage**: Beyond $R \\approx 2.2$ Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 50 mHa. CASCI(2, 2) captures the static multireference entanglement, tracking full FCI to within 1.0 mHa across the entire dissociation coordinate.
+1. **Correlation energy at equilibrium**: At $R_e = 1.595$ Å, RHF yields $E = -7.862024$ Ha, while orbital-optimised CASSCF(2, 2) captures valence static correlation, yielding $E = -7.881118$ Ha (recovering 19.09 mHa of electronic correlation energy). Full STO-3G FCI yields $E = -7.882402$ Ha (CASSCF captures >93% of the total electron correlation).
+2. **Proper bond cleavage**: Beyond $R \\approx 2.2$ Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 80 mHa. In contrast, orbital-optimised CASSCF(2, 2) captures the multireference valence entanglement, tracking full STO-3G FCI to within 0.50–2.11 mHa across the entire dissociation coordinate. (Unrelaxed CASCI on canonical RHF orbitals lacks virtual orbital relaxation, leaving a 17–72 mHa gap).
+
+### Fault-tolerant phase estimation on LiH
+
+Using our 10-bit QPE iterative circuit (41,918,987 T gates), we simulated the fault-tolerant success probability on the calibrated surface-code machine across distances and distillation factories (stratified Monte Carlo, 400 shots per configuration, minimum 60 per stratum):
+
+{V['lih_qpe_table']}
+
+At $d=23$, magic-state cultivation ($\\varepsilon_T = 2\\times 10^{{-9}}$) reaches 82.2% chemical accuracy to the active-space ground state (and 52.8% to full STO-3G FCI). In contrast, 15-to-1 distillation ($\\varepsilon_T = 4.5\\times 10^{{-8}}$) floors at 28.1% accuracy regardless of code distance, directly exposing the distillation error ceiling across $4.19 \\times 10^7$ T gates.
 
 ## To scale
 
@@ -774,19 +809,19 @@ instances (rounds per Toffoli: {st['rounds_per_toffoli']:.2f} textbook vs. {st_m
 
 ![Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes.]({V['fig_scale']})
 
-At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from $3.44 \times 10^{{11}}$ to $8.61 \times 10^{{10}}$ (a 4.0× reduction), shrinking the quantum runtime from {fmt_time(V['tb2048']['seconds'])} ({V['tb2048']['seconds'] / 86400 / 365.25:.2f} years) to {fmt_time(V['mod2048']['seconds'])} ({V['mod2048']['seconds'] / 86400 / 365.25:.2f} years) — saving over 416 days of physical machine time.
+At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from $3.44 \\times 10^{{11}}$ to $8.61 \\times 10^{{10}}$ (a 4.0× reduction), shrinking the quantum runtime from {fmt_time(V['tb2048']['seconds'])} ({V['tb2048']['seconds'] / 86400 / 365.25:.2f} years) to {fmt_time(V['mod2048']['seconds'])} ({V['mod2048']['seconds'] / 86400 / 365.25:.2f} years) — saving over 416 days of physical machine time.
 
 ## Biased noise and XZZX surface codes
 
-Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias ($\eta = p_Z / p_X \in [10, 2000]$). On asymmetric rectangular XZZX patches ($d_X \times d_Z$), our compiler optimizes the aspect ratio to balance logical bit-flip and phase-flip error rates against total algorithm duration.
+Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias ($\\eta = p_Z / (2 p_X) \\in [10, 2000]$ when $p_X = p_Y$). On asymmetric rectangular XZZX patches ($d_X \\times d_Z$), our model balances logical bit-flip and phase-flip error rates against total algorithm duration. (Note: current projections use the asymmetric threshold scaling model with CSS baseline prefactors; direct circuit-level Stim calibration of XZZX and dual-rail erasure is implemented in Phase 2).
 
 {V['biased_table']}
 
-![Physical qubit footprint as a function of noise bias ratio η = p_Z / p_X for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.]({V['fig_biased_xzzx']})
+![Physical qubit footprint as a function of noise bias ratio η = p_Z / (2 p_X) for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.]({V['fig_biased_xzzx']})
 
 Under biased noise compilation:
-1. **RSA-2048 footprint reduction**: At standard CSS symmetric dimensions ($d=33$), the footprint is 38.5 M physical qubits. With XZZX at bias $\eta = 100$, the optimal patch is $d_X = 33, d_Z = 9$, requiring only 11.3 M physical qubits (3.40× reduction). At $\eta = 500$, the patch shrinks to $d_X = 33, d_Z = 7$, requiring 9.06 M physical qubits (4.25× reduction).
-2. **FeMoco chemistry footprint**: FeMoco THC requires $d=31$ (4.18 M physical qubits). Under $\eta = 100$, an asymmetric $31 \times 9$ patch drops the footprint to 1.28 M physical qubits (3.26× reduction).
+1. **RSA-2048 footprint reduction**: At standard CSS symmetric dimensions ($d=33$), the footprint is 38.5 M physical qubits. With XZZX at bias $\\eta = 100$, the optimal patch is $d_X = 33, d_Z = 9$, requiring only 11.3 M physical qubits (3.40× reduction). At $\\eta = 500$, the patch shrinks to $d_X = 33, d_Z = 7$, requiring 9.06 M physical qubits (4.25× reduction).
+2. **FeMoco chemistry footprint**: FeMoco THC requires $d=31$ (4.18 M physical qubits). Under $\\eta = 100$, an asymmetric $31 \\times 9$ patch drops the footprint to 1.28 M physical qubits (3.26× reduction).
 
 ## Sensitivity analysis of the RSA-2048 code distance ($d=29$ vs. $d=25$)
 
@@ -815,7 +850,7 @@ This establishes definitively that the distance gap from 25 to 29 is not an over
 To make these fault-tolerant architectures transparent and verifiable, the project provides an interactive 2D lattice surgery floorplan visualizer and WebAssembly quantum simulator deployed client-side:
 - **Fast-block floorplan visualizer**: Renders Litinski's 2D fast-block tile geometry, scrubbing through the multi-round stages of lattice surgery operations: CNOT (2d rounds via intermediate ancilla boundary merges), MBU Carry Uncomputation (Hadamard, measurement, feed-forward CZ), and Magic State Distillation injection.
 - **Client-side WebAssembly simulation**: Runs full 8-bit and 10-bit QPE simulations for molecular hydrogen ($H_2$) directly in the visitor's browser, compiling logical circuits into statevector shots under tunable noise and plotting real-time energy histograms collapsing onto the chemical accuracy window (±1.6 mHa).
-- **Interactive resource calculator**: A real-time hardware/algorithm trade-off calculator allowing visitors to sweep physical gate error rates $p \in [0.05\%, 0.5\%]$, code architectures (CSS vs. XZZX), cycle times between 0.2 µs and 10 µs, and magic-state factories to explore Pareto frontiers across factoring and chemistry.
+- **Interactive resource calculator**: A real-time hardware/algorithm trade-off calculator allowing visitors to sweep physical gate error rates $p \\in [0.05\\%, 0.5\\%]$, code architectures (CSS vs. XZZX), cycle times between 0.2 µs and 10 µs, and magic-state factories to explore Pareto frontiers across factoring and chemistry.
 
 # Validation
 
@@ -859,12 +894,18 @@ python tools/site_data.py; python tools/report.py
                     "--template", str(REPORT / "template.html"), "--toc", "--toc-depth=2", "--number-sections", "-o", str(REPORT / "report.html")],
                    check=True, cwd=REPORT)
     if not args.no_pdf:
+        import tempfile
+        tmp_profile = tempfile.mkdtemp()
         try:
-            subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
-                            f"--print-to-pdf={REPORT / 'report.pdf'}", (REPORT / "report.html").as_uri()],
-                           check=True, capture_output=True, timeout=30)
+            subprocess.run([
+                CHROME, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+                f"--user-data-dir={tmp_profile}", "--no-first-run", "--no-default-browser-check",
+                f"--print-to-pdf={REPORT / 'report.pdf'}", (REPORT / "report.html").as_uri()
+            ], check=True, capture_output=True, timeout=30)
         except Exception as e:
             print(f"Warning: PDF generation failed or timed out: {e}")
+        finally:
+            shutil.rmtree(tmp_profile, ignore_errors=True)
     # The site serves the report from site/report/.
     dst = ROOT / "site" / "report"
     if dst.exists():

@@ -123,7 +123,9 @@ def build() -> str:
     lih_file = ROOT / "data/results/lih.json"
     if lih_file.exists():
         lih = jl(lih_file)
-        out.append(f"\n**Molecular chemistry scaling (LiH, active space CAS(2, 2) + Z₂ tapering)**: Frozen Li 1s² core, 2 tapered qubits, 9 Pauli terms. Potential energy dissociation minimum at R_e = 1.595 Å (E = -7.862 Ha, PySCF CASCI match to < 10⁻¹⁴ Ha). 10-bit QPE circuit requires {sci(lih['t_count'])} T gates.")
+        e_active = lih.get("e_active", lih.get("e_casci", -7.8811))
+        e_hf = lih.get("e_hf", -7.8620)
+        out.append(f"\n**Molecular chemistry scaling (LiH, active space CAS(2, 2) + Z₂ tapering)**: Frozen Li 1s² core, 2 tapered qubits, 9 Pauli terms. Potential energy dissociation minimum at R_e = 1.595 Å (E_HF = {e_hf:.4f} Ha, E_CASSCF = {e_active:.4f} Ha, PySCF CASSCF match to < 10⁻¹⁰ Ha). 10-bit QPE circuit requires {sci(lih['t_count'])} T gates.")
 
     return "\n".join(out)
 

@@ -1,5 +1,6 @@
 """Simulates Lithium Hydride (LiH) ab initio chemistry:
-1. Potential energy dissociation curve (HF, CASCI, full FCI) across R in [1.0, 3.0] Angstrom.
+1. Potential energy dissociation curve (RHF, CASCI(2,2) on RHF orbitals, CASSCF(2,2), full FCI) across
+   R in [1.0, 3.0] Angstrom.
 2. 10-bit QPE ground-state energy estimation on the simulated surface-code machine across distances.
 
 Output: data/results/lih.json
@@ -25,6 +26,8 @@ from ftalgo.engine import Program
 from ftalgo.experiment import run_config
 
 OUT = ROOT / "data" / "results" / "lih.json"
+SHOTS = 400  # each LiH shot is ~0.5 s (4.2e7 T gates); stratified estimator, min 60 per stratum
+MIN_SHOTS = 60
 
 
 def main():
@@ -37,13 +40,18 @@ def main():
             "r_bohr": round(p.r_bohr, 4),
             "e_hf": p.e_hf,
             "e_casci": p.e_casci,
+            "e_casscf": p.e_casscf,
             "e_fci": p.e_fci,
         }
         for p in curve_pts
     ]
 
     print("Setting up LiH QPE at equilibrium (R = 1.595 A)...")
-    prob = lih_problem(1.595, ncas=2)
+    prob = lih_problem(1.595, ncas=2, orbitals="casscf")
+    from pyscf import fci, gto, scf
+
+    _mol = gto.M(atom="Li 0 0 0; H 0 0 1.595", basis="sto-3g", verbose=0)
+    e_fci_full = float(fci.FCI(scf.RHF(_mol).run()).kernel()[0])
     c, info = qpe.qpe_circuit(
         prob.hamiltonian,
         prob.hf_bits,
@@ -60,6 +68,7 @@ def main():
             [
                 np.abs(e - prob.e_fci) < qpe.CHEMICAL_ACCURACY,
                 np.abs(e - prob.e_fci) < 4 * qpe.CHEMICAL_ACCURACY,
+                np.abs(e - e_fci_full) < qpe.CHEMICAL_ACCURACY,
             ],
             axis=1,
         )
@@ -74,7 +83,9 @@ def main():
     if OUT.exists():
         try:
             prev = json.loads(OUT.read_text())
-            runs = prev.get("runs", [])
+            # Only resume runs computed for the same Hamiltonian and shot budget.
+            if prev.get("orbitals") == "casscf" and prev.get("shots") == SHOTS:
+                runs = prev.get("runs", [])
             print(f"Loaded {len(runs)} existing runs from {OUT}", flush=True)
         except Exception:
             runs = []
@@ -87,7 +98,12 @@ def main():
             "qubits": prob.hamiltonian.n,
             "terms": len(prob.hamiltonian),
             "e_hf": prob.e_hf,
-            "e_casci": prob.e_fci,
+            "orbitals": "casscf",
+            "e_active": prob.e_fci,
+            "e_fci_full": e_fci_full,
+            "scores_meaning": ["|E - E_active| < 1.6 mHa", "|E - E_active| < 6.4 mHa", "|E - E_FCI(full STO-3G)| < 1.6 mHa"],
+            "shots": SHOTS,
+            "min_shots": MIN_SHOTS,
             "t_count": c.t_count(),
             "rotations_per_run": info.rotations_per_run,
             "noiseless": [float(s) for s in noiseless_score],
@@ -122,8 +138,8 @@ def main():
             p=0.001,
             factory=fac,
             seed=seed,
-            shots=150,
-            min_shots=30,
+            shots=SHOTS,
+            min_shots=MIN_SHOTS,
         )
         run_record = {
             "d": d,
