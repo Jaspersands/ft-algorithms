@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use ft-algorithms or its results, please cite it as below."
+title: "ft-algorithms: factoring and chemistry on a simulated fault-tolerant quantum computer"
+abstract: >-
+  Shor's algorithm (full modular exponentiation, textbook and windowed arithmetic) and molecular
+  phase estimation compiled to Clifford+T+Toffoli and run end to end on a simulated rotated
+  surface-code machine whose logical error channels (idling, lattice-surgery merges, the surgery
+  CNOT) were measured by circuit-level simulation with stabilizer-qec and checked by a composition
+  test; ftsim, a Rust state-vector simulator stratified by fault count, runs the programs natively,
+  from Python and in the browser. Results are success probabilities against code distance, error
+  budgets, and extrapolations to RSA-2048 and FeMoco compared with published estimates.
+type: software
+authors:
+  - given-names: Jasper
+    family-names: Sands
+license: MIT
+repository-code: "https://github.com/Jaspersands/ft-algorithms"
+url: "https://ft.jaspersands.com"
+keywords:
+  - fault-tolerant quantum computing
+  - surface code
+  - lattice surgery
+  - resource estimation
+  - Shor's algorithm
+  - quantum phase estimation
+references:
+  - type: software
+    title: "stabilizer-qec: a quantum error-correction simulator and decoder"
+    authors:
+      - given-names: Jasper
+        family-names: Sands
+    doi: 10.5281/zenodo.23212075

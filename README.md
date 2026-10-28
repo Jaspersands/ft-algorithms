@@ -1,5 +1,7 @@
 # Fault-tolerant algorithms, run end to end
 
+[![CI](https://github.com/Jaspersands/ft-algorithms/actions/workflows/ci.yml/badge.svg)](https://github.com/Jaspersands/ft-algorithms/actions/workflows/ci.yml)
+
 Shor's algorithm and molecular phase estimation, compiled to Clifford + T + Toffoli and run
 **end to end** on a simulated surface-code quantum computer whose every logical error rate was
 **measured** by circuit-level simulation. The results are success probabilities as functions of
@@ -118,4 +120,4 @@ time are cited inputs, not measured here. Logical channels are measured up to d 
 d = 9 (surgery) at p = 0.1%; runs at larger distances use extrapolated channels and are marked as
 such, and every RSA-2048 and FeMoco number is an extrapolation. See the report's Limitations.
 
-MIT licensed.
+MIT licensed. To cite it, see [CITATION.cff](CITATION.cff).
