@@ -1,10 +1,13 @@
-"""Surface-code memories at p = 0.1% under two more circuit noise models, to set beside this
-project's SD6 calibration and locate the gap to Gidney 2025's projection of surface-code memory:
+"""Surface-code memories at p = 0.1% under three more circuits and noise models, to set beside this
+project's SD6 calibration (stabilizer-qec's memory, with separate measurement and reset layers) and
+locate the gap to Gidney 2025's projection of surface-code memory:
 
+- sd6_mr: the same circuit and noise with each measurement and reset of the ancillas in one layer,
+  so data qubits wait for them once a round, as hardware-style circuits do, instead of twice;
 - si1000: the superconducting-inspired model of the yoked-surface-code simulations that projection
-  descends from, on stabilizer-qec's memory rewritten over CZ;
+  descends from, on the memory rewritten over CZ, with one measure-and-reset layer;
 - uniform: Stim's generated memory with every noise parameter at p ("uniform depolarizing", the
-  label of Gidney 2025's Figure 6), which unlike SD6 leaves qubits idle during gate layers noiseless.
+  label of Gidney 2025's Figure 6), which leaves qubits idle during gate layers noiseless.
 
 Each is held for T = d and 3d rounds in both bases and decoded by correlated matching, exactly as the
 calibration's memories are (``ftalgo.calib.circuit_noise``); one JSON file per experiment in
@@ -36,10 +39,11 @@ RAW = os.path.join(ROOT, "data", "calibration", "noise_models")
 CAL = os.path.join(ROOT, "data", "calibration", "raw")
 OUT = os.path.join(ROOT, "data", "calibration", "noise_models.json")
 P = 0.001
-DS = (3, 5, 7, 9, 11)
-MODELS = ("si1000", "uniform")
-TARGET = 300
-CAP_SECONDS = 1800
+DS = (3, 5, 7, 9)
+MODELS = ("sd6_mr", "si1000", "uniform")
+TARGET = 200
+CAP_SECONDS = 1200
+BATCH_BITS = 1 << 28  # detector bits per batch: keeps a batch near 32 MB
 
 
 def experiments():
@@ -85,7 +89,7 @@ def summary() -> dict:
     new = load(os.path.join(RAW, "*.json"))
     sd = load(os.path.join(CAL, "mem-*.json"))
     models = {}
-    for model, recs, prefix in (("sd6", sd, "mem"), ("si1000", new, "si1000-mem"), ("uniform", new, "uniform-mem")):
+    for model, recs, prefix in (("sd6", sd, "mem"), ("sd6_mr", new, "sd6_mr-mem"), ("si1000", new, "si1000-mem"), ("uniform", new, "uniform-mem")):
         rows = []
         for d in DS:
             row = {"d": d}
@@ -140,7 +144,9 @@ def main() -> None:
             print(("done " if os.path.exists(path) else "todo ") + name)
             continue
         seed = zlib.crc32(name.encode())
-        circuit = str(build())
+        built = build()
+        circuit = str(built)
+        max_batch = max(1 << 14, min(1 << 22, BATCH_BITS // max(built.num_detectors, 1) // 64 * 64))
         t0 = time.time()
         total, batch = None, 1 << 14
         while True:
@@ -148,7 +154,7 @@ def main() -> None:
             total = res if total is None else total.merge(res)
             if total.failures >= args.target or time.time() - t0 > args.cap:
                 break
-            batch = min(batch * 2, 1 << 22)
+            batch = min(batch * 2, max_batch)
         rec = {"name": name, **meta, "counts": total.to_json(), "seed": seed, "seed_note": "batches seeded seed + shots done so far",
                "versions": vers, "command": "python tools/noise_models.py", "wall_seconds": round(time.time() - t0, 1)}
         with open(path + ".tmp", "w") as f:

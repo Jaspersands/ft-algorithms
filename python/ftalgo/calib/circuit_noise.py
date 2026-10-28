@@ -106,6 +106,24 @@ def to_cz(circuit: stim.Circuit) -> list[list[stim.CircuitInstruction]]:
     return merged
 
 
+def merge_measure_reset(moments):
+    """Each measurement layer followed by a reset of the same qubits becomes one measure-and-reset
+    layer, as hardware and Gidney's generated circuits run it: qubits waiting for it idle once a
+    round instead of twice."""
+    out = []
+    for m in moments:
+        g = _gates(m)
+        if out and g and all(i.name == "R" for i in g) and len(g) == len(m):
+            prev = _gates(out[-1])
+            if prev and all(i.name == "M" for i in prev) and \
+                    sorted(q for i in prev for q in _qubits(i)) == sorted(q for i in g for q in _qubits(i)):
+                ann = [i for i in out[-1] if i.name in ANNOTATIONS]
+                out[-1] = prev + g + ann
+                continue
+        out.append(m)
+    return out
+
+
 def apply_noise(moments, model: str, p: float, num_qubits: int) -> stim.Circuit:
     """The moments with ``model``'s noise at strength p; every qubit 0..num_qubits-1 is live."""
     if model not in ("sd6", "si1000"):
@@ -118,12 +136,14 @@ def apply_noise(moments, model: str, p: float, num_qubits: int) -> stim.Circuit:
         busy = {q for i in gates for q in _qubits(i)}
         idle = [q for q in range(num_qubits) if q not in busy]
         pre, post = stim.Circuit(), stim.Circuit()
+        reset_here = {q for i in gates if i.name in RESET for q in _qubits(i)}
         for i in gates:
             qs = _qubits(i)
             if i.name in MEASURE:
                 pre.append("Z_ERROR" if i.name == "MX" else "X_ERROR", qs, 5 * p if si else p)
-                if si:
-                    post.append("DEPOLARIZE1", qs, p)
+                kept = [q for q in qs if q not in reset_here]  # a reset in the same layer supersedes it
+                if si and kept:
+                    post.append("DEPOLARIZE1", kept, p)
             elif i.name in RESET:
                 post.append("Z_ERROR" if i.name == "RX" else "X_ERROR", qs, 2 * p if si else p)
             elif i.name in TWO:
@@ -152,9 +172,12 @@ def apply_noise(moments, model: str, p: float, num_qubits: int) -> stim.Circuit:
     return c
 
 
-def memory(d: int, rounds: int, basis: str, model: str, p: float) -> stim.Circuit:
-    """A rotated memory with ``model``'s noise: stabilizer-qec's CX circuit for sd6, its CZ rewrite
-    for si1000, Stim's generated circuit for uniform."""
+def memory(d: int, rounds: int, basis: str, model: str, p: float, merge_mr: bool | None = None) -> stim.Circuit:
+    """A rotated memory with ``model``'s noise: stabilizer-qec's CX circuit for sd6 (its separate
+    measurement and reset layers, as calibrated) and sd6_mr (one measure-and-reset layer), its CZ
+    rewrite with one measure-and-reset layer for si1000, Stim's generated circuit for uniform."""
+    if model == "sd6_mr":
+        model, merge_mr = "sd6", True
     import stabilizer_qec as sq
 
     if model == "uniform":
@@ -164,4 +187,6 @@ def memory(d: int, rounds: int, basis: str, model: str, p: float) -> stim.Circui
 
     base = stim.Circuit(str(sq.memory_circuit(distance=d, rounds=rounds, p=p, basis=basis)))
     moments = to_cz(base) if model == "si1000" else _moments(base)
+    if merge_mr if merge_mr is not None else model == "si1000":
+        moments = merge_measure_reset(moments)
     return apply_noise(moments, model, p, base.num_qubits)

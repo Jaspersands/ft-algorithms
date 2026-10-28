@@ -52,3 +52,13 @@ def test_uniform_is_stims_generated_circuit():
                                  before_round_data_depolarization=0.001, before_measure_flip_probability=0.001,
                                  after_reset_flip_probability=0.001)
     assert c == ref
+
+
+def test_merged_measure_reset_layer():
+    # One measure-and-reset layer a round: data qubits wait for it once instead of twice.
+    sep = cn.memory(5, 5, "z", "sd6", 0.001)
+    mr = cn.memory(5, 5, "z", "sd6_mr", 0.001)
+    ticks = lambda c: sum(1 for i in c.flattened() if i.name == "TICK")  # noqa: E731
+    assert ticks(sep) - ticks(mr) == 5 - 1  # every round but the last resets its ancillas
+    mr.detector_error_model(decompose_errors=True)
+    assert len(mr.shortest_graphlike_error()) == 5

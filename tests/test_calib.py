@@ -5,18 +5,34 @@ sq = pytest.importorskip("stabilizer_qec")
 
 from ftalgo.calib import channels  # noqa: E402
 from ftalgo.calib.choi import choi_memory  # noqa: E402
-from ftalgo.calib.qec import Counts, run  # noqa: E402
+from ftalgo.calib.qec import Counts, correlated_decoding, run  # noqa: E402
 
 
 def test_run_matches_direct_decoding():
     c = sq.memory_circuit(distance=3, rounds=3, p=0.005)
     res = run(c, shots=1 << 17, seed=11)
     dets, obs = c.compile_detector_sampler(seed=11).sample(1 << 17, separate_observables=True)
-    pred = sq.Matching(c.detector_error_model(decompose_errors=True), enable_correlations=True).decode_batch(dets)
+    m = sq.Matching(c.detector_error_model(decompose_errors=True), enable_correlations=True)
+    pred = m.decode_batch(dets, **correlated_decoding(m))
     direct = (pred != obs).any(axis=1).sum()
     assert res.failures == direct  # same seed, same stream, same decoder
     j = Counts.from_json(res.to_json())
     assert j.patterns == res.patterns and j.shots == res.shots
+
+
+def test_run_decodes_with_correlations_like_pymatching():
+    # stabilizer-qec 2.x, like PyMatching, takes enable_correlations at decode time as well as at
+    # construction; without it run() silently decoded uncorrelated (2.6x the failures at d = 7, p = 0.1%).
+    pymatching = pytest.importorskip("pymatching")
+    stim = pytest.importorskip("stim")
+    c = sq.memory_circuit(distance=5, rounds=5, p=0.003)
+    res = run(c, shots=1 << 16, seed=3)
+    dets, obs = c.compile_detector_sampler(seed=3).sample(1 << 16, separate_observables=True)
+    m = pymatching.Matching.from_detector_error_model(stim.Circuit(str(c)).detector_error_model(decompose_errors=True), enable_correlations=True)
+    corr = int((m.decode_batch(dets, enable_correlations=True) != obs).any(axis=1).sum())
+    plain = int((m.decode_batch(dets) != obs).any(axis=1).sum())
+    assert plain > 1.2 * corr  # the check can tell the two decoders apart
+    assert abs(res.failures - corr) <= 0.05 * corr + 5
 
 
 def test_early_stop():
