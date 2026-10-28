@@ -345,7 +345,7 @@ function gidney(sens, sc) {
   const tb = sens.scenarios.map((e) => [e.category, e.name, e.d ?? "> 61", e.delta_d === null ? "—" : `${e.delta_d >= 0 ? "+" : ""}${e.delta_d}`]);
   tb.unshift(["Baseline", `one shot at his budget (E[faults] ≤ ${sens.target.toFixed(3)})`, sens.baseline.d, "0"]);
   tb.push(["His model", "Gidney's projection in place of the measured model", sens.gidney_projection.d, `${sens.gidney_projection.d - sens.baseline.d}`]);
-  table($("tab-tornado"), ["varied", "scenario", "d", "Δd"], tb, (r) => r[0] === "His model");
+  table($("tab-scenarios"), ["varied", "scenario", "d", "Δd"], tb, (r) => r[0] === "His model");
 }
 
 function opsTable() {

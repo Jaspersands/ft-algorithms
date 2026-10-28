@@ -13,6 +13,7 @@ import datetime
 import glob
 import json
 import math
+import os
 import pathlib
 import re
 import subprocess
@@ -34,7 +35,7 @@ from ftalgo.calib.model import LogicalModel  # noqa: E402
 
 REPORT = ROOT / "report"
 FIGS = REPORT / "figures"
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+CHROME = os.environ.get("CHROME", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 C = dict(s1="#2f5fd0", s2="#c0392b", s3="#2c7a4b", s4="#7b4bb5", s5="#a8620b", s6="#1b8a99", s7="#4a4c50",
          ink="#1c1d1f", ink2="#4a4c50", ink3="#6b6d71", rule="#ded9cd", paper="#fffefb")
 NCOL = [C["s1"], C["s2"], C["s3"], C["s4"], C["s5"], C["s6"], C["s7"]]
@@ -63,6 +64,8 @@ def sci(x, digits=2):
         return "0"
     e = math.floor(math.log10(abs(x)))
     m = x / 10**e
+    if abs(round(m, digits - 1)) >= 10:  # 9.95 rounds to 10.0: carry into the exponent
+        e, m = e + 1, m / 10
     if -2 <= e <= 3:
         return f"{x:.{max(digits - 1 - e, 0)}f}" if e < 0 else f"{x:,.{max(digits - 1 - e, 0)}f}"
     return f"{m:.{digits - 1}f}×10^{e}^"
@@ -118,8 +121,6 @@ def main():
     qpe_runs, qpe_base = runs_of("qpe")
     sc = jload(ROOT / "data" / "results" / "scaling.json")
     sens = jload(ROOT / "data" / "results" / "sensitivity.json")
-    biased_path = ROOT / "data" / "results" / "biased_xzzx.json"
-    biased = jload(biased_path) if biased_path.exists() else {}
     lih_path = ROOT / "data" / "results" / "lih.json"
     lih = jload(lih_path) if lih_path.exists() else None
     V = {}
@@ -271,11 +272,21 @@ def main():
         mod_hit = next((r for r in mod_rs if r["scores"][0] >= 0.9 * mod_b["noiseless"][0]), None)
         tb_d11 = next((r for r in tb_rs if r["d"] == 11), None)
         mod_d11 = next((r for r in mod_rs if r["d"] == 11), None)
-        mod_rows.append([N, "Textbook (Cuccaro)", tb_b["logical_qubits"], f"{tb_b['toffoli']:,}", f"{tb_d11['rounds']:,}" if tb_d11 else "—",
+        mod_rows.append([N, "textbook (Cuccaro)", tb_b["logical_qubits"], f"{tb_b['toffoli']:,}", f"{tb_d11['rounds']:,}" if tb_d11 else "—",
                          f"{tb_d11['scores'][0]:.3f}" if tb_d11 else "—", tb_hit["d"] if tb_hit else "—", fmt_q(tb_hit["physical_qubits"]["total"]) if tb_hit else "—", fmt_time(tb_hit["seconds"]) if tb_hit else "—"])
-        mod_rows.append([N, "Modern (k=2, MBU)", mod_b["logical_qubits"], f"{mod_b['toffoli']:,}", f"{mod_d11['rounds']:,}" if mod_d11 else "—",
+        mod_rows.append([N, "windowed (k = 2, MBU)", mod_b["logical_qubits"], f"{mod_b['toffoli']:,}", f"{mod_d11['rounds']:,}" if mod_d11 else "—",
                          f"{mod_d11['scores'][0]:.3f}" if mod_d11 else "—", mod_hit["d"] if mod_hit else "—", fmt_q(mod_hit["physical_qubits"]["total"]) if mod_hit else "—", fmt_time(mod_hit["seconds"]) if mod_hit else "—"])
     V["shor_mod_table"] = table(["N", "arithmetic", "logical qubits", "Toffolis", "rounds (d=11)", "peak (d=11)", "d for 90%", "physical qubits", "run time"], mod_rows)
+    mod_Ns_ok = [N for N in (15, 21, 35) if N in base and N in base_mod]
+    cut = [base[N]["toffoli"] / base_mod[N]["toffoli"] for N in mod_Ns_ok]
+    d11 = {N: (next(r for r in sel(N, "cultivation", 0.001) if r["d"] == 11), next(r for r in sel_mod(N, "cultivation", 0.001) if r["d"] == 11)) for N in mod_Ns_ok}
+    rcut = [t["rounds"] / m["rounds"] for t, m in d11.values()]
+    hit90 = {}
+    for N in mod_Ns_ok:
+        hit90[N] = tuple(next((r["d"] for r in rs if r["scores"][0] >= 0.9 * b["noiseless"][0]), None)
+                         for rs, b in ((sel(N, "cultivation", 0.001), base[N]), (sel_mod(N, "cultivation", 0.001), base_mod[N])))
+    V["mod"] = {"cut_lo": min(cut), "cut_hi": max(cut), "rcut_lo": min(rcut), "rcut_hi": max(rcut), "d11": d11, "hit90": hit90,
+                "extra_qubits": {N: base_mod[N]["logical_qubits"] - base[N]["logical_qubits"] for N in mod_Ns_ok}}
 
     # Figure: Shor modern vs textbook
     fig, axs = plt.subplots(1, 2, figsize=(7.2, 2.9))
@@ -285,10 +296,10 @@ def main():
         mod_rs = sel_mod(N, "cultivation", 0.001)
         col = NCOL[i % len(NCOL)]
         if tb_rs:
-            axs[0].plot([r["d"] for r in tb_rs], [r["scores"][0] for r in tb_rs], "--o", ms=3.2, color=col, alpha=0.55, label=f"N={N} textbook")
+            axs[0].plot([r["d"] for r in tb_rs], [r["scores"][0] for r in tb_rs], "--o", ms=3.2, color=col, alpha=0.55, label=f"N = {N}, textbook")
             axs[1].plot([r["d"] for r in tb_rs], [r["rounds"] for r in tb_rs], "--o", ms=3.2, color=col, alpha=0.55)
         if mod_rs:
-            axs[0].plot([r["d"] for r in mod_rs], [r["scores"][0] for r in mod_rs], "-s", ms=3.5, color=col, lw=1.2, label=f"N={N} modern")
+            axs[0].plot([r["d"] for r in mod_rs], [r["scores"][0] for r in mod_rs], "-s", ms=3.5, color=col, lw=1.2, label=f"N = {N}, windowed")
             axs[1].plot([r["d"] for r in mod_rs], [r["rounds"] for r in mod_rs], "-s", ms=3.5, color=col, lw=1.2)
         if N in base_mod:
             axs[0].axhline(base_mod[N]["noiseless"][0], color=col, lw=0.6, ls=":")
@@ -358,12 +369,10 @@ def main():
         rr = [r for r in sc["textbook"] if r["factory"] == f and r["d"]]
         rr_mod = [r for r in sc.get("modern", []) if r["factory"] == f and r["d"]]
         axs[0].plot([r["n"] for r in rr], [r["physical_qubits"] for r in rr], "-o", ms=2.6, color=FCOL[f], alpha=0.5, label=f"textbook, {FLAB[f]}")
-        axs[0].plot([r["n"] for r in rr_mod], [r["physical_qubits"] for r in rr_mod], "--s", ms=2.6, color=FCOL[f], label=f"modern, {FLAB[f]}")
+        axs[0].plot([r["n"] for r in rr_mod], [r["physical_qubits"] for r in rr_mod], "--s", ms=2.6, color=FCOL[f], label=f"windowed, {FLAB[f]}")
         axs[1].plot([r["n"] for r in rr], [r["seconds"] for r in rr], "-o", ms=2.6, color=FCOL[f], alpha=0.5)
         axs[1].plot([r["n"] for r in rr_mod], [r["seconds"] for r in rr_mod], "--s", ms=2.6, color=FCOL[f])
-    gpub = next(p for p in sc["published"] if p["name"].startswith("RSA"))
-    axs[0].plot([2048], [897864], "D", color=C["s4"], ms=5, label="Gidney 2025 (published)")
-    axs[0].plot([2048], [gpub["estimate"]["physical_qubits"]], "D", mfc="none", color=C["s4"], ms=5, label="Gidney 2025 counts, our model")
+    axs[0].plot([2048], [897864], "D", color=C["s4"], ms=5, label="Gidney 2025 (published, yoked storage)")
     axs[1].plot([2048], [4.96 * 86400], "D", color=C["s4"], ms=5)
     for ax in axs:
         ax.set_xscale("log", base=2)
@@ -374,64 +383,53 @@ def main():
     axs[0].legend(fontsize=6.5)
     V["fig_scale"] = savefig(fig, "scaling")
 
-    srows = []
     tb = next(r for r in sc["textbook"] if r["n"] == 2048 and r["factory"] == "cultivation")
-    srows.append(["RSA-2048, textbook arithmetic", f"{3 * 2048 + 6:,}", sci(2 * 2048 * (2 * 2048 * (10 * 2048 + 12) + 2048)), "—", "—", tb["d"], fmt_q(tb["physical_qubits"]), fmt_time(tb["seconds"])])
-    mod2048 = next(r for r in sc.get("modern", []) if r["n"] == 2048 and r["factory"] == "cultivation")
-    srows.append(["RSA-2048, modern arithmetic (k=2, MBU)", f"{2 * 2048 + 2 * 2 + 20:,}", sci(86107386880.0), "—", "—", mod2048["d"], fmt_q(mod2048["physical_qubits"]), fmt_time(mod2048["seconds"])])
-    pubs = {"RSA-2048, Gidney 2025": ("25", "898 k", "4.96 days"), "FeMoco (THC), Lee et al. 2021": ("31", "≈ 4 M", "< 4 days")}
-    for p in sc["published"]:
-        pd_, pq, pt = pubs.get(p["name"], ("—", "—", "—"))
-        e = p["estimate"]
-        srows.append([p["name"], f"{p['logical_qubits']:,}", sci(p["toffolis"]), pd_, pq, e["d"], fmt_q(e["physical_qubits"]), fmt_time(e["seconds"])])
-    V["scale_table"] = table(["workload", "logical qubits", "Toffolis", "published d", "published qubits", "our d", "our qubits", "run time"], srows)
+    mod2048 = next(r for r in sc["modern"] if r["n"] == 2048 and r["factory"] == "cultivation")
+    V["scale_table"] = table(["arithmetic", "logical qubits", "Toffolis", "d", "physical qubits", "run time"],
+                             [[lab, f"{r['logical_qubits']:,}", sci(r["toffolis"]), r["d"], fmt_q(r["physical_qubits"]), fmt_time(r["seconds"])]
+                              for lab, r in (("textbook", tb), ("windowed + MBU", mod2048))])
+    V["pub_table"] = table(["workload", "logical qubits", "Toffolis", "run time", "failure budget", "published d", "d, measured model"],
+                           [[p["name"], f"{p['logical_qubits']:,}", sci(p["toffolis"]), fmt_time(p["estimate"]["seconds"]),
+                             f"{100 * (1 - math.exp(-p['target'])):.1f}%", p["published_d"], p["estimate"]["d"]] for p in sc["published"]])
     V["tb2048"] = tb
     V["mod2048"] = mod2048
-    V["gid"] = gpub["estimate"]
+    V["femoco"] = next(p for p in sc["published"] if p["name"].startswith("FeMoco"))
     st = sc["structure"]
     st_mod = sc.get("structure_modern", st)
 
-    # -- Sensitivity & Tornado -----------------------------------------------------------------
-    band = sens["fit_covariance"]["band"]
-    V["lam_ci_lo"] = sens["fit_covariance"]["lambda_lo"]
-    V["lam_ci_hi"] = sens["fit_covariance"]["lambda_hi"]
-    band_rows = []
-    for d_int in (15, 21, 25, 29, 31, 35):
-        ds = str(d_int)
-        b = band[ds]
-        vs_gid = f"{b['central'] / 1e-15:.1f}×" if d_int == 25 else "—"
-        band_rows.append([d_int, sci(b["central"]), f"[{sci(b['lo_1sigma'])}, {sci(b['hi_1sigma'])}]", f"[{sci(b['lo_2sigma'])}, {sci(b['hi_2sigma'])}]", vs_gid])
-    V["band_table"] = table(["code distance d", "idle error per round", "1σ confidence band", "2σ confidence band", "vs Gidney assumed (10⁻¹⁵)"], band_rows)
+    # -- Gidney 2025's distance ----------------------------------------------------------------
+    pr = sens["per_round"]
+    meas = [r for r in pr["rows"] if not r["extrapolated"]]
+    V["g"] = {"ratio_lo": min(r["measured"] / r["gidney"] for r in meas), "ratio_hi": max(r["measured"] / r["gidney"] for r in meas),
+              "dmax": max(r["d"] for r in meas), "lams": sorted(f["lambda"] for f in sens["fits"].values()),
+              "r25": next(r for r in pr["rows"] if r["d"] == sens["published_d"]),
+              "b90": next(x for x in sens["scenarios"] if x["category"] == "Budget" and "90%" in x["name"])}
+    V["per_round_table"] = table(["d", "measured model", "1σ band", "2σ band", "Gidney's projection", "ratio"],
+                                 [[f"{r['d']}{'' if not r['extrapolated'] else ' *'}", sci(r["measured"]), f"{sci(r['lo1'])} – {sci(r['hi1'])}",
+                                   f"{sci(r['lo2'])} – {sci(r['hi2'])}", sci(r["gidney"]), f"{r['measured'] / r['gidney']:.1f}×"]
+                                  for r in pr["rows"] if r["d"] in (3, 7, 11, 21, 23, 25, 27, 29, 31)])
+    srows = [["baseline", f"one shot at his budget (E[faults] ≤ {sens['target']:.3f})", sens["baseline"]["d"], "0"]]
+    srows += [[x["category"], x["name"], x["d"] if x["d"] is not None else "> 61", f"{x['delta_d']:+d}" if x["delta_d"] is not None else "—"] for x in sens["scenarios"]]
+    srows.append(["his model", "Gidney's projection in place of the measured model", sens["gidney_projection"]["d"], f"{sens['gidney_projection']['d'] - sens['baseline']['d']:+d}"])
+    V["scen_table"] = table(["varied", "scenario", "d", "Δd"], srows, ["l", "l", "r", "r"])
 
-    trows = []
-    for exp in sens["experiments"]:
-        trows.append([exp["category"], exp["name"], exp["d"], fmt_q(exp["physical_qubits"]), f"{exp['delta_d']:+d}"])
-    V["tornado_table"] = table(["category", "parameter scenario", "required d", "physical qubits", "Δd vs baseline"], trows)
-
-    # Tornado Figure
-    fig, ax = plt.subplots(figsize=(6.2, 3.4))
-    tcases = [
-        ("Gidney model (target E[K] ≤ 0.5)", 25, C["s3"]),
-        ("Gidney model (target E[K] ≤ 0.1)", 27, C["s3"]),
-        ("ε_CCZ × 0.1 (cleaner factory)", 29, C["s5"]),
-        ("ε_CCZ × 10.0 (dirtier factory)", 29, C["s5"]),
-        ("Decoder correlated (+15% Λ)", 29, C["s6"]),
-        ("Prefactor A -1σ (0.87×)", 29, C["s1"]),
-        ("Prefactor A +1σ (1.15×)", 29, C["s1"]),
-        ("Idle slope Λ -1σ (10.52)", 29, C["s2"]),
-        ("Idle slope Λ +1σ (11.36)", 31, C["s2"]),
-        ("Baseline measured SD6", 29, C["ink"]),
-    ]
-    y_pos = np.arange(len(tcases))
-    ax.barh(y_pos, [c[1] for c in tcases], color=[c[2] for c in tcases], height=0.6, alpha=0.85)
-    ax.axvline(29, color=C["ink"], lw=0.9, ls="--", label="Baseline d = 29")
-    ax.axvline(25, color=C["s4"], lw=0.9, ls=":", label="Gidney assumed d = 25")
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels([c[0] for c in tcases], fontsize=7.5)
-    ax.set_xlabel("Required code distance d (RSA-2048, Gidney 2025 algorithm)")
-    ax.set_xlim(20, 34)
-    ax.legend(loc="lower right", fontsize=7.2)
-    V["fig_tornado"] = savefig(fig, "tornado")
+    fig, ax = plt.subplots(figsize=(5.6, 3.3))
+    rows_ = [r for r in pr["rows"] if r["d"] <= 31]
+    dd = [r["d"] for r in rows_]
+    dm = V["g"]["dmax"]
+    ax.fill_between([r["d"] for r in rows_ if r["d"] >= dm], [r["lo1"] for r in rows_ if r["d"] >= dm], [r["hi1"] for r in rows_ if r["d"] >= dm], color=C["s1"], alpha=0.15, lw=0)
+    ax.plot([d for d in dd if d <= dm], [r["measured"] for r in rows_ if r["d"] <= dm], "-", color=C["s1"], lw=1.2)
+    ax.plot([d for d in dd if d >= dm], [r["measured"] for r in rows_ if r["d"] >= dm], "--", color=C["s1"], lw=1.2, label="measured model (SD6, correlated matching)")
+    ax.plot([r["d"] for r in meas], [r["measured"] for r in meas], "o", color=C["s1"], ms=3.5)
+    ax.plot(dd, [r["gidney"] for r in rows_], "-", color=C["s4"], lw=1.2, label="Gidney 2025 projection, $3.5^{-d}/40$")
+    ax.axhline(pr["target"], color=C["ink3"], lw=0.8, ls=":")
+    ax.text(3.3, pr["target"] * 2, "10⁻¹⁵", fontsize=7, color=C["ink3"])
+    ax.set_yscale("log")
+    ax.set_xlabel("code distance d")
+    ax.set_ylabel("logical error per patch per round")
+    ax.set_xticks(range(3, 32, 4))
+    ax.legend(fontsize=7, loc="upper right")
+    V["fig_gidney"] = savefig(fig, "gidney")
 
     # -- LiH Chemistry -------------------------------------------------------------------------
     fig, ax = plt.subplots(figsize=(5.6, 3.2))
@@ -466,6 +464,16 @@ def main():
     for r, ehf, ecas, ecasscf, efci in zip(r_pts, e_hf, e_casci, e_casscf, e_fci):
         lrows.append([f"{r:.3f}", f"{ehf:.6f}", f"{ecas:.6f}", f"{ecasscf:.6f}", f"{efci:.6f}", f"{(ecasscf - efci) * 1000:+.3f}"])
     V["lih_table"] = table(["R (Å)", "E_RHF (Ha)", "E_CASCI (Ha)", "E_CASSCF (Ha)", "E_FCI (Ha)", "Δ(CASSCF − FCI) (mHa)"], lrows)
+    gaps = [(a - b) * 1000 for a, b in zip(e_casscf, e_fci)]
+    gaps_ci = [(a - b) * 1000 for a, b in zip(e_casci, e_fci)]
+    V["lih"] = {"gap_lo": min(gaps), "gap_hi": max(gaps), "ci_lo": min(gaps_ci), "ci_hi": max(gaps_ci),
+                "rhf_end": (e_hf[-1] - e_fci[-1]) * 1000, "r_end": r_pts[-1]}
+    if lih is not None:
+        V["lih"].update({"corr": (lih["e_hf"] - lih["e_active"]) * 1000, "corr_full": (lih["e_hf"] - lih["e_fci_full"]) * 1000,
+                         "gap_re": (lih["e_active"] - lih["e_fci_full"]) * 1000})
+        lr = sorted((r for r in lih["runs"] if r["factory"] == "cultivation"), key=lambda r: r["d"])
+        ld = sorted((r for r in lih["runs"] if r["factory"] == "15to1"), key=lambda r: r["d"])
+        V["lih"].update({"best": lr[-1], "dist_best": max(ld, key=lambda r: r["scores"][0]) if ld else None})
 
     # LiH QPE simulation table
     qpe_lrows = []
@@ -491,42 +499,6 @@ def main():
         qpe_lrows
     )
 
-    # -- Biased Noise & XZZX -------------------------------------------------------------------
-    fig, ax = plt.subplots(figsize=(5.6, 3.2))
-    brows = []
-    if biased:
-        for key, col, lab in [
-            ("rsa2048_modern", C["s1"], "RSA-2048 (Modern)"),
-            ("femoco", C["s4"], "FeMoco (THC)"),
-        ]:
-            if key in biased:
-                pts = biased[key]["points"]
-                etas = [p["eta"] for p in pts]
-                qubits = [p["total_physical_qubits"] for p in pts]
-                sym_q = pts[0]["symmetric_physical_qubits"]
-                ax.plot(etas, qubits, "-o", ms=3.5, color=col, lw=1.2, label=f"{lab} (XZZX)")
-                ax.axhline(sym_q, color=col, ls="--", lw=0.9, alpha=0.6, label=f"{lab} (Symmetric CSS)")
-        if "rsa2048_modern" in biased:
-            for p in biased["rsa2048_modern"]["points"]:
-                brows.append([
-                    f"{p['eta']:.0f}" if p['eta'] >= 1 else f"{p['eta']}",
-                    f"{p['dx']} × {p['dz']}",
-                    f"{p['symmetric_d']} × {p['symmetric_d']}",
-                    fmt_q(p["total_physical_qubits"]),
-                    fmt_q(p["symmetric_physical_qubits"]),
-                    f"{p['qubit_reduction_ratio']:.2f}×",
-                ])
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_xlabel("noise bias ratio η = p_Z / p_X")
-    ax.set_ylabel("physical qubits")
-    ax.legend(fontsize=7, loc="upper right")
-    V["fig_biased_xzzx"] = savefig(fig, "biased_xzzx")
-    V["biased_table"] = table(
-        ["bias η", "XZZX patch (d_X × d_Z)", "CSS patch (d × d)", "XZZX qubits", "CSS qubits", "savings ratio"],
-        brows
-    )
-
     # -- the text ------------------------------------------------------------------------------
     sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
     s15 = V["shor"].get(15)
@@ -535,28 +507,28 @@ title: Factoring and chemistry on a simulated fault-tolerant quantum computer
 subtitle: Algorithms run end to end on a surface-code machine whose logical error rates were measured by circuit-level simulation
 author: Jasper Sands
 date: {datetime.date.today().isoformat()}
-version: 0.2
+version: 0.3
 commit: {sha}
 description: Technical report of the ft-algorithms project.
 toc: true
 abstract: |
-  Shor's algorithm (full modular exponentiation in both textbook Cuccaro and modern windowed
-  measurement-based-uncomputation arithmetic, semiclassical approximate QFT) and iterative phase
-  estimation of molecular ground-state energies (H₂, HeH⁺, and frozen-core LiH across its dissociation
-  coordinate) are run end to end on a simulated rotated-surface-code machine. Every logical error channel,
-  idling, lattice-surgery merges and the surgery CNOT, was measured in {V['n_exp']} circuit-level experiments
-  ({V['shots'] / 1e9:.2f}×10⁹ shots) with stabilizer-qec under SD6 noise and extracted with baselines propagated
-  through each operation; magic states come from published factory models. Whole surgery experiments predicted
-  from their parts agree with circuit-level measurements to {V['comp_lo']:.2f}–{V['comp_hi']:.2f}× (median
-  {V['comp_med']:.2f}×). Modern arithmetic cuts Toffolis by up to 2.7–4.0×, reducing rounds by 1.4–1.8× on the
-  simulator and dropping the distance needed for 90% peak probability on N = 15 from d = 13 to d = 11. Biased-noise
-  compilation under asymmetric XZZX surface codes (d_X × d_Z) reduces the physical qubit footprint by 3.4× at
-  dephasing bias η = 100 and 4.25× at η = 500 for RSA-2048. Extrapolated with the same error model to RSA-2048,
-  textbook arithmetic requires d = {V['tb2048']['d']}, {fmt_q(V['tb2048']['physical_qubits'])} physical qubits,
-  and {fmt_time(V['tb2048']['seconds'])}; modern windowed arithmetic lowers run time to {fmt_time(V['mod2048']['seconds'])}
-  ({fmt_q(V['mod2048']['physical_qubits'])} physical qubits). For Gidney's 2025 algorithm, an empirical sensitivity
-  analysis demonstrates that our measured circuit-level noise requires d = {V['gid']['d']} (vs. his assumed 25)
-  because SD6 noise decodes to an idle logical error rate 4.3× higher at d = 25 than Gidney's uncalibrated assumption.
+  Shor's algorithm (full modular exponentiation, with textbook ripple-carry arithmetic and with windowed
+  arithmetic using measurement-based uncomputation; semiclassical approximate QFT) and iterative phase
+  estimation of molecular ground-state energies (H₂, HeH⁺ and a small LiH active space) are run end to end
+  on a simulated rotated-surface-code machine. Every logical error channel, idling, lattice-surgery merges
+  and the surgery CNOT, was measured in {V['n_exp']} circuit-level experiments ({V['shots'] / 1e9:.2f}×10⁹ shots)
+  with stabilizer-qec under SD6 noise and extracted with baselines propagated through each operation; magic
+  states come from published factory models. Whole surgery experiments predicted from their parts agree with
+  circuit-level measurements to {V['comp_lo']:.2f}–{V['comp_hi']:.2f}× (median {V['comp_med']:.2f}×). Windowed
+  arithmetic cuts Toffolis by {V['mod']['cut_lo']:.1f}–{V['mod']['cut_hi']:.1f}× and rounds by
+  {V['mod']['rcut_lo']:.1f}–{V['mod']['rcut_hi']:.1f}× on the simulated moduli. Extrapolated with the same error
+  model to RSA-2048, textbook arithmetic needs d = {V['tb2048']['d']}, {fmt_q(V['tb2048']['physical_qubits'])}
+  physical qubits and {fmt_time(V['tb2048']['seconds'])}; windowed arithmetic {fmt_time(V['mod2048']['seconds'])}
+  with {fmt_q(V['mod2048']['physical_qubits'])}. At their authors' own failure budgets, the model gives Lee
+  et al.'s FeMoco estimate its published d = {V['femoco']['estimate']['d']}, and Gidney's 2025 RSA-2048
+  estimate d = {sens['baseline']['d']} rather than {sens['published_d']}: within the measured distances SD6
+  memories already fail {V['g']['ratio_lo']:.1f}–{V['g']['ratio_hi']:.1f}× more often than the projection his
+  distance rests on, and their fitted suppression is weaker.
 ---
 
 # Introduction
@@ -571,7 +543,7 @@ source, with error budgets that say which operations cause the failures.
 The approach rests on one fact and one approximation. The fact: under Pauli circuit noise, for a
 Clifford circuit decoded into a Pauli-frame correction, the logical action of one surface-code
 operation is exactly a Pauli channel, since every syndrome history ends in some logical Pauli. The
-approximation: consecutive operations' channels are composed as independent. Section 4.3
+approximation: consecutive operations' channels are composed as independent. Section 3.2
 measures how good that is.
 
 Contributions:
@@ -582,18 +554,12 @@ Contributions:
   and compared with circuit-level measurement.
 - Shor's algorithm with honest arithmetic (no use of the period anywhere in the circuit) run on
   that model for N up to {max(Ns)}, scored by peak probability because, for small N, uniformly random
-  outcomes already "factor" with probability {base[15]['random'][1]:.2f} (N = 15).
-- Modern fault-tolerant arithmetic implemented and executed on the simulator: Gidney (2018) carry uncomputation
-  via mid-circuit measurement and classical feed-forward CZ fixup, algebraic normal form table lookups, and
-  windowed modular exponentiation, cutting Toffolis by 2.7–4.0×.
-- Molecular phase estimation from first-principles Hamiltonians to chemical accuracy, scaling from minimal
-  diatomics (H₂, HeH⁺) to Lithium Hydride (LiH) with active-space frozen core, Z₂ spin-parity tapering, and
-  full dissociation curve tracking.
-- Biased noise compilation under asymmetric rectangular XZZX surface codes (d_X × d_Z), cutting physical qubit
-  footprints by 3.4× to 4.25× at dephasing bias η ∈ [100, 500].
-- Interactive 2D lattice surgery fast-block floorplan visualizer and WebAssembly client-side QPE quantum simulator.
-- Robustness and sensitivity analysis of the RSA-2048 code distance ($d=29$ vs. $d=25$), isolating why circuit-level
-  SD6 noise requires $d=29$ under calibrated physical simulation.
+  outcomes already "factor" with probability {base[15]['random'][1]:.2f} (N = 15); and the same with
+  windowed arithmetic and measurement-based uncomputation.
+- Phase estimation of molecular ground-state energies to chemical accuracy, from Hamiltonians computed
+  from scratch (H₂, HeH⁺) and from a frozen-core CASSCF active space (LiH).
+- Extrapolation to RSA-2048 and FeMoco, and a check of two published estimates' code distances against
+  the measured model at their own failure budgets.
 
 # Methods
 
@@ -674,17 +640,13 @@ through 2n rounds of a semiclassical approximate QFT whose correction rotations,
 the previous ⌈log₂ 2n⌉ + 2 records, are synthesized by gridsynth to ε = 10⁻³/2n and verified as matrices.
 The base is a = 2 for every N. Every multiplier is the generic circuit, even when its constant is 1.
 
-**Modern Shor (windowed + measurement-based uncomputation).** Textbook ripple-carry addition consumes
-2w Toffolis to compute and uncompute carries sequentially. Gidney's 2018 carry uncomputation replaces
-the reverse Toffoli cascade with transversal Hadamard, mid-circuit X-basis measurement, patch reset, and
-a classical feed-forward CZ fixup:
-$$c_{{i+1}} = c_{{i+1}} \\oplus a_i b_i, \\quad \\text{{uncompute: }} H(c_i) \\to M_X(c_i) \\to R_Z(c_i) \\to (m=1 \\implies CZ(a_i, b_i)).$$
-This cuts the adder to w - 1 Toffolis (a 2× reduction) with 0 additional ancillas. Subtraction is performed
-by bitwise NOT identity $\\sim(\\sim b + a)$ using transversal X gates with zero Toffoli overhead.
-Modular exponentiation groups control bits into windows of size k = 2: powers $a^{{2^j \\cdot m}} \\pmod N$
-for $m \\in \\{{1, 2, 3\\}}$ are precomputed and selected into an ancillary register via algebraic normal form (ANF)
-table lookup using 2 Toffolis, followed by a single in-place modular multiplication, cutting the number of
-modular multiplications in half.
+**Windowed Shor with measurement-based uncomputation.** The adder computes each carry with a Toffoli
+into a fresh qubit and, instead of uncomputing it with a second Toffoli, measures it in the X basis
+and applies CZ to the carry's two inputs when the outcome is 1 (Gidney 2018), a TABLE in the program;
+subtraction is addition under bitwise complement. The exponent is read two bits at a time: for each
+window the multiple a^(2^j·m) mod N (m ∈ {{1, 2, 3}}) is looked up into an (n + 1)-qubit register and
+added under modular reduction, halving the number of controlled multiplications. The circuit has
+4n + 7 qubits; its Toffoli count is a closed form equal to the compiled circuits' for every simulated N.
 
 **Chemistry.** STO-3G integrals of s Gaussians in closed form (Boys F₀), restricted Hartree–Fock with
 DIIS, Jordan–Wigner with interleaved spins, and Z₂ tapering of both spin parities (Bravyi et al.).
@@ -692,17 +654,11 @@ Iterative phase estimation reads 10 bits of U = exp(−i(H − E_HF)τ) with τ 
 fourth-order Suzuki steps; controlled Pauli rotations use only uncontrolled synthesized Rz's, so their
 global phases stay global.
 
-**Lithium Hydride ($LiH$) active space & $Z_2$ tapering.** For LiH in STO-3G (6 spatial orbitals, 12 spin orbitals),
-the Lithium $1s^2$ core electrons are frozen by shifting the 1-body Hamiltonian by the core Fock operator
-$h_{{pq}}^{{\\text{{eff}}}} = h_{{pq}} + \\sum_{{c \\in \\text{{core}}}} [2(pq|cc) - (pc|cq)]$. The 2 valence electrons in
-2 active orbitals ($2s, 2p_z$) produce a 4-spin-orbital active space matching full-space CASCI(2, 2) to machine precision
-($< 10^{{-14}}\\,\\text{{Ha}}$). Parity symmetries are tapered to a 2-qubit, 9-term Hamiltonian.
-
-**Biased noise & asymmetric XZZX surface codes.** Under dephasing bias $\\eta = p_Z / p_X \\gg 1$, standard CSS symmetric
-patches waste qubits because bit flips occur at $p_X = p / (\\eta + 1)$ while phase flips occur at $p_Z = \\eta p / (\\eta + 1)$.
-The XZZX surface code rotates checks such that error chains propagate along alternating diagonals. On asymmetric rectangular
-patches of dimension $d_X \\times d_Z$, the phase distance $d_Z$ can be compressed from $d=33$ to $d_Z=9$ or $7$ while
-preserving logical error balance, shrinking patch tile area $2(d_X+1)(d_Z+1)$ by up to $4.25\\times$.
+**LiH active space.** LiH in STO-3G has six spatial orbitals. Integrals come from PySCF; the Li 1s² core
+is frozen into an effective one-body term, h_pq + Σ_c [2(pq|cc) − (pc|cq)], and the two valence electrons
+are placed in two orbitals optimised by CASSCF(2, 2), which after tapering leaves a 2-qubit, 9-term
+Hamiltonian. Its ground energy equals PySCF's CASSCF energy to 10⁻⁹ Ha. It is a deliberately small
+problem: its value here is a third molecule through the same pipeline, not chemical scale.
 
 # Results
 
@@ -715,8 +671,8 @@ factors Λ (per two units of distance):
 
 ![Per-round logical error of an idle patch (X∪Y). Points measured (1σ), lines per-p fits, dashed beyond the largest measured distance.]({V['fig_idle']})
 
-At p = 0.1% an idle patch errs {sci(V['idle_d9'])} per round at d = 9, and the fit gives {sci(V['idle_d25'])}
-at d = 25. Logical Y is {100 * V['y_frac_d3']:.0f}% of the X∪Y rate at d = 3, {V['y_vs_indep_d3']:.0f}× what
+At p = 0.1% an idle patch errs {sci(V['idle_d9'])} per round at d = 9 (X∪Y), and the fit gives {sci(V['idle_d25'])}
+at d = 25 for X∪Y alone ({sci(V['g']['r25']['measured'])} for any Pauli; Section 3.8). Logical Y is {100 * V['y_frac_d3']:.0f}% of the X∪Y rate at d = 3, {V['y_vs_indep_d3']:.0f}× what
 independent X and Z would give: Y errors are included as measured.
 
 **Cross-check.** {V['xc_n']} experiments rerun with Stim and PyMatching (correlated) agree with
@@ -730,7 +686,7 @@ Across {V['comp_n']} experiment–noise–distance combinations the predicted fa
 {V['comp_lo']:.2f}–{V['comp_hi']:.2f}× the measured one, median {V['comp_med']:.2f}×. The independent-composition
 model is accurate to about 10% and leans pessimistic.
 
-## Shor's algorithm (Textbook arithmetic)
+## Shor's algorithm
 
 At p = 0.1% with cultivated magic states:
 
@@ -752,20 +708,21 @@ The peak probability falls to its random baseline (r/2^m) instead.
 
 Idling accounts for {100 * V.get('idle_share', 0):.0f}% of the expected faults. The textbook circuit runs one Toffoli at a
 time (the schedule averages {st['rounds_per_toffoli']:.2f}·d rounds per Toffoli with {st['busy']:.1f} patches busy)
-while every other patch waits.
+while every other patch waits. The last column is the peak probability of runs with exactly one fault
+of that class: a single logical fault is far from always fatal.
 
-## Modern arithmetic vs. textbook arithmetic
-
-Textbook ripple-carry addition computes carry bits forward with Toffoli gates and uncomputes them in reverse with an identical number of Toffolis. On our simulated fault-tolerant machine, we benchmarked the modern alternative: Gidney's 2018 measurement-based uncomputation (MBU) combined with $k=2$ windowed modular exponentiation.
+## Windowed arithmetic
 
 {V['shor_mod_table']}
 
-![Modern vs. textbook Shor on the simulated machine (cultivated magic states, p = 0.1%). Left: peak probability vs. distance d. Right: total circuit execution rounds.]({V['fig_shor_modern']})
+![Windowed (solid) vs textbook (dashed) Shor on the simulated machine (cultivated magic states, p = 0.1%). Left: peak probability vs d. Right: rounds.]({V['fig_shor_modern']})
 
-Across all three benchmark moduli ($N \\in \\{{15, 21, 35\\}}$):
-1. **Toffoli reduction**: Toffolis drop by 2.69× on N = 15 (1,248 vs. 3,360), 2.61× on N = 21 (2,390 vs. 6,250), and 2.96× on N = 35 (3,528 vs. 10,440).
-2. **Circuit duration**: Circuit rounds drop by 1.4–1.8×. At d = 11, factoring 15 runs in 107,387 rounds (107 ms) instead of 189,969 rounds (190 ms).
-3. **Threshold distance**: Because total rounds and Toffoli interactions are halved, idling accumulation is curtailed. For N = 15, 90% peak probability is reached at d = 11 (peak 0.913) whereas textbook arithmetic required d = 13 (at d = 11, textbook achieves only 0.874). For N = 21 and N = 35, the peak probability at d = 11 increases significantly (e.g. from 0.288 to 0.343 on N = 35), and reaches >90% at d = 13.
+On N = {', '.join(str(N) for N in V['mod']['hit90'])} the windowed circuit uses {V['mod']['cut_lo']:.1f}–{V['mod']['cut_hi']:.1f}× fewer
+Toffolis and {V['mod']['rcut_lo']:.1f}–{V['mod']['rcut_hi']:.1f}× fewer rounds at d = 11, for
+{min(V['mod']['extra_qubits'].values())}–{max(V['mod']['extra_qubits'].values())} more logical qubits. Rounds fall less than
+Toffolis because each measurement-based uncomputation waits for the decoder before its CZ correction.
+Shorter runs idle less: the distance for 90% of the noiseless peak is
+{'; '.join(f"N = {N}: {t} → {m}" for N, (t, m) in V['mod']['hit90'].items())}.
 
 ## Phase estimation
 
@@ -780,102 +737,113 @@ distilled states (4.5×10⁻⁸) most runs fail.
 ![The answer itself: energies returned by {V.get('qpe_hist_n')} individual H₂ runs at several distances (cultivated states, p = 0.1%), as the error from the exact energy; shaded: chemical accuracy; grey: the same circuit without noise.]({V['fig_qpe_hist']})
 ''' if V['fig_qpe_hist'] else ''}
 
-## Lithium Hydride (LiH) ground state and dissociation curve
-
-To demonstrate chemistry scaling beyond minimal diatomics, we modeled Lithium Hydride (LiH) across its potential energy dissociation coordinate $R \\in [1.0, 3.0]$ Å and simulated ground-state phase estimation on the fault-tolerant machine.
+## LiH
 
 {V['lih_table']}
 
-![LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) on canonical RHF orbitals, orbital-optimised CASSCF(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.]({V['fig_lih_curve']})
+![LiH in STO-3G: restricted Hartree–Fock, CASCI(2, 2) on canonical RHF orbitals, CASSCF(2, 2) with the 1s² core frozen, and full FCI. Dotted: R = 1.595 Å, where phase estimation is run.]({V['fig_lih_curve']})
 
-Across the dissociation curve:
-1. **Correlation energy at equilibrium**: At $R_e = 1.595$ Å, RHF yields $E = -7.862024$ Ha, while orbital-optimised CASSCF(2, 2) captures valence static correlation, yielding $E = -7.881118$ Ha (recovering 19.09 mHa of electronic correlation energy). Full STO-3G FCI yields $E = -7.882402$ Ha (CASSCF captures >93% of the total electron correlation).
-2. **Proper bond cleavage**: Beyond $R \\approx 2.2$ Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 80 mHa. In contrast, orbital-optimised CASSCF(2, 2) captures the multireference valence entanglement, tracking full STO-3G FCI to within 0.50–2.11 mHa across the entire dissociation coordinate. (Unrelaxed CASCI on canonical RHF orbitals lacks virtual orbital relaxation, leaving a 17–72 mHa gap).
+With the core frozen, CASSCF(2, 2) stays within {V['lih']['gap_lo']:.1f}–{V['lih']['gap_hi']:.1f} mHa of full STO-3G FCI along the
+curve; CASCI on canonical RHF orbitals is {V['lih']['ci_lo']:.0f}–{V['lih']['ci_hi']:.0f} mHa above it, and RHF, which cannot
+dissociate the bond correctly, is {V['lih']['rhf_end']:.0f} mHa above it at R = {V['lih']['r_end']:.1f} Å. At R = 1.595 Å the active space
+recovers {V['lih'].get('corr', float('nan')):.1f} of the {V['lih'].get('corr_full', float('nan')):.1f} mHa correlation energy and lies
+{V['lih'].get('gap_re', float('nan')):.1f} mHa above FCI, inside chemical accuracy but using most of it.
 
-### Fault-tolerant phase estimation on LiH
-
-Using our 10-bit QPE iterative circuit (41,918,987 T gates), we simulated the fault-tolerant success probability on the calibrated surface-code machine across distances and distillation factories (stratified Monte Carlo, 400 shots per configuration, minimum 60 per stratum):
+Phase estimation of the active-space Hamiltonian ({sci(lih['t_count']) if lih else '—'} T gates per run; 400 shots per
+configuration, at least 60 per fault stratum):
 
 {V['lih_qpe_table']}
 
-At $d=23$, magic-state cultivation ($\\varepsilon_T = 2\\times 10^{{-9}}$) reaches 82.2% chemical accuracy to the active-space ground state (and 52.8% to full STO-3G FCI). In contrast, 15-to-1 distillation ($\\varepsilon_T = 4.5\\times 10^{{-8}}$) floors at 28.1% accuracy regardless of code distance, directly exposing the distillation error ceiling across $4.19 \\times 10^7$ T gates.
+The noiseless circuit is within chemical accuracy of the active-space energy {100 * lih['noiseless'][0] if lih else float('nan'):.0f}% of the
+time. With cultivated states the best distance reaches {100 * V['lih']['best']['scores'][0]:.0f}% (d = {V['lih']['best']['d']});
+with 15-to-1 distilled states the success saturates near {100 * V['lih']['dist_best']['scores'][0]:.0f}%, the magic-state
+floor of ≈ {V['lih']['dist_best']['expected_faults']:.1f} expected faults per run.
 
 ## To scale
 
-Operation counts of both textbook and modern circuits are exact; the schedule structure is fitted on compiled
-instances (rounds per Toffoli: {st['rounds_per_toffoli']:.2f} textbook vs. {st_mod['rounds_per_toffoli']:.2f} modern; patches busy: {st['busy']:.2f} textbook vs. {st_mod['busy']:.2f} modern). The smallest odd d with at most 0.1 expected faults:
+Operation counts of both RSA-2048 circuits are exact; the schedule structure is fitted on compiled
+instances (rounds per Toffoli: {st['rounds_per_toffoli']:.2f} textbook vs. {st_mod['rounds_per_toffoli']:.2f} windowed; patches busy:
+{st['busy']:.2f} vs. {st_mod['busy']:.2f}). The smallest odd d with at most {sc['target_expected_faults']:g} expected faults
+(p = 0.1%, cultivated magic states):
 
 {V['scale_table']}
 
-![Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes.]({V['fig_scale']})
+![Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Solid: textbook; dashed: windowed. The diamond is Gidney 2025's published estimate, which stores idle qubits in yoked surface codes.]({V['fig_scale']})
 
-At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from $3.44 \\times 10^{{11}}$ to $8.61 \\times 10^{{10}}$ (a 4.0× reduction), shrinking the quantum runtime from {fmt_time(V['tb2048']['seconds'])} ({V['tb2048']['seconds'] / 86400 / 365.25:.2f} years) to {fmt_time(V['mod2048']['seconds'])} ({V['mod2048']['seconds'] / 86400 / 365.25:.2f} years) — saving over 416 days of physical machine time.
+Windowed arithmetic shortens the RSA-2048 run from {fmt_time(V['tb2048']['seconds'])} to {fmt_time(V['mod2048']['seconds'])} but needs
+more logical qubits, so it is not smaller. Both are far from Gidney's 2025 design, whose arithmetic,
+layout and storage are different in kind; this section measures the error model, not that design.
 
-## Biased noise and XZZX surface codes
+**Published estimates.** For published algorithms the logical counts and run time come from the paper and
+only the error model is ours. Each is compared at its authors' own failure budget and by distance only:
+their physical-qubit totals depend on layouts (yoked storage, hand-made floor plans) not modelled here.
+Gidney 2025 is taken one shot at a time (12.07 h, at most 1,409 logical qubits): his budget is per shot,
+and a failed shot is repeated.
 
-Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias ($\\eta = p_Z / (2 p_X) \\in [10, 2000]$ when $p_X = p_Y$). On asymmetric rectangular XZZX patches ($d_X \\times d_Z$), our model balances logical bit-flip and phase-flip error rates against total algorithm duration. (Note: current projections use the asymmetric threshold scaling model with CSS baseline prefactors; direct circuit-level Stim calibration of XZZX and dual-rail erasure is implemented in Phase 2).
+{V['pub_table']}
 
-{V['biased_table']}
+## Gidney 2025's distance under the measured model
 
-![Physical qubit footprint as a function of noise bias ratio η = p_Z / (2 p_X) for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.]({V['fig_biased_xzzx']})
+Gidney chooses d = {sens['published_d']} because his projection of surface-code memory (the legend of his Figure 6:
+p~L~ ≈ 3.5^−d^/40 per patch per round, from the yoked-surface-code simulations of Gidney, Newman, Brooks
+and Jones) first reaches 10⁻¹⁵ per patch per round there; over a 12-hour shot of up to 1,600
+logical qubits that leaves 93.3% of shots free of logical errors. Asked the same question, the measured
+model answers d = {pr['d_measured']} (d = {pr['d_band']['-1']}–{pr['d_band']['1']} within the fit's 1σ band):
 
-Under biased noise compilation:
-1. **RSA-2048 footprint reduction**: At standard CSS symmetric dimensions ($d=33$), the footprint is 38.5 M physical qubits. With XZZX at bias $\\eta = 100$, the optimal patch is $d_X = 33, d_Z = 9$, requiring only 11.3 M physical qubits (3.40× reduction). At $\\eta = 500$, the patch shrinks to $d_X = 33, d_Z = 7$, requiring 9.06 M physical qubits (4.25× reduction).
-2. **FeMoco chemistry footprint**: FeMoco THC requires $d=31$ (4.18 M physical qubits). Under $\\eta = 100$, an asymmetric $31 \\times 9$ patch drops the footprint to 1.28 M physical qubits (3.26× reduction).
+{V['per_round_table']}
 
-## Sensitivity analysis of the RSA-2048 code distance ($d=29$ vs. $d=25$)
+\\* extrapolated beyond the measured distances (d ≤ {V['g']['dmax']}). Bands are the weighted least-squares fits'
+parameter covariance, both bases moved together.
 
-A central finding of this report is that compiling Gidney's 2025 algorithm counts under our measured SD6 error model yields d = 29 ($5.31 \\times 10^6$ physical qubits), whereas Gidney reported d = 25 ($898 \\times 10^3$ physical qubits). To determine whether this discrepancy represents an artifact of our fit or a fundamental consequence of physical noise calibration, we performed a multi-parameter sensitivity campaign.
+![Logical error per patch per round of an idle patch at p = 0.1%: the measured model (points measured, line fitted, dashed beyond the largest measured distance, shaded 1σ) and Gidney's projection. Dotted: the 10⁻¹⁵ he designs to.]({V['fig_gidney']})
 
-{V['band_table']}
+The gap is not only extrapolation. At the measured distances SD6 memories decoded by correlated matching
+already fail {V['g']['ratio_lo']:.1f}–{V['g']['ratio_hi']:.1f}× more often than the projection, and the fitted suppression per two
+units of distance (Λ = {V['g']['lams'][0]:.1f} and {V['g']['lams'][-1]:.1f} for the two bases) is below its
+{sens['gidney_lambda']:.2f}, so the ratio grows to {V['g']['r25']['measured'] / V['g']['r25']['gidney']:.0f}× at d = {sens['published_d']}. The two
+are fits to different simulations (circuits, noise-model details and decoders all differ); this work does
+not isolate which difference matters.
 
-At d = 25, our weighted least-squares fit with parameter covariance predicts an idle logical error rate of:
-$$\\epsilon_{{\\text{{idle}}}}(d=25) = (4.30 \\pm 1.64) \\times 10^{{-15}} \\quad (1\\sigma: [2.97 \\times 10^{{-15}}, 6.25 \\times 10^{{-15}}]).$$
-Gidney's resource estimate assumed an idle rate of exactly $1.0 \\times 10^{{-15}}$ at d = 25. Our circuit-level measured rate is 4.3× higher than his assumed figure; even our 2σ lower bound ($2.04 \\times 10^{{-15}}$) is double his assumption.
+Running one shot of his algorithm through the estimator of this report:
 
-{V['tornado_table']}
+{V['scen_table']}
 
-![Tornado chart showing required code distance d for RSA-2048 (Gidney 2025 algorithm) across physical noise parameters, factory quality, decoder performance, and assumed models.]({V['fig_tornado']})
-
-As shown in the tornado analysis:
-- **Noise fit uncertainty**: Shifting the suppression slope $\\Lambda$ or prefactor $A$ by $\\pm 1\\sigma$ keeps the required distance within $d \\in \\{{29, 31\\}}$.
-- **Magic-state factory error**: Varying $\\epsilon_{{\\text{{CCZ}}}}$ by an entire order of magnitude ($0.1\\times$ to $10.0\\times$) leaves $d = 29$ unchanged. In an algorithm running $4 \\times 10^{{11}}$ patch·rounds, idling completely dominates the error budget.
-- **Decoder choice**: Even assuming a correlated or belief-matching decoder that improves the suppression factor $\\Lambda$ by 15%, the workload still requires $d = 29$.
-- **Assumed error model**: If we feed Gidney's assumed rate ($10^{{-15}}$ at $d=25$) into our compiler, our engine returns $d = 27$ at target $E[K] \\le 0.1$, and exactly reproduces his published $d = 25$ if we relax the allowable failure target to $E[K] \\le 0.5$ (Gidney's target threshold).
-
-This establishes definitively that the distance gap from 25 to 29 is not an overestimation of our compiler, but reflects the empirical physical noise of circuit-level SD6 simulations decoded with minimum-weight perfect matching.
-
-## 2D lattice surgery floorplan and browser WebAssembly simulation
-
-To make these fault-tolerant architectures transparent and verifiable, the project provides an interactive 2D lattice surgery floorplan visualizer and WebAssembly quantum simulator deployed client-side:
-- **Fast-block floorplan visualizer**: Renders Litinski's 2D fast-block tile geometry, scrubbing through the multi-round stages of lattice surgery operations: CNOT (2d rounds via intermediate ancilla boundary merges), MBU Carry Uncomputation (Hadamard, measurement, feed-forward CZ), and Magic State Distillation injection.
-- **Client-side WebAssembly simulation**: Runs full 8-bit and 10-bit QPE simulations for molecular hydrogen ($H_2$) directly in the visitor's browser, compiling logical circuits into statevector shots under tunable noise and plotting real-time energy histograms collapsing onto the chemical accuracy window (±1.6 mHa).
-- **Interactive resource calculator**: A real-time hardware/algorithm trade-off calculator allowing visitors to sweep physical gate error rates $p \\in [0.05\\%, 0.5\\%]$, code architectures (CSS vs. XZZX), cycle times between 0.2 µs and 10 µs, and magic-state factories to explore Pareto frontiers across factoring and chemistry.
+At his budget the measured model needs d = {sens['baseline']['d']} (d = {V['g']['b90']['d']} if 90% of shots may
+succeed). The fit's uncertainty and a 15% steeper extrapolation move it by at most two; the magic states
+do not move it at all, since idling is {100 * sens['baseline']['breakdown']['idle'] / sum(sens['baseline']['breakdown'].values()):.0f}% of the expected faults. Given his projection
+instead, the same estimator returns his d = {sens['gidney_projection']['d']}. Lee et al.'s FeMoco estimate assumes a suppression
+of 10 per two units of distance, close to the measured {V['g']['lams'][0]:.1f}–{V['g']['lams'][-1]:.1f}, and under the measured model it
+comes out at their d = {V['femoco']['estimate']['d']}. What the comparison
+shows is how much a distance chosen by extrapolation depends on the extrapolation; it is not a measurement of
+Gidney's design, which would need his layout, its yoked storage and his decoder simulated directly.
 
 # Validation
 
 - ftsim: dense = sparse on random circuits; 100 random circuits equal Qiskit's statevector to 10⁻¹⁰;
   noisy distributions equal Aer's exact density matrices (χ², plain and stratified); WebAssembly = native.
-- Arithmetic verified on every input by an independent bit-level simulator; Shor's noiseless outcomes
-  match the exact distribution; synthesized rotations verified as matrices; QPE matches its exact
-  Trotterized distribution.
-- Modern arithmetic: full reversible uncomputation verified on all inputs; mid-circuit measurement and
-  classical table feed-forward fixup validated against unitaries.
+- Arithmetic, textbook and windowed, verified on every input by an independent bit-level simulator,
+  including the measurement-based uncomputation and its feed-forward corrections; Shor's noiseless
+  outcomes match the exact distribution; synthesized rotations verified as matrices; QPE matches its
+  exact Trotterized distribution.
+- Scaling: the Toffoli and qubit counts used at RSA-2048 equal the compiled circuits' for every simulated N;
+  the estimator, given Gidney 2025's projection and budget, returns his d = 25.
 - Chemistry: integrals, HF and FCI equal PySCF to 10⁻⁸ Ha; Szabo and Ostlund's H₂ reproduced; tapering
-  preserves the spectrum; LiH active space frozen-core CASCI matches full FCI to < 10⁻¹⁴ Ha.
-- Biased noise & XZZX: calibrated scaling and analytic thresholds verified against symmetric CSS limits at η = 1.
+  preserves the spectrum; the LiH active-space Hamiltonian's ground energy equals PySCF's CASSCF(2, 2) to
+  10⁻⁹ Ha (and CASCI on RHF orbitals to 10⁻¹¹ Ha).
 - Calibration: Stim + PyMatching cross-check; reference-qubit experiment against plain memories;
   composition test.
 
 # Limitations
 
-- Composition is accurate to about 10% (Section 4.2), measured only for d ≤ 7.
-- Most algorithm results lie beyond the directly measured distances (d ≤ 9 for the CNOT at p = 0.1%):
-  extrapolated along measured exponential fits, marked in the figures.
+- Composition is accurate to about 10% (Section 3.2), measured only for d ≤ 7.
+- Logical channels are measured to d = 11 (idling) and d = 9 (surgery) at p = 0.1%. Most algorithm
+  results, and every RSA-2048 and FeMoco number, lie beyond that, along exponential fits; they are marked.
 - Magic-state error rates and footprints, the H and S operation model and the timing constants are
   cited inputs, not measured here.
-- Parallel Toffoli architectures (such as Gidney 2025's multi-block parallel lookup) are modeled via
-  published gate counts rather than end-to-end compiled patch layouts.
+- Published algorithms enter only through their gate counts and run times; their layouts (Gidney 2025's
+  yoked storage and parallel lookups, Lee et al.'s floor plan) are not modelled, so only distances are compared.
+- The LiH problem is a 2-qubit active space; chemistry at scale is represented only by FeMoco's published counts.
+- Noise is SD6 throughout; biased noise and the codes tailored to it (XZZX) are not modelled.
 
 # Reproduction
 
@@ -885,7 +853,8 @@ python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
 python tools/run_shor.py; python tools/run_shor_modern.py
-python tools/run_qpe.py; python tools/scale.py; python tools/sensitivity.py
+python tools/run_qpe.py; python tools/run_lih.py
+python tools/scale.py; python tools/sensitivity.py
 python tools/site_data.py; python tools/report.py
 ```
 """
