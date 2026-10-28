@@ -136,6 +136,55 @@ class GidneyProjection:
         return False
 
 
+class FittedMemory(GidneyProjection):
+    """Idle error from per-round fits of a memory's two logicals (data/calibration/noise_models.json):
+    a Z-basis memory's flips are X or Y errors, an X-basis memory's Z or Y. Y is counted in both,
+    which over-counts by the Y share, about 2%. Like GidneyProjection, nothing but idling errs."""
+
+    def __init__(self, fits: dict):
+        self.fits = fits
+
+    def basis_rate(self, basis: str, d: int) -> float:
+        f = self.fits[basis]
+        return math.exp(f["a"] + f["b"] * (d + 1) / 2)
+
+    def idle(self, d: int, p: float) -> tuple[float, float, float]:
+        return (self.basis_rate("z", d), 0.0, self.basis_rate("x", d))
+
+
+def noise_models(workload: Workload = GIDNEY_2025, path: str | None = None) -> dict[str, Any] | None:
+    """The memory models of tools/noise_models.py (SD6 as calibrated, Stim's uniform depolarizing,
+    SI1000) against Gidney's projection: each model's distance for 1e-15 per patch-round, counting
+    the worse basis alone or either basis, and for one shot of his algorithm at his budget."""
+    import json
+    import os
+
+    from .calib.model import DATA
+
+    path = path or os.path.join(DATA, "noise_models.json")
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        nm = json.load(f)
+    out = {}
+    for name, m in nm["models"].items():
+        if set(m["fits"]) != {"z", "x"}:
+            continue
+        fm = FittedMemory(m["fits"])
+        d_basis = next((d for d in range(3, 62, 2) if max(fm.basis_rate("z", d), fm.basis_rate("x", d)) <= GIDNEY_2025_PER_ROUND), None)
+        measured = [{"d": r["d"], "z": r["z"]["q"], "x": r["x"]["q"], "gidney": GidneyProjection.rate_per_round(r["d"])} for r in m["rows"]]
+        out[name] = {
+            "lambda": {b: m["fits"][b]["lambda"] for b in ("z", "x")},
+            "dmax": min(m["fits"][b]["dmax"] for b in ("z", "x")),
+            "measured": measured,
+            "fit": {str(d): {"z": fm.basis_rate("z", d), "x": fm.basis_rate("x", d)} for d in range(3, 37, 2)},
+            "d_basis": d_basis,
+            "d_any": distance_for_idle(fm, GIDNEY_2025_PER_ROUND),
+            "d_shot": _est(fm, workload, nm["p"], GIDNEY_2025_TARGET)["d"],
+        }
+    return out
+
+
 def _est(model, w: Workload, p: float, target: float, factory=FACTORIES["cultivation"]) -> dict[str, Any]:
     e = estimate(w, model, p=p, factory=factory, target=target)
     return {"d": e.d, "expected_faults": e.expected_faults, "breakdown": e.breakdown, "extrapolated": e.extrapolated}
@@ -187,4 +236,5 @@ def run(model: LogicalModel, workload: Workload = GIDNEY_2025, p: float = 1e-3) 
         "baseline": base,
         "gidney_projection": _est(GidneyProjection(), workload, p, target),
         "scenarios": scenarios,
+        "noise_models": noise_models(workload),
     }

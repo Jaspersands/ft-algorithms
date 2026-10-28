@@ -1,0 +1,26 @@
+{
+ "name": "uniform-mem-z-d3-p0.001-T3",
+ "kind": "memory",
+ "model": "uniform",
+ "basis": "z",
+ "d": 3,
+ "p": 0.001,
+ "rounds": 3,
+ "counts": {
+  "shots": 507904,
+  "num_obs": 1,
+  "patterns": {
+   "1": 423
+  },
+  "seconds": 0.093
+ },
+ "seed": 431522079,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "1869c91",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/noise_models.py",
+ "wall_seconds": 0.1
+}

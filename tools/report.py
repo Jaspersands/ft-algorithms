@@ -431,6 +431,45 @@ def main():
     ax.legend(fontsize=7, loc="upper right")
     V["fig_gidney"] = savefig(fig, "gidney")
 
+    # Memory models: SD6 (as calibrated), Stim's uniform depolarizing, SI1000, against the projection.
+    nm = sens.get("noise_models") or {}
+    NM_LAB = {"sd6": "SD6 (this calibration)", "uniform": "uniform depolarizing (Stim)", "si1000": "SI1000 (CZ circuits)"}
+    NM_COL = {"sd6": C["s1"], "uniform": C["s3"], "si1000": C["s2"]}
+    V["nm"] = nm
+    if nm:
+        fig, ax = plt.subplots(figsize=(5.6, 3.3))
+        for k in ("sd6", "uniform", "si1000"):
+            if k not in nm:
+                continue
+            m = nm[k]
+            ax.plot([r["d"] for r in m["measured"]], [r["z"] + r["x"] for r in m["measured"]], "o", ms=3.5, color=NM_COL[k])
+            dd = [d for d in range(3, 32, 2)]
+            ys = [m["fit"][str(d)]["z"] + m["fit"][str(d)]["x"] for d in dd]
+            ax.plot([d for d in dd if d <= m["dmax"]], [y for d, y in zip(dd, ys) if d <= m["dmax"]], "-", color=NM_COL[k], lw=1.2)
+            ax.plot([d for d in dd if d >= m["dmax"]], [y for d, y in zip(dd, ys) if d >= m["dmax"]], "--", color=NM_COL[k], lw=1.2, label=NM_LAB[k])
+        dd = list(range(3, 32, 2))
+        ax.plot(dd, [3.5 ** -d / 40 for d in dd], "-", color=C["s4"], lw=1.2, label="Gidney 2025 projection")
+        ax.axhline(pr["target"], color=C["ink3"], lw=0.8, ls=":")
+        ax.set_yscale("log")
+        ax.set_ylim(1e-20, 1e-1)
+        ax.set_xlabel("code distance d")
+        ax.set_ylabel("logical error per patch per round")
+        ax.set_xticks(range(3, 32, 4))
+        ax.legend(fontsize=7, loc="upper right")
+        V["fig_nm"] = savefig(fig, "noise_models")
+        nrows = []
+        for k in ("sd6", "uniform", "si1000"):
+            if k not in nm:
+                continue
+            m = nm[k]
+            top = m["measured"][-1]
+            nrows.append([NM_LAB[k], f"{m['lambda']['z']:.1f}, {m['lambda']['x']:.1f}", top["d"], f"{(top['z'] + top['x']) / top['gidney']:.1f}×",
+                          m["d_basis"] or "> 61", m["d_any"] or "> 61", m["d_shot"] or "> 61"])
+        nrows.append(["Gidney 2025 projection", f"{sens['gidney_lambda']:.2f}", "—", "1×", sens["per_round"]["d_gidney"], sens["per_round"]["d_gidney"],
+                      sens["gidney_projection"]["d"]])
+        V["nm_table"] = table(["memory model (p = 0.1%)", "Λ (Z, X)", "largest d", "rate / projection there", "d: worse basis ≤ 10⁻¹⁵",
+                               "d: either basis ≤ 10⁻¹⁵", "d: one shot at his budget"], nrows, ["l", "r", "r", "r", "r", "r", "r"])
+
     # -- LiH Chemistry -------------------------------------------------------------------------
     fig, ax = plt.subplots(figsize=(5.6, 3.2))
     if lih is not None:
@@ -852,6 +891,7 @@ tools/build.sh                     # the engine (Rust → Python module)
 python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
+python tools/noise_models.py; python tools/noise_models.py --summary
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
 python tools/scale.py; python tools/sensitivity.py

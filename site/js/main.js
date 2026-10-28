@@ -346,6 +346,22 @@ function gidney(sens, sc) {
   tb.unshift(["Baseline", `one shot at his budget (E[faults] ≤ ${sens.target.toFixed(3)})`, sens.baseline.d, "0"]);
   tb.push(["His model", "Gidney's projection in place of the measured model", sens.gidney_projection.d, `${sens.gidney_projection.d - sens.baseline.d}`]);
   table($("tab-scenarios"), ["varied", "scenario", "d", "Δd"], tb, (r) => r[0] === "His model");
+  const nm = sens.noise_models;
+  if (nm) {
+    const lab = { sd6: "SD6, as calibrated here", uniform: "uniform depolarizing (Stim's circuit)", si1000: "SI1000 (CZ circuits)" };
+    const rows = ["sd6", "uniform", "si1000"].filter((k) => nm[k]).map((k) => {
+      const m = nm[k], top = m.measured[m.measured.length - 1];
+      return [lab[k], `${m.lambda.z.toFixed(1)}, ${m.lambda.x.toFixed(1)}`, top.d, `${((top.z + top.x) / top.gidney).toFixed(1)}×`, m.d_basis ?? "> 61", m.d_any ?? "> 61", m.d_shot ?? "> 61"];
+    });
+    rows.push(["Gidney 2025 projection", sens.gidney_lambda.toFixed(2), "—", "1×", pr.d_gidney, pr.d_gidney, sens.gidney_projection.d]);
+    table($("tab-noise-models"), ["memory model", "Λ (Z, X)", "largest d", "rate ÷ projection there", "d, worse basis", "d, either basis", "d, one shot"], rows, (r) => r[0].startsWith("Gidney"));
+    for (const k of Object.keys(nm)) {
+      const top = nm[k].measured[nm[k].measured.length - 1];
+      setK(`nm.${k}.ratio`, `${((top.z + top.x) / top.gidney).toFixed(1)}×`);
+      setK(`nm.${k}.d`, nm[k].d_any ?? "> 61");
+      setK(`nm.${k}.lambda`, `${Math.min(nm[k].lambda.z, nm[k].lambda.x).toFixed(1)}–${Math.max(nm[k].lambda.z, nm[k].lambda.x).toFixed(1)}`);
+    }
+  }
 }
 
 function opsTable() {

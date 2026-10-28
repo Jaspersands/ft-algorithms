@@ -103,6 +103,7 @@ tools/build.sh                           # Rust engine → python/ftalgo/_ftsim.
 .venv/bin/python tools/calibrate.py      # circuit-level experiments (resumable, ~hours)
 .venv/bin/python tools/fit_model.py      # data/calibration/model.json
 .venv/bin/python tools/compose_check.py && .venv/bin/python tools/xcheck.py
+.venv/bin/python tools/noise_models.py && .venv/bin/python tools/noise_models.py --summary   # SI1000, uniform (~1 h)
 .venv/bin/python tools/run_shor.py && .venv/bin/python tools/run_shor_modern.py
 .venv/bin/python tools/run_qpe.py && .venv/bin/python tools/run_lih.py
 .venv/bin/python tools/scale.py && .venv/bin/python tools/sensitivity.py
