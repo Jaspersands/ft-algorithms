@@ -1,322 +1,190 @@
-"""Sensitivity analysis and extrapolation robustness for fault-tolerant scaling.
+"""How firmly the measured model sets the code distance of Gidney 2025's RSA-2048 algorithm.
 
-Analyzes the robustness of the RSA-2048 headline result (d = 29 vs Gidney's d = 25)
-under:
-1. Idle channel fit uncertainty (bootstrap / WLS covariance on slope Lambda and prefactor a).
-2. Decoder choice (plain MWPM vs correlated matching / belief matching).
-3. Magic-state distillation quality (epsilon_CCZ variation).
-4. Decoder reaction time (5 to 20 rounds).
-5. Assumption-matched reproduction (feeding Gidney's assumed model into our estimator).
+Gidney (arXiv:2505.15917, Section 3.2) picks d = 25 because his projection of surface-code memory
+errs at most 1e-15 per patch-round there, which over one 12-hour shot leaves 93.3% of shots free of
+logical errors. This module asks the same two questions of the measured model: the smallest d
+whose idle patch meets 1e-15 per round (``scale.distance_for_idle``), and the smallest d for which
+one shot of his algorithm, run through ``scale.estimate``, meets his budget. It then checks how the
+second answer moves with
+
+1. the idle fits' uncertainty (weighted least squares with covariance; both idle components moved
+   to the edge of their k-sigma band together);
+2. a steeper extrapolation beyond the measured distances, as a better decoder would give;
+3. the CCZ states' error rate;
+4. the failure budget;
+
+and that the same estimator, given his projection in place of the measured model, returns his d.
 """
 
 from __future__ import annotations
 
-import copy
 import dataclasses
-import json
 import math
-import os
 from typing import Any
 
 import numpy as np
 
-from .arch import FACTORIES, Architecture
-from .calib.model import Fit, LogicalModel, Point
-from .scale import GIDNEY_2025, Workload, estimate, expected_faults
+from .arch import FACTORIES
+from .calib.model import LogicalModel
+from .scale import (GIDNEY_2025, GIDNEY_2025_D, GIDNEY_2025_PER_ROUND, GIDNEY_2025_TARGET, Workload,
+                    distance_for_idle, estimate, idle_total)
+
+IDLE = ("idle_xy", "idle_zy")
 
 
-def idle_fit_covariance(
-    model: LogicalModel, name: str = "idle_xy", p: float = 1e-3
-) -> dict[str, Any]:
-    """Computes WLS regression parameters and covariance matrix for a channel."""
+def fit_covariance(model: LogicalModel, name: str, p: float = 1e-3) -> dict[str, Any]:
+    """The per-p fit log c = a + b·(d+1)/2 of one component with its parameter covariance (weighted
+    least squares, weights = events, scaled by the reduced χ²). Reproduces the model's own fit."""
     pts = [q for q in model.points.get(name, []) if q.ok() and q.p == p]
-    if len(pts) < 2:
-        raise ValueError(f"Insufficient usable points for {name} at p={p}")
-
+    if len(pts) < 3:
+        raise ValueError(f"need at least three usable points for {name} at p = {p}")
     x = np.array([(q.d + 1) / 2 for q in pts])
     y = np.log([q.value for q in pts])
     w = np.array([q.events for q in pts], dtype=float)
-
     A = np.vstack([np.ones_like(x), x]).T
-    W = np.diag(w)
-    cov = np.linalg.inv(A.T @ W @ A)
-    coef = cov @ (A.T @ W @ y)
+    inv = np.linalg.inv(A.T @ (w[:, None] * A))
+    coef = inv @ (A.T @ (w * y))
     res = y - A @ coef
-    chi2_red = float((res**2 * w).sum() / max(len(pts) - 2, 1))
-    cov_param = cov * chi2_red
-
-    a = float(coef[0])
-    b = float(coef[1])
-    se_a = float(np.sqrt(cov_param[0, 0]))
-    se_b = float(np.sqrt(cov_param[1, 1]))
-    cov_ab = float(cov_param[0, 1])
-
-    # Evaluate band across odd d from 3 to 35
-    band: dict[int, dict[str, float]] = {}
-    for d in range(3, 37, 2):
-        xd = (d + 1) / 2
-        var_log = float(cov_param[0, 0] + 2 * xd * cov_param[0, 1] + xd**2 * cov_param[1, 1])
-        se_log = math.sqrt(max(var_log, 0.0))
-        val = math.exp(a + b * xd)
-        lo_1 = math.exp(a + b * xd - se_log)
-        hi_1 = math.exp(a + b * xd + se_log)
-        lo_2 = math.exp(a + b * xd - 2 * se_log)
-        hi_2 = math.exp(a + b * xd + 2 * se_log)
-        band[d] = {
-            "central": val,
-            "lo_1sigma": lo_1,
-            "hi_1sigma": hi_1,
-            "lo_2sigma": lo_2,
-            "hi_2sigma": hi_2,
-        }
-
+    cov = inv * float((res**2 * w).sum() / (len(pts) - 2))
+    f = model.per_p[name][p]
+    assert abs(coef[0] - f.a) < 1e-9 and abs(coef[1] - f.b) < 1e-9, "covariance fit differs from the model's"
+    b, se_b = float(coef[1]), float(math.sqrt(cov[1, 1]))
     return {
-        "channel": name,
-        "p": p,
-        "n_points": len(pts),
-        "a": a,
-        "b": b,
-        "se_a": se_a,
-        "se_b": se_b,
-        "cov_ab": cov_ab,
-        "lambda": float(np.exp(-b)),
-        "lambda_lo": float(np.exp(-(b + se_b))),
-        "lambda_hi": float(np.exp(-(b - se_b))),
-        "band": band,
+        "name": name, "p": p, "a": float(coef[0]), "b": b, "cov": cov.tolist(), "dmax": f.dmax, "npts": len(pts),
+        "lambda": math.exp(-b), "lambda_lo": math.exp(-(b + se_b)), "lambda_hi": math.exp(-(b - se_b)),
     }
 
 
-class PerturbedLogicalModel:
-    """Wraps a LogicalModel with parameter shifts for sensitivity analysis."""
+def log_sigma(fc: dict[str, Any], d: int) -> float:
+    """Standard error of the fitted log rate at distance d."""
+    x = (d + 1) / 2
+    c = fc["cov"]
+    return math.sqrt(max(c[0][0] + 2 * x * c[0][1] + x * x * c[1][1], 0.0))
 
-    def __init__(
-        self,
-        base: LogicalModel,
-        *,
-        slope_scale: float = 1.0,
-        prefactor_scale: float = 1.0,
-        override_rate: dict[str, float] | None = None,
-    ):
-        self._base = base
-        self.slope_scale = slope_scale
-        self.prefactor_scale = prefactor_scale
-        self.override_rate = override_rate or {}
+
+class _Derived(LogicalModel):
+    """The measured model with its idle rates replaced by ``_idle_rate``."""
+
+    def __init__(self, base: LogicalModel):
+        super().__init__(base.points, base.per_p, base.glob)
 
     def rate(self, name: str, d: int, p: float) -> tuple[float, bool]:
-        if name in self.override_rate:
-            return self.override_rate[name], True
-        val, extrap = self._base.rate(name, d, p)
-        if name.startswith("idle"):
-            f = self._base.per_p.get(name, {}).get(p)
-            if f is not None:
-                xd = (d + 1) / 2
-                mod_a = f.a + math.log(self.prefactor_scale)
-                mod_b = f.b * self.slope_scale
-                return math.exp(mod_a + mod_b * xd), extrap
-        return val * self.prefactor_scale, extrap
+        v, ex = super().rate(name, d, p)
+        if name in IDLE:
+            return self._idle_rate(name, d, p, v), ex
+        return v, ex
+
+    def _idle_rate(self, name: str, d: int, p: float, v: float) -> float:
+        raise NotImplementedError
+
+
+class IdleBand(_Derived):
+    """Both idle components moved k standard errors of their fitted log rate (covariance included);
+    the logical-Y component, about 2% of the total, stays central."""
+
+    def __init__(self, base: LogicalModel, k: float, p: float = 1e-3):
+        super().__init__(base)
+        self.k = k
+        self.fc = {n: fit_covariance(base, n, p) for n in IDLE}
+
+    def _idle_rate(self, name, d, p, v):
+        fc = self.fc[name]
+        return v * math.exp(self.k * log_sigma(fc, d)) if p == fc["p"] else v
+
+
+class SteeperTail(_Derived):
+    """Beyond the largest measured distance the idle rates fall by factor·Λ per two units of
+    distance instead of Λ; every measured point is kept."""
+
+    def __init__(self, base: LogicalModel, factor: float):
+        super().__init__(base)
+        self.factor = factor
+
+    def _idle_rate(self, name, d, p, v):
+        f = self.per_p.get(name, {}).get(p)
+        if f is None or d <= f.dmax:
+            return v
+        return f(f.dmax) * (math.exp(-f.b) * self.factor) ** (-(d - f.dmax) / 2)
+
+
+class GidneyProjection:
+    """Gidney 2025's projection of surface-code memory at p = 1e-3 (the legend of his Figure 6:
+    p_L ≈ r·n·3.5^-d / 40 for r rounds of n patches; it reaches 1e-15 per patch-round first at d = 25,
+    as his Section 3.2 says), split evenly between X and Z. Nothing but idling errs: his estimate
+    budgets only storage error."""
+
+    GAIN = 3.5  # per unit of distance, so Λ = 3.5² = 12.25 per two units
+
+    @staticmethod
+    def rate_per_round(d: int) -> float:
+        return GidneyProjection.GAIN ** -d / 40
 
     def idle(self, d: int, p: float) -> tuple[float, float, float]:
-        xy, _ = self.rate("idle_xy", d, p)
-        zy, _ = self.rate("idle_zy", d, p)
-        y, _ = self.rate("idle_y", d, p)
-        y = min(y, 0.5 * min(xy, zy))
-        return (max(xy - y, 0.0), y, max(zy - y, 0.0))
+        r = self.rate_per_round(d)
+        return (r / 2, 0.0, r / 2)
 
     def spam(self, d: int, p: float) -> float:
-        return self._base.spam(d, p)
-
-    def cnot(self, d: int, p: float) -> list[float]:
-        return self._base.cnot(d, p)
-
-    def pauli_measurement(self, kind: str, d: int, p: float) -> dict:
-        return self._base.pauli_measurement(kind, d, p)
-
-    def extrapolated(self, d: int, p: float) -> bool:
-        return self._base.extrapolated(d, p)
-
-
-class GidneyAssumedModel:
-    """Reproduces Gidney 2025's assumed logical error scaling model (p_L = 10^-15 at d=25)."""
-
-    def __init__(self, target_d25: float = 1.0e-15):
-        # 10^-15 at x = (25+1)/2 = 13 corresponds to 0.01 * 0.1^13
-        self.target_d25 = target_d25
-        self.prefactor = target_d25 / (0.1**13)
-
-    def idle(self, d: int, p: float) -> tuple[float, float, float]:
-        xd = (d + 1) / 2
-        rate = self.prefactor * (0.1**xd)
-        return (rate / 2.0, 0.0, rate / 2.0)
-
-    def spam(self, d: int, p: float) -> float:
-        return 1e-4
+        return 0.0
 
     def cnot(self, d: int, p: float) -> list[float]:
         return [0.0] * 15
 
     def pauli_measurement(self, kind: str, d: int, p: float) -> dict:
-        return {"joint": [1.0] + [0.0] * 7, "o": 0.0}
+        return {"joint": np.array([1.0] + [0.0] * 7), "o": 0.0}
 
     def extrapolated(self, d: int, p: float) -> bool:
         return False
 
 
-def run_sensitivity_tornado(
-    model: LogicalModel, workload: Workload = GIDNEY_2025, p: float = 1e-3, target: float = 0.1
-) -> dict[str, Any]:
-    """Runs a multi-factor sensitivity analysis on the Gidney 2025 headline."""
-    cov = idle_fit_covariance(model, "idle_xy", p)
-    se_b = cov["se_b"]
-    se_a = cov["se_a"]
-    central_b = cov["b"]
+def _est(model, w: Workload, p: float, target: float, factory=FACTORIES["cultivation"]) -> dict[str, Any]:
+    e = estimate(w, model, p=p, factory=factory, target=target)
+    return {"d": e.d, "expected_faults": e.expected_faults, "breakdown": e.breakdown, "extrapolated": e.extrapolated}
 
-    baseline_est = estimate(workload, model, p=p, target=target)
 
-    experiments = []
+def run(model: LogicalModel, workload: Workload = GIDNEY_2025, p: float = 1e-3) -> dict[str, Any]:
+    target = GIDNEY_2025_TARGET
+    fits = {n: fit_covariance(model, n, p) for n in IDLE}
 
-    # 1. Idle slope Lambda uncertainty (+/- 1 sigma)
-    # Lambda = exp(-b)
-    slope_scale_lo = (central_b + se_b) / central_b  # steeper suppression (larger Lambda)
-    slope_scale_hi = (central_b - se_b) / central_b  # shallower suppression (smaller Lambda)
+    rows = []
+    for d in range(3, 37, 2):
+        bands = {k: idle_total(IdleBand(model, k, p), d, p) for k in (-2, -1, 1, 2)}
+        rows.append({"d": d, "measured": idle_total(model, d, p), "lo1": bands[-1], "hi1": bands[1], "lo2": bands[-2],
+                     "hi2": bands[2], "gidney": GidneyProjection.rate_per_round(d),
+                     "extrapolated": any(d > fits[n]["dmax"] for n in IDLE)})
+    per_round = {
+        "target": GIDNEY_2025_PER_ROUND,
+        "rows": rows,
+        "d_measured": distance_for_idle(model, GIDNEY_2025_PER_ROUND, p),
+        "d_band": {str(k): distance_for_idle(IdleBand(model, k, p), GIDNEY_2025_PER_ROUND, p) for k in (-2, -1, 1, 2)},
+        "d_gidney": distance_for_idle(GidneyProjection(), GIDNEY_2025_PER_ROUND, p),
+    }
 
-    m_slope_lo = PerturbedLogicalModel(model, slope_scale=slope_scale_lo)
-    e_slope_lo = estimate(workload, m_slope_lo, p=p, target=target)
-    experiments.append({
-        "category": "Idle Slope",
-        "name": f"Lambda +1sigma (Lambda = {np.exp(-(central_b-se_b)):.2f})",
-        "param": "slope",
-        "value": "+1sigma",
-        "d": e_slope_lo.d,
-        "physical_qubits": e_slope_lo.physical_qubits,
-        "delta_d": e_slope_lo.d - baseline_est.d if e_slope_lo.d else None,
-    })
+    base = _est(model, workload, p, target)
+    scenarios = []
 
-    m_slope_hi = PerturbedLogicalModel(model, slope_scale=slope_scale_hi)
-    e_slope_hi = estimate(workload, m_slope_hi, p=p, target=target)
-    experiments.append({
-        "category": "Idle Slope",
-        "name": f"Lambda -1sigma (Lambda = {np.exp(-(central_b+se_b)):.2f})",
-        "param": "slope",
-        "value": "-1sigma",
-        "d": e_slope_hi.d,
-        "physical_qubits": e_slope_hi.physical_qubits,
-        "delta_d": e_slope_hi.d - baseline_est.d if e_slope_hi.d else None,
-    })
+    def add(category, name, r):
+        scenarios.append({"category": category, "name": name, "d": r["d"], "expected_faults": r["expected_faults"],
+                          "delta_d": None if r["d"] is None or base["d"] is None else r["d"] - base["d"]})
 
-    # 2. Prefactor uncertainty (+/- 1 sigma)
-    m_pref_lo = PerturbedLogicalModel(model, prefactor_scale=math.exp(-se_a))
-    e_pref_lo = estimate(workload, m_pref_lo, p=p, target=target)
-    experiments.append({
-        "category": "Idle Prefactor",
-        "name": "Prefactor A -1sigma (0.87x)",
-        "param": "prefactor",
-        "value": "-1sigma",
-        "d": e_pref_lo.d,
-        "physical_qubits": e_pref_lo.physical_qubits,
-        "delta_d": e_pref_lo.d - baseline_est.d if e_pref_lo.d else None,
-    })
-
-    m_pref_hi = PerturbedLogicalModel(model, prefactor_scale=math.exp(se_a))
-    e_pref_hi = estimate(workload, m_pref_hi, p=p, target=target)
-    experiments.append({
-        "category": "Idle Prefactor",
-        "name": "Prefactor A +1sigma (1.15x)",
-        "param": "prefactor",
-        "value": "+1sigma",
-        "d": e_pref_hi.d,
-        "physical_qubits": e_pref_hi.physical_qubits,
-        "delta_d": e_pref_hi.d - baseline_est.d if e_pref_hi.d else None,
-    })
-
-    # 3. Decoder improvement: correlated matching / belief matching (+15% Lambda)
-    m_dec = PerturbedLogicalModel(model, slope_scale=math.log(cov["lambda"] * 1.15) / (-central_b))
-    e_dec = estimate(workload, m_dec, p=p, target=target)
-    experiments.append({
-        "category": "Decoder",
-        "name": "Correlated / Belief-matching (+15% Lambda)",
-        "param": "decoder",
-        "value": "correlated",
-        "d": e_dec.d,
-        "physical_qubits": e_dec.physical_qubits,
-        "delta_d": e_dec.d - baseline_est.d if e_dec.d else None,
-    })
-
-    # 4. Magic-state error variation (epsilon_CCZ * 0.1 and * 10.0)
-    for mult, label in [(0.1, "0.1x"), (10.0, "10.0x")]:
-        fac_copy = copy.deepcopy(FACTORIES["cultivation"])
-        fac_copy = dataclasses.replace(
-            fac_copy,
-            eps_ccz=lambda p, m=mult: FACTORIES["cultivation"].eps_ccz(p) * m,
-        )
-        custom_facs = dict(FACTORIES)
-        custom_facs["custom"] = fac_copy
-        # Estimate with custom factory
-        for d_try in range(3, 63, 2):
-            arch_try = Architecture(model, d_try, p, fac_copy)
-            ef, r, _ = expected_faults(workload, arch_try)
-            if ef <= target:
-                d_found = d_try
-                pq = arch_try.data_qubits(workload.logical_qubits) + arch_try.factory_qubits(
-                    workload.t_gates, workload.toffolis, r
-                )
-                break
-        else:
-            d_found = None
-            pq = 0
-        experiments.append({
-            "category": "Magic States",
-            "name": f"epsilon_CCZ {label}",
-            "param": "eps_ccz",
-            "value": label,
-            "d": d_found,
-            "physical_qubits": pq,
-            "delta_d": d_found - baseline_est.d if d_found else None,
-        })
-
-    # 5. Assumption-matched reproduction (Gidney assumed model)
-    gidney_m = GidneyAssumedModel()
-    e_gid_01 = estimate(workload, gidney_m, p=p, target=target)
-    experiments.append({
-        "category": "Assumed Model",
-        "name": "Gidney assumed model (target E[faults] <= 0.1)",
-        "param": "assumed_model",
-        "value": "target_0.1",
-        "d": e_gid_01.d,
-        "physical_qubits": e_gid_01.physical_qubits,
-        "delta_d": e_gid_01.d - baseline_est.d if e_gid_01.d else None,
-    })
-
-    # Gidney with target 0.5 (Gidney's target ~60% success)
-    for d_try in range(3, 63, 2):
-        arch_try = Architecture(gidney_m, d_try, p, FACTORIES["cultivation"])
-        ef, r, _ = expected_faults(workload, arch_try)
-        if ef <= 0.5:
-            d_gid_05 = d_try
-            pq_05 = arch_try.data_qubits(workload.logical_qubits) + arch_try.factory_qubits(
-                workload.t_gates, workload.toffolis, r
-            )
-            break
-    else:
-        d_gid_05, pq_05 = None, 0
-
-    experiments.append({
-        "category": "Assumed Model",
-        "name": "Gidney assumed model (target E[faults] <= 0.5, Gidney's target)",
-        "param": "assumed_model",
-        "value": "target_0.5",
-        "d": d_gid_05,
-        "physical_qubits": pq_05,
-        "delta_d": d_gid_05 - baseline_est.d if d_gid_05 else None,
-    })
+    for k in (-2, -1, 1, 2):
+        add("Idle fit", f"rates at the {'+' if k > 0 else '−'}{abs(k)}σ edge of the fit", _est(IdleBand(model, k, p), workload, p, target))
+    add("Extrapolation", "Λ × 1.15 beyond the measured distances", _est(SteeperTail(model, 1.15), workload, p, target))
+    cult = FACTORIES["cultivation"]
+    for mult in (0.1, 10.0):
+        fac = dataclasses.replace(cult, eps_ccz=lambda q, m=mult: cult.eps_ccz(q) * m)
+        add("Magic states", f"ε_CCZ × {mult:g}", _est(model, workload, p, target, fac))
+    for t, label in ((0.1, "90% of shots succeed (E[faults] ≤ 0.1)"), (0.01, "99% of shots succeed (E[faults] ≤ 0.01)")):
+        add("Budget", label, _est(model, workload, p, t))
 
     return {
-        "baseline": {
-            "workload": workload.name,
-            "d": baseline_est.d,
-            "physical_qubits": baseline_est.physical_qubits,
-            "rounds": baseline_est.rounds,
-            "expected_faults": baseline_est.expected_faults,
-        },
-        "fit_covariance": cov,
-        "experiments": experiments,
+        "p": p,
+        "workload": dataclasses.asdict(workload),
+        "published_d": GIDNEY_2025_D,
+        "gidney_lambda": GidneyProjection.GAIN ** 2,
+        "target": target,
+        "fits": fits,
+        "per_round": per_round,
+        "baseline": base,
+        "gidney_projection": _est(GidneyProjection(), workload, p, target),
+        "scenarios": scenarios,
     }
