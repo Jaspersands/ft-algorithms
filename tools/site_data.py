@@ -57,6 +57,40 @@ def calibration(model: LogicalModel) -> dict:
     return comps
 
 
+def calculator_grid(model: LogicalModel, sc: dict) -> dict:
+    """The site's resource calculator: tools/scale.py's estimator over the measured noise strengths,
+    both factories and two failure budgets, for this work's RSA-2048 circuits and the published
+    workloads. The page only looks rows up (and scales run time with the cycle time)."""
+    from ftalgo import scale
+
+    st, st_mod = scale.Structure(**sc["structure"]), scale.Structure(**sc["structure_modern"])
+    pub = {w.name: (target, d) for w, target, d, _, _ in scale.PUBLISHED}
+    workloads = {
+        "textbook": ("RSA-2048, textbook arithmetic (this work)", scale.textbook_shor(2048, st)),
+        "modern": ("RSA-2048, windowed + MBU (this work)", scale.modern_shor(2048, st_mod)),
+        "gidney": ("RSA-2048, Gidney 2025 (one shot)", scale.GIDNEY_2025),
+        "femoco": ("FeMoco, Lee et al. 2021 (THC)", scale.FEMOCO_THC),
+    }
+    meta, rows = {}, []
+    for key, (label, w) in workloads.items():
+        published = pub.get(w.name)
+        meta[key] = {"name": label, "logical_qubits": w.logical_qubits, "toffolis": w.toffolis, "own": published is None,
+                     "published_d": published[1] if published else None,
+                     "published_success": math.exp(-published[0]) if published else None}
+        for p in (0.001, 0.002):
+            for fac in ("cultivation", "15to1"):
+                f = FACTORIES[fac]
+                # Expected faults from the magic states alone: no distance removes them.
+                floor = w.toffolis * f.eps_ccz(p) + w.t_gates * f.eps_t(p)
+                for target in (0.1, 0.01):
+                    e = scale.estimate(w, model, p=p, factory=fac, target=target)
+                    rows.append({"w": key, "p": p, "factory": fac, "target": target, "d": e.d, "rounds": e.rounds, "floor": floor,
+                                 "physical_qubits": e.physical_qubits if published is None else None,
+                                 "factory_qubits": e.factory_qubits if published is None else None,
+                                 "expected_faults": e.expected_faults, "breakdown": e.breakdown, "extrapolated": e.extrapolated})
+    return {"workloads": meta, "rows": rows}
+
+
 def main():
     os.makedirs(os.path.join(SITE, "demo"), exist_ok=True)
     model = LogicalModel.load()
@@ -119,9 +153,8 @@ def main():
                 })
     out["demo"] = demo
 
-    bx = os.path.join(ROOT, "data", "results", "biased_xzzx.json")
-    if os.path.exists(bx):
-        out["biased_xzzx"] = json.load(open(bx))
+    if os.path.exists(sc):
+        out["calculator"] = calculator_grid(model, out["scaling"])
     lih_file = os.path.join(ROOT, "data", "results", "lih.json")
     if os.path.exists(lih_file):
         out["lih"] = json.load(open(lih_file))

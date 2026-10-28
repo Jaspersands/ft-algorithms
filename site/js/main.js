@@ -1,6 +1,5 @@
 import { plot, stacked, fmtSci, cssVar } from "./plot.js";
 import { initDemo } from "./demo.js";
-import { initFloorplan } from "./floorplan.js";
 import { initCalculator } from "./calculator.js";
 
 const P_COLORS = { 0.001: "var(--s1)", 0.002: "var(--s2)", 0.003: "var(--s3)", 0.005: "var(--s4)" };
@@ -210,6 +209,8 @@ function shorModernTable(shor, shorMod) {
     rows.push([`${N} (Modern windowed + MBU)`, bMod.logical_qubits, fmtInt(bMod.toffoli), d11Mod ? fmtInt(d11Mod.rounds) : "—",
       d11Mod ? d11Mod.scores[0].toFixed(3) : "—", hitMod ? hitMod.d : "—", hitMod ? fmtQ(hitMod.physical_qubits.total) : "—", hitMod ? fmtTime(hitMod.seconds) : "—"]);
   }
+  const cuts = [15, 21, 35].filter((N) => baseTb[N] && baseMod[N]).map((N) => baseTb[N].toffoli / baseMod[N].toffoli);
+  if (cuts.length) setK("mod.cut", `${Math.min(...cuts).toFixed(1)}–${Math.max(...cuts).toFixed(1)}×`);
   table($("tab-shor-mod"), ["N / Arithmetic", "logical qubits", "Toffolis", "rounds (d = 11)", "peak (d = 11)", "d for 90%", "physical qubits", "run time"], rows, (r, i) => i % 2 === 1);
 }
 
@@ -294,41 +295,57 @@ function scaleFigures(sc) {
     const lastOk = Math.max(...rows.map((r) => r.n));
     if (f === "15to1") setK("scale.distill_max", `n = ${lastOk}`);
   }
-  const g = sc.published.find((p) => p.name.startsWith("RSA"));
-  if (g) {
-    sq.push({ label: "Gidney 2025 (published)", color: "var(--s4)", line: false, points: [{ x: 2048, y: 897864 }] });
-    sq.push({ label: "Gidney 2025 counts, our error model", color: "var(--s4)", line: false, hollow: true, points: [{ x: 2048, y: g.estimate.physical_qubits }] });
-    st.push({ label: "Gidney 2025", color: "var(--s4)", line: false, points: [{ x: 2048, y: 4.96 * 86400 }] });
-  }
+  sq.push({ label: "Gidney 2025 (published, yoked storage)", color: "var(--s4)", line: false, points: [{ x: 2048, y: 897864 }] });
+  st.push({ label: "Gidney 2025 (published, 9.2 shots)", color: "var(--s4)", line: false, points: [{ x: 2048, y: 4.96 * 86400 }] });
   const xt = [4, 16, 64, 256, 1024, 2048];
   plot($("fig-scale-q"), { width: 420, height: 320, x: { label: "modulus size n (bits)", log: true, min: 4, max: 2048, ticks: xt, format: String }, y: { label: "physical qubits", log: true, min: 1e4, max: 1e8 }, series: sq });
   plot($("fig-scale-t"), { width: 420, height: 320, x: { label: "modulus size n (bits)", log: true, min: 4, max: 2048, ticks: xt, format: String }, y: { label: "run time (s)", log: true, min: 0.1, max: 1e9 }, series: st, legend: false });
-  const tb = sc.textbook.find((r) => r.n === 2048 && r.factory === "cultivation");
+  const budget = (t) => `${(100 * (1 - Math.exp(-t))).toFixed(1)}%`;
   const rows = [];
-  const n = 2048;
-  if (tb) rows.push(["RSA-2048, textbook arithmetic (this work)", fmtInt(3 * n + 6), fmtSci(2 * n * (2 * n * (10 * n + 12) + n)), "—", "—", tb.d, fmtQ(tb.physical_qubits), fmtTime(tb.seconds)]);
-  if (sc.modern) {
-    const mod = sc.modern.find((r) => r.n === 2048 && r.factory === "cultivation");
-    if (mod) rows.push(["RSA-2048, modern arithmetic (k=2, MBU, this work)", fmtInt(2 * n + 2 * 2 + 20), fmtSci(86107386880.0), "—", "—", mod.d, fmtQ(mod.physical_qubits), fmtTime(mod.seconds)]);
+  for (const [k, lab] of [["textbook", "RSA-2048, textbook arithmetic (this work)"], ["modern", "RSA-2048, windowed + MBU (this work)"]]) {
+    const r = (sc[k] || []).find((x) => x.n === 2048 && x.factory === "cultivation");
+    if (!r) continue;
+    setK(k === "textbook" ? "scale.tb_time" : "scale.mod_time", fmtTime(r.seconds));
+    rows.push([lab, fmtInt(r.logical_qubits), fmtSci(r.toffolis), budget(sc.target_expected_faults), "—", r.d, fmtQ(r.physical_qubits), fmtTime(r.seconds)]);
   }
-  const pubs = { "RSA-2048, Gidney 2025": { d: 25, q: "898 k", t: "4.96 days" }, "FeMoco (THC), Lee et al. 2021": { d: 31, q: "≈ 4 M", t: "< 4 days" } };
-  for (const p of sc.published) {
-    const pub = pubs[p.name] || {};
-    rows.push([p.name, fmtInt(p.logical_qubits), fmtSci(p.toffolis), pub.d ?? "—", pub.q ?? "—", p.estimate.d, fmtQ(p.estimate.physical_qubits), fmtTime(p.estimate.seconds)]);
-  }
-  table($("tab-scale"), ["workload", "logical qubits", "Toffolis", "published d", "published qubits", "our d", "our qubits", "run time"], rows, (r) => r[0].includes("modern"));
+  for (const p of sc.published) rows.push([p.name, fmtInt(p.logical_qubits), fmtSci(p.toffolis), budget(p.target), p.published_d, p.estimate.d, "—", fmtTime(p.estimate.seconds)]);
+  table($("tab-scale"), ["workload", "logical qubits", "Toffolis", "failure budget", "published d", "d, measured model", "physical qubits", "run time"], rows, (r) => r[4] !== "—");
 }
 
-function sensitivityTable(sens) {
-  if (!sens || !sens.experiments) return;
-  const rows = sens.experiments.map((e) => [
-    e.category,
-    e.name,
-    e.d,
-    fmtQ(e.physical_qubits),
-    `${e.delta_d >= 0 ? "+" : ""}${e.delta_d}`
-  ]);
-  table($("tab-tornado"), ["category", "scenario", "required d", "physical qubits", "Δd vs baseline"], rows, (r) => r[0] === "Assumed Model");
+function gidney(sens, sc) {
+  if (!sens || !sens.per_round) return;
+  const pr = sens.per_round;
+  const meas = pr.rows.filter((r) => !r.extrapolated);
+  const ratios = meas.map((r) => r.measured / r.gidney);
+  const lams = Object.values(sens.fits).map((f) => f.lambda).sort((a, b) => a - b);
+  setK("g.pub_d", sens.published_d);
+  setK("g.d_round", pr.d_measured);
+  setK("g.d_band", pr.d_band["-1"] === pr.d_band["1"] ? String(pr.d_band["1"]) : `${pr.d_band["-1"]}–${pr.d_band["1"]}`);
+  setK("g.ratio_meas", `${Math.min(...ratios).toFixed(1)}–${Math.max(...ratios).toFixed(1)}×`);
+  setK("g.lambda", `Λ = ${lams[0].toFixed(1)} and ${lams[lams.length - 1].toFixed(1)}`);
+  setK("g.lambda_pub", sens.gidney_lambda.toFixed(2));
+  setK("g.d_shot", sens.baseline.d);
+  setK("g.d_proj", sens.gidney_projection.d);
+  const fem = sc && sc.published.find((p) => p.name.startsWith("FeMoco"));
+  if (fem) setK("g.femoco", fem.estimate.d);
+  const dmax = Math.max(...meas.map((r) => r.d));
+  const rows = pr.rows.filter((r) => r.d <= 31);
+  plot($("fig-gidney"), {
+    x: { label: "code distance d", min: 3, max: 31, ticks: [3, 7, 11, 15, 19, 23, 25, 27, 31] },
+    y: { label: "logical error per patch per round", log: true, min: 1e-20, max: 1e-2 },
+    series: [
+      { label: "measured model (SD6, correlated matching)", color: "var(--s1)", marker: false, points: rows.map((r) => ({ x: r.d, y: r.measured, dashed: r.d > dmax })) },
+      { color: "var(--s1)", line: false, points: meas.map((r) => ({ x: r.d, y: r.measured, title: `d = ${r.d}: ${fmtSci(r.measured)}` })) },
+      { color: "var(--s1)", marker: false, width: 0.8, dash: true, points: rows.filter((r) => r.d >= dmax).map((r) => ({ x: r.d, y: r.lo1 })) },
+      { color: "var(--s1)", marker: false, width: 0.8, dash: true, points: rows.filter((r) => r.d >= dmax).map((r) => ({ x: r.d, y: r.hi1 })) },
+      { label: "Gidney 2025 projection", color: "var(--s4)", marker: false, points: rows.map((r) => ({ x: r.d, y: r.gidney })) },
+    ],
+    hlines: [{ y: pr.target, color: "var(--ink-3)", label: "10⁻¹⁵", dash: "2 3" }],
+  });
+  const tb = sens.scenarios.map((e) => [e.category, e.name, e.d ?? "> 61", e.delta_d === null ? "—" : `${e.delta_d >= 0 ? "+" : ""}${e.delta_d}`]);
+  tb.unshift(["Baseline", `one shot at his budget (E[faults] ≤ ${sens.target.toFixed(3)})`, sens.baseline.d, "0"]);
+  tb.push(["His model", "Gidney's projection in place of the measured model", sens.gidney_projection.d, `${sens.gidney_projection.d - sens.baseline.d}`]);
+  table($("tab-tornado"), ["varied", "scenario", "d", "Δd"], tb, (r) => r[0] === "His model");
 }
 
 function opsTable() {
@@ -344,37 +361,6 @@ function opsTable() {
     ["feed-forward", "10", "decoder reaction time before a TABLE †"],
   ];
   table($("tab-ops"), ["operation", "rounds", "logical channel"], rows);
-}
-
-function biasedTable(bx) {
-  const container = $("tab-biased");
-  if (!container || !bx || !bx.rsa2048_modern) return;
-  const pts = bx.rsa2048_modern.points;
-  const rows = pts.map((p) => [
-    p.eta === 1 ? "1 (isotropic)" : `${p.eta}`,
-    `${p.dx} × ${p.dz}`,
-    p.tile_qubits,
-    `${p.symmetric_d} × ${p.symmetric_d}`,
-    p.symmetric_tile_qubits,
-    `${(p.total_physical_qubits / 1e6).toFixed(2)} M`,
-    `${(p.symmetric_physical_qubits / 1e6).toFixed(2)} M`,
-    `<b>${p.qubit_reduction_ratio.toFixed(2)}×</b>`,
-  ]);
-  table(
-    container,
-    [
-      "bias η = p_Z/p_X",
-      "XZZX distance (dX × dZ)",
-      "tile qubits",
-      "symmetric distance",
-      "symmetric tile",
-      "XZZX physical qubits",
-      "symmetric physical qubits",
-      "footprint savings",
-    ],
-    rows,
-    (r, i) => pts[i].eta === 100 || pts[i].eta === 500
-  );
 }
 
 function lihTable(lih) {
@@ -424,13 +410,11 @@ async function main() {
     if (eAct != null) setK("lih.e_casscf", eAct.toFixed(4));
     if (data.lih.e_fci_full != null) setK("lih.e_fci", data.lih.e_fci_full.toFixed(4));
     if (data.lih.t_count != null) setK("lih.t", fmtSci(data.lih.t_count));
-  }
-  if (data.biased_xzzx && data.biased_xzzx.rsa2048_modern) {
-    const pts = data.biased_xzzx.rsa2048_modern.points;
-    const p100 = pts.find((p) => p.eta === 100);
-    const p500 = pts.find((p) => p.eta === 500);
-    if (p100) setK("biased.ratio_lo", `${p100.qubit_reduction_ratio.toFixed(2)}×`);
-    if (p500) setK("biased.ratio_hi", `${p500.qubit_reduction_ratio.toFixed(2)}×`);
+    setK("lih.qubits", data.lih.qubits);
+    setK("lih.terms", data.lih.terms);
+    setK("lih.r", data.lih.r_equilibrium);
+    if (eAct != null && data.lih.e_fci_full != null) setK("lih.gap", `${((eAct - data.lih.e_fci_full) * 1e3).toFixed(1)} mHa`);
+    if (data.lih.noiseless) setK("lih.noiseless", pct(data.lih.noiseless[0]));
   }
 
   figIdle(cal);
@@ -442,12 +426,10 @@ async function main() {
   qpeFigures(data.qpe);
   qpeHist(data.qpe_hist);
   scaleFigures(data.scaling);
-  sensitivityTable(data.sensitivity);
-  biasedTable(data.biased_xzzx);
+  gidney(data.sensitivity, data.scaling);
   lihTable(data.lih);
   opsTable();
-  initFloorplan();
-  initCalculator();
+  initCalculator(data.calculator);
   initDemo(data.demo, data.demo_modern, data.demo_chem);
 }
 
