@@ -135,6 +135,24 @@ def build() -> str:
         f"Both models are extrapolations from simulations at small distance, so the comparison shows how much the "
         f"distance depends on that extrapolation; it is not a measurement of his design.")
 
+    nm = sens.get("noise_models")
+    if nm:
+        lab = {"sd6": "SD6, as calibrated: separate measure and reset layers", "sd6_mr": "SD6, one measure-and-reset layer",
+               "si1000": "SI1000 on CZ, one measure-and-reset layer", "uniform": "uniform depolarizing, Stim's generated circuit"}
+        out.append("\n**Which memory model?** Memories at p = 0.1% under other circuits and noise models, each decoded by "
+                   "correlated matching and fitted the same way (per-round rates from d and 3d rounds), against the projection:\n")
+        out.append("| memory model | Λ (Z, X) | measured to d | rate ÷ projection there | d, worse basis ≤ 1e-15 | d, either basis ≤ 1e-15 | d, one shot at his budget |")
+        out.append("|---|---:|---:|---:|---:|---:|---:|")
+        for k in ("sd6", "sd6_mr", "si1000", "uniform"):
+            if k not in nm:
+                continue
+            m = nm[k]
+            top = m["measured"][-1]
+            out.append(f"| {lab[k]} | {m['lambda']['z']:.1f}, {m['lambda']['x']:.1f} | {top['d']} | {(top['z'] + top['x']) / top['gidney']:.1f}× | "
+                       f"{m['d_basis'] or '> 61'} | {m['d_any'] or '> 61'} | {m['d_shot'] or '> 61'} |")
+        out.append(f"| Gidney 2025 projection, 3.5^−d/40 | {sens['gidney_lambda']:.2f} | — | 1× | {pr['d_gidney']} | {pr['d_gidney']} | "
+                   f"{sens['gidney_projection']['d']} |")
+
     return "\n".join(out)
 
 

@@ -433,12 +433,13 @@ def main():
 
     # Memory models: SD6 (as calibrated), Stim's uniform depolarizing, SI1000, against the projection.
     nm = sens.get("noise_models") or {}
-    NM_LAB = {"sd6": "SD6 (this calibration)", "uniform": "uniform depolarizing (Stim)", "si1000": "SI1000 (CZ circuits)"}
-    NM_COL = {"sd6": C["s1"], "uniform": C["s3"], "si1000": C["s2"]}
+    NM_LAB = {"sd6": "SD6, as calibrated (separate measure and reset)", "sd6_mr": "SD6, one measure-and-reset layer",
+              "uniform": "uniform depolarizing (Stim's circuit)", "si1000": "SI1000 (CZ, one measure-and-reset layer)"}
+    NM_COL = {"sd6": C["s1"], "sd6_mr": C["s6"], "uniform": C["s3"], "si1000": C["s2"]}
     V["nm"] = nm
     if nm:
         fig, ax = plt.subplots(figsize=(5.6, 3.3))
-        for k in ("sd6", "uniform", "si1000"):
+        for k in ("sd6", "sd6_mr", "si1000", "uniform"):
             if k not in nm:
                 continue
             m = nm[k]
@@ -458,7 +459,7 @@ def main():
         ax.legend(fontsize=7, loc="upper right")
         V["fig_nm"] = savefig(fig, "noise_models")
         nrows = []
-        for k in ("sd6", "uniform", "si1000"):
+        for k in ("sd6", "sd6_mr", "si1000", "uniform"):
             if k not in nm:
                 continue
             m = nm[k]

@@ -348,8 +348,8 @@ function gidney(sens, sc) {
   table($("tab-scenarios"), ["varied", "scenario", "d", "Δd"], tb, (r) => r[0] === "His model");
   const nm = sens.noise_models;
   if (nm) {
-    const lab = { sd6: "SD6, as calibrated here", uniform: "uniform depolarizing (Stim's circuit)", si1000: "SI1000 (CZ circuits)" };
-    const rows = ["sd6", "uniform", "si1000"].filter((k) => nm[k]).map((k) => {
+    const lab = { sd6: "SD6, as calibrated (separate measure and reset)", sd6_mr: "SD6, one measure-and-reset layer", si1000: "SI1000 (CZ, one measure-and-reset layer)", uniform: "uniform depolarizing (Stim's circuit)" };
+    const rows = ["sd6", "sd6_mr", "si1000", "uniform"].filter((k) => nm[k]).map((k) => {
       const m = nm[k], top = m.measured[m.measured.length - 1];
       return [lab[k], `${m.lambda.z.toFixed(1)}, ${m.lambda.x.toFixed(1)}`, top.d, `${((top.z + top.x) / top.gidney).toFixed(1)}×`, m.d_basis ?? "> 61", m.d_any ?? "> 61", m.d_shot ?? "> 61"];
     });
