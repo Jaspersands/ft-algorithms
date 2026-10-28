@@ -12,8 +12,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
 def real(paths):
-    """Drops sync-conflict copies ("name 2.json")."""
-    return [f for f in paths if not re.search(r" \d+\.json$", f)]
+    """Drops sync-conflict copies ("name 2.json"), in a fixed order: glob's order is the
+    filesystem's, and the tables must not depend on it."""
+    return sorted(f for f in paths if not re.search(r" \d+\.json$", f))
 
 
 def jl(p):
