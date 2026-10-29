@@ -60,8 +60,15 @@ def calibration(model: LogicalModel) -> dict:
 def calculator_grid(model: LogicalModel, sc: dict) -> dict:
     """The site's resource calculator: tools/scale.py's estimator over the measured noise strengths,
     both factories and two failure budgets, for this work's RSA-2048 circuits and the published
-    workloads. The page only looks rows up (and scales run time with the cycle time)."""
+    workloads, under each calibration (separate measurement and reset layers, and one
+    measure-and-reset layer where model_mr.json exists). The page only looks rows up (and scales run
+    time with the cycle time)."""
     from ftalgo import scale
+
+    models = {"separate": model}
+    mr_path = os.path.join(ROOT, "data", "calibration", "model_mr.json")
+    if os.path.exists(mr_path):
+        models["mr"] = LogicalModel.load(mr_path)
 
     st, st_mod = scale.Structure(**sc["structure"]), scale.Structure(**sc["structure_modern"])
     pub = {w.name: (target, d) for w, target, d, _, _ in scale.PUBLISHED}
@@ -82,13 +89,13 @@ def calculator_grid(model: LogicalModel, sc: dict) -> dict:
                 f = FACTORIES[fac]
                 # Expected faults from the magic states alone: no distance removes them.
                 floor = w.toffolis * f.eps_ccz(p) + w.t_gates * f.eps_t(p)
-                for target in (0.1, 0.01):
-                    e = scale.estimate(w, model, p=p, factory=fac, target=target)
-                    rows.append({"w": key, "p": p, "factory": fac, "target": target, "d": e.d, "rounds": e.rounds, "floor": floor,
+                for (cal, m), target in ((cm, t) for cm in models.items() for t in (0.1, 0.01)):
+                    e = scale.estimate(w, m, p=p, factory=fac, target=target)
+                    rows.append({"w": key, "cal": cal, "p": p, "factory": fac, "target": target, "d": e.d, "rounds": e.rounds, "floor": floor,
                                  "physical_qubits": e.physical_qubits if published is None else None,
                                  "factory_qubits": e.factory_qubits if published is None else None,
                                  "expected_faults": e.expected_faults, "breakdown": e.breakdown, "extrapolated": e.extrapolated})
-    return {"workloads": meta, "rows": rows}
+    return {"workloads": meta, "calibrations": list(models), "rows": rows}
 
 
 def main():

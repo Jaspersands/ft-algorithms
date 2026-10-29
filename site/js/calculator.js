@@ -25,7 +25,7 @@ function fmtSci(x) {
 export function initCalculator(grid) {
   const out = document.getElementById("calc-output");
   if (!out || !grid) return;
-  const state = { w: "textbook", p: 0.001, factory: "cultivation", target: 0.1, tau: 1.0 };
+  const state = { w: "textbook", cal: "separate", p: 0.001, factory: "cultivation", target: 0.1, tau: 1.0 };
 
   const sel = (id, options, key, parse = (v) => v) => {
     const el = document.getElementById(id);
@@ -38,6 +38,10 @@ export function initCalculator(grid) {
     };
   };
   sel("calc-preset", Object.entries(grid.workloads).map(([k, w]) => [k, w.name]), "w");
+  const CAL_LABEL = { separate: "separate measure and reset layers (as calibrated)", mr: "one measure-and-reset layer (recalibrated)" };
+  sel("calc-cal", (grid.calibrations || ["separate"]).map((c) => [c, CAL_LABEL[c] || c]), "cal");
+  const calRow = document.getElementById("calc-cal-row");
+  if (calRow && !(grid.calibrations && grid.calibrations.length > 1)) calRow.style.display = "none";
   sel("calc-p", [[0.001, "0.1%"], [0.002, "0.2%"]], "p", Number);
   sel("calc-fac", Object.entries(FAC_LABEL), "factory");
   sel("calc-target", [[0.1, "90% (E[faults] ≤ 0.1)"], [0.01, "99% (E[faults] ≤ 0.01)"]], "target", Number);
@@ -52,7 +56,7 @@ export function initCalculator(grid) {
 
   function render() {
     const w = grid.workloads[state.w];
-    const r = grid.rows.find((x) => x.w === state.w && x.p === state.p && x.factory === state.factory && x.target === state.target);
+    const r = grid.rows.find((x) => x.w === state.w && (x.cal || "separate") === state.cal && x.p === state.p && x.factory === state.factory && x.target === state.target);
     if (!r) return;
     const seconds = r.rounds * state.tau * 1e-6;
     const card = (label, val, sub, hl = false) =>

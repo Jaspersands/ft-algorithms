@@ -1,0 +1,31 @@
+{
+ "name": "zz-z-d7-p0.001",
+ "kind": "zz",
+ "basis": "z",
+ "d": 7,
+ "p": 0.001,
+ "merged": 7,
+ "rounds": 21,
+ "counts": {
+  "shots": 2585600,
+  "num_obs": 3,
+  "patterns": {
+   "1": 17,
+   "2": 117,
+   "3": 104,
+   "4": 130,
+   "5": 134
+  },
+  "seconds": 49.587
+ },
+ "seed": 688406073,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "fd57f6c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py --mr",
+ "circuit": "one measure-and-reset layer",
+ "wall_seconds": 53.7
+}
