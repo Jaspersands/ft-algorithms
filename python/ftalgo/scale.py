@@ -10,6 +10,10 @@ formula) and the schedule's shape is measured on compiled instances: rounds per 
 units of d, and the number of patches busy at a time (``fit_structure``). For published
 algorithms the counts and the run time come from the paper (cited), and only the error model
 is ours. The smallest odd d with E(d) ≤ target gives the physical qubits and the run time.
+
+Published workloads are compared at their authors' own failure budgets, and the comparison is of
+distance: their physical-qubit totals use layouts (yoked storage, hand-made floor plans) that this
+model does not include.
 """
 
 from __future__ import annotations
@@ -17,7 +21,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from .arch import FACTORIES, Architecture, ROUND_SECONDS
+from .arch import FACTORIES, Architecture, Factory, ROUND_SECONDS
 from .calib.model import LogicalModel
 
 
@@ -111,14 +115,47 @@ def modern_shor(n: int, st: Structure, k: int = 2) -> Workload:
     )
 
 
+# Gidney 2025 budgets per shot: each shot is an independent attempt, and a shot lost to a logical
+# error is simply repeated. Its expected 9.2 shots per factoring are not one long computation.
+GIDNEY_2025_SHOTS = 9.2
 GIDNEY_2025 = Workload(
-    "RSA-2048, Gidney 2025", 1409, 6.5e9, 0.0, 0.0, 0.0, None, 4.63 * 86400 / ROUND_SECONDS,
-    "Gidney 2025 (arXiv:2505.15917): 1,409 logical qubits, 6.5e9 Toffolis, 4.63 days of expected run time (Tables 4–5)",
+    "RSA-2048, Gidney 2025 (one shot)", 1409, 6.5e9 / GIDNEY_2025_SHOTS, 0.0, 0.0, 0.0, None, 12.07 * 3600 / ROUND_SECONDS,
+    "Gidney 2025 (arXiv:2505.15917), Section 3.2 and Table 5: one shot runs 12.07 h with at most 1,409 logical "
+    "qubits active; 6.5e9 Toffolis per factoring over 9.2 expected shots",
 )
+# His budget: 1e-15 per logical-qubit round over 6.9e13 qubit-rounds, so 93.3% of shots see no
+# logical error; reached at d = 25 by his projection of surface-code memory (his Figure 6).
+GIDNEY_2025_PER_ROUND = 1e-15
+GIDNEY_2025_TARGET = -math.log(0.933)
+GIDNEY_2025_D = 25
 FEMOCO_THC = Workload(
     "FeMoco (THC), Lee et al. 2021", 2142, 5.3e9, 0.0, 0.0, 0.0, None, 5.3e9 / 25e3 / ROUND_SECONDS,
     "Lee et al. 2021 (PRX Quantum 2, 030305), Table III: 2,142 logical qubits, 5.3e9 Toffolis; Toffolis at 25 kHz",
 )
+# Lee et al. choose d = 31 for a 1% total error budget (Section V).
+FEMOCO_THC_TARGET = 0.01
+FEMOCO_THC_D = 31
+
+# Each published workload with its authors' failure budget (expected faults), distance, physical
+# qubits and run time, as they report them.
+PUBLISHED = (
+    (GIDNEY_2025, GIDNEY_2025_TARGET, GIDNEY_2025_D, 897_864, "12.07 h per shot"),
+    (FEMOCO_THC, FEMOCO_THC_TARGET, FEMOCO_THC_D, 4e6, "< 4 days"),
+)
+
+
+def idle_total(model, d: int, p: float) -> float:
+    """Probability per round that an idle patch suffers any logical error (X, Y or Z)."""
+    return sum(model.idle(d, p))
+
+
+def distance_for_idle(model, target: float, p: float = 1e-3, dmax: int = 61) -> int | None:
+    """Smallest odd d whose idle patch errs at most ``target`` per round: the criterion Gidney 2025
+    uses to pick its distance, independent of how a workload is scheduled."""
+    for d in range(3, dmax + 1, 2):
+        if idle_total(model, d, p) <= target:
+            return d
+    return None
 
 
 @dataclass
@@ -151,9 +188,10 @@ def expected_faults(w: Workload, arch: Architecture, busy: float = 3.2) -> tuple
     return sum(br.values()), rounds, br
 
 
-def estimate(w: Workload, model: LogicalModel, p: float = 1e-3, factory: str = "cultivation", target: float = 0.1, dmax: int = 61) -> Estimate:
+def estimate(w: Workload, model: LogicalModel, p: float = 1e-3, factory: str | Factory = "cultivation", target: float = 0.1, dmax: int = 61) -> Estimate:
+    fac_model = FACTORIES[factory] if isinstance(factory, str) else factory
     for d in range(3, dmax + 1, 2):
-        arch = Architecture(model, d, p, FACTORIES[factory])
+        arch = Architecture(model, d, p, fac_model)
         ef, rounds, br = expected_faults(w, arch)
         if ef <= target:
             data = arch.data_qubits(w.logical_qubits)

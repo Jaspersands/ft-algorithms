@@ -30,7 +30,10 @@ import numpy as np
 from . import channels as ch
 from .qec import Counts
 
-DATA = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "calibration")
+# The repository's data, or the copy of the fitted model an installed wheel carries in ftalgo/_data
+# (tools/bundle_data.sh puts it there before a release build).
+_REPO_DATA = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data", "calibration")
+DATA = _REPO_DATA if os.path.isdir(_REPO_DATA) else os.path.join(os.path.dirname(__file__), "..", "_data")
 MIN_EVENTS = 10
 BOOT = 300
 

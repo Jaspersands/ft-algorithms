@@ -1,11 +1,16 @@
 #!/bin/sh
-# Builds the native arm64 module (the host Rust toolchain is x86_64, so cross-target explicitly)
-# and copies it into python/ftalgo. The "python" profile is release without strip: Rust 1.90's
-# strip leaves the arm64 module's symbol table misaligned and macOS refuses to load it.
+# Builds the native module for this machine and copies it into python/ftalgo. On an arm64 Mac whose
+# Rust toolchain is x86_64 (under Rosetta) it cross-targets aarch64-apple-darwin explicitly. The
+# "python" profile is release without strip: Rust 1.90's strip leaves the arm64 module's symbol
+# table misaligned and macOS refuses to load it.
 set -e
 cd "$(dirname "$0")/.."
 rm -f dist/ftalgo-*.whl
-.venv/bin/maturin build --profile python --target aarch64-apple-darwin --out dist -q
+TARGET=""
+if [ "$(uname -s)" = Darwin ] && [ "$(uname -m)" = arm64 ] && rustc -vV | grep -q '^host: x86_64'; then
+    TARGET="--target aarch64-apple-darwin"
+fi
+.venv/bin/maturin build --profile python $TARGET --out dist -q
 # Also place the module next to the sources, so tests and tools import python/ftalgo directly
 # (conftest.py puts python/ first on sys.path) and Python edits need no rebuild.
 .venv/bin/python - <<'PY'

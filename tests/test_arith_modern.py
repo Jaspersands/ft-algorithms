@@ -131,3 +131,11 @@ def test_modern_shor_quantum_simulation():
     outcomes = info.outcomes(np.array([recs]))
     # For a = 7 mod 15 (r = 4), outcome must be a multiple of 2^(m)/r = 16/4 = 4
     assert outcomes[0] % 4 == 0
+
+
+@pytest.mark.parametrize("N", [15, 21, 35, 77, 143])
+def test_modern_counts_used_at_scale_match_compiled_circuits(N):
+    # scale.modern_shor extrapolates with modern_toffolis(n) and 4n + 7 logical qubits.
+    c, info = am.order_finding_modern(N)
+    assert c.toffoli_count() == am.modern_toffolis(info.n)
+    assert c.num_qubits == 4 * info.n + 7

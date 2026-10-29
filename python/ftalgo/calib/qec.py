@@ -3,6 +3,7 @@ observable-flip patterns (bit j of a pattern = observable j predicted wrongly)."
 
 from __future__ import annotations
 
+import inspect
 import time
 from collections import Counter
 from dataclasses import dataclass, field
@@ -54,6 +55,16 @@ def _packed_ints(rows: np.ndarray) -> np.ndarray:
     return out
 
 
+def correlated_decoding(m, correlated: bool = True) -> dict:
+    """Keyword arguments that make ``m.decode_batch`` use correlations. stabilizer-qec 2.x follows
+    PyMatching, which needs ``enable_correlations`` at decode time as well as at construction and
+    otherwise decodes uncorrelated without a word; 1.x took it from the constructor alone and
+    rejects the argument."""
+    if "enable_correlations" in inspect.signature(m.decode_batch).parameters:
+        return {"enable_correlations": correlated}
+    return {}
+
+
 def run(circuit, *, shots: int, seed: int, target: int | None = None, batch: int = 1 << 16, correlated: bool = True, threads: int = 0) -> Counts:
     """Samples `shots` shots (stopping early once `target` failures are seen, at a multiple of
     `batch`), decodes with (correlated) matching, and counts joint flip patterns."""
@@ -72,7 +83,7 @@ def run(circuit, *, shots: int, seed: int, target: int | None = None, batch: int
     while done < shots:
         b = min(batch, shots - done)
         dets, obs = sampler.sample(b, separate_observables=True, bit_packed=True, threads=threads)
-        pred = m.decode_batch(dets, bit_packed_shots=True, bit_packed_predictions=True, threads=threads)
+        pred = m.decode_batch(dets, bit_packed_shots=True, bit_packed_predictions=True, threads=threads, **correlated_decoding(m, correlated))
         flips = _packed_ints(np.asarray(pred, dtype=np.uint8) ^ np.asarray(obs, dtype=np.uint8))
         nz = flips[flips != 0]
         if nz.size:

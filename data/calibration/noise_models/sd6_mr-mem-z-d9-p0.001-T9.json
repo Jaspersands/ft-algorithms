@@ -1,0 +1,26 @@
+{
+ "name": "sd6_mr-mem-z-d9-p0.001-T9",
+ "kind": "memory",
+ "model": "sd6_mr",
+ "basis": "z",
+ "d": 9,
+ "p": 0.001,
+ "rounds": 9,
+ "counts": {
+  "shots": 45616704,
+  "num_obs": 1,
+  "patterns": {
+   "1": 200
+  },
+  "seconds": 273.656
+ },
+ "seed": 3746141257,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "6a9c896",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/noise_models.py",
+ "wall_seconds": 281.4
+}

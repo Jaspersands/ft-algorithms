@@ -6,9 +6,17 @@ build-backend = "maturin"
 name = "ftalgo"
 version = "0.1.0"
 description = "Quantum algorithms on a simulated fault-tolerant quantum computer: logical error channels measured by circuit-level simulation, algorithms compiled to Clifford+T+Toffoli and run end to end."
+readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
+authors = [{ name = "Jasper Sands" }]
+keywords = ["fault tolerance", "surface code", "lattice surgery", "resource estimation", "shor", "phase estimation", "quantum chemistry"]
 dependencies = ["numpy>=1.22"]
+
+[project.urls]
+Homepage = "https://ft.jaspersands.com"
+Repository = "https://github.com/Jaspersands/ft-algorithms"
+Report = "https://ft.jaspersands.com/report/report.html"
 
 [project.optional-dependencies]
 calibrate = ["stabilizer-qec>=1.2"]
@@ -20,6 +28,14 @@ python-source = "python"
 module-name = "ftalgo._ftsim"
 features = ["python"]
 profile = "python"
+# The source distribution builds the package; the data, site, report and tools live in the repository.
+exclude = [
+    { path = "data/**/*", format = "sdist" },
+    { path = "site/**/*", format = "sdist" },
+    { path = "report/**/*", format = "sdist" },
+    { path = "tools/**/*", format = "sdist" },
+    { path = "tests/**/*", format = "sdist" },
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

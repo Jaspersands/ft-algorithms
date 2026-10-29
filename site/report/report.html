@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Factoring and chemistry on a simulated fault-tolerant quantum computer</title>
-<meta name="description" content="Technical report of the ft-algorithms project.">
+<title>Factoring and chemistry on a simulated fault-tolerant quantum
+computer</title>
+<meta name="description" content="Technical report of the ft-algorithms
+project.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231c1d1f'/%3E%3Ccircle cx='5' cy='5' r='1.6' fill='%23f4f2ec'/%3E%3Ccircle cx='11' cy='5' r='1.6' fill='%23f4f2ec'/%3E%3Ccircle cx='5' cy='11' r='1.6' fill='%23f4f2ec'/%3E%3Ccircle cx='11' cy='11' r='1.6' fill='%23c0392b'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,66 +16,168 @@
 <body>
 <main class="paper">
 <header class="masthead">
-  <p class="kicker">Technical report · ftalgo 0.2</p>
-  <h1>Factoring and chemistry on a simulated fault-tolerant quantum computer</h1>
-  <p class="subtitle">Algorithms run end to end on a surface-code machine whose logical error rates were measured by circuit-level simulation</p>
-  <p class="byline">Jasper Sands · 2026-10-14 · commit <code>9d60da6</code></p>
+  <p class="kicker">Technical report · ftalgo 0.3</p>
+  <h1>Factoring and chemistry on a simulated fault-tolerant quantum
+computer</h1>
+  <p class="subtitle">Algorithms run end to end on a surface-code
+machine whose logical error rates were measured by circuit-level
+simulation</p>
+  <p class="byline">Jasper
+Sands · 2026-10-29 · commit <code>85a88fb</code></p>
   <p class="links"><a href="../index.html">the explainer site</a> · <a href="https://github.com/Jaspersands/ft-algorithms">github.com/Jaspersands/ft-algorithms</a> · <a href="report.pdf">PDF</a></p>
 </header>
 <section class="abstract">
 <h2 class="abstract__title">Summary</h2>
-<p>Shor’s algorithm (full modular exponentiation in both textbook Cuccaro and modern windowed measurement-based-uncomputation arithmetic, semiclassical approximate QFT) and iterative phase estimation of molecular ground-state energies (H₂, HeH⁺, and frozen-core LiH across its dissociation coordinate) are run end to end on a simulated rotated-surface-code machine. Every logical error channel, idling, lattice-surgery merges and the surgery CNOT, was measured in 316 circuit-level experiments (0.82×10⁹ shots) with stabilizer-qec under SD6 noise and extracted with baselines propagated through each operation; magic states come from published factory models. Whole surgery experiments predicted from their parts agree with circuit-level measurements to 0.93–1.26× (median 1.04×). Modern arithmetic cuts Toffolis by up to 2.7–4.0×, reducing rounds by 1.4–1.8× on the simulator and dropping the distance needed for 90% peak probability on N = 15 from d = 13 to d = 11. Biased-noise compilation under asymmetric XZZX surface codes (d_X × d_Z) reduces the physical qubit footprint by 3.4× at dephasing bias η = 100 and 4.25× at η = 500 for RSA-2048. Extrapolated with the same error model to RSA-2048, textbook arithmetic requires d = 35, 32.5 M physical qubits, and 1.96 years; modern windowed arithmetic lowers run time to 298 days (43.2 M physical qubits). For Gidney’s 2025 algorithm, an empirical sensitivity analysis demonstrates that our measured circuit-level noise requires d = 29 (vs. his assumed 25) because SD6 noise decodes to an idle logical error rate 4.3× higher at d = 25 than Gidney’s uncalibrated assumption.</p>
+<p>Shor’s algorithm (full modular exponentiation, with textbook
+ripple-carry arithmetic and with windowed arithmetic using
+measurement-based uncomputation; semiclassical approximate QFT) and
+iterative phase estimation of molecular ground-state energies (H₂, HeH⁺
+and a small LiH active space) are run end to end on a simulated
+rotated-surface-code machine. Every logical error channel, idling,
+lattice-surgery merges and the surgery CNOT, was measured in 316
+circuit-level experiments (0.82×10⁹ shots) with stabilizer-qec under SD6
+noise and extracted with baselines propagated through each operation;
+magic states come from published factory models. Whole surgery
+experiments predicted from their parts agree with circuit-level
+measurements to 0.93–1.26× (median 1.04×). Windowed arithmetic cuts
+Toffolis by 2.6–3.0× and rounds by 1.4–1.8× on the simulated moduli.
+Extrapolated with the same error model to RSA-2048, textbook arithmetic
+needs d = 35, 32.5 M physical qubits and 1.96 years; windowed arithmetic
+298 days with 43.2 M. At their authors’ own failure budgets, the model
+gives Lee et al.’s FeMoco estimate its published d = 31, and Gidney’s
+2025 RSA-2048 estimate d = 29 rather than 25. Memories under three more
+circuit-level models put the distance for 10⁻¹⁵ per patch-round between
+23 and 29, a range that contains his choice and of which the
+calibration’s circuit, with separate measurement and reset layers, is
+the pessimistic end.</p>
 </section>
 <nav class="toc" aria-label="Contents">
 <h2 class="toc__title">Contents</h2>
 <ul>
-<li><a href="#introduction"><span class="toc-section-number">1</span> Introduction</a></li>
-<li><a href="#methods"><span class="toc-section-number">2</span> Methods</a>
+<li><a href="#introduction" id="toc-introduction"><span
+class="toc-section-number">1</span> Introduction</a></li>
+<li><a href="#methods" id="toc-methods"><span
+class="toc-section-number">2</span> Methods</a>
 <ul>
-<li><a href="#circuit-level-calibration"><span class="toc-section-number">2.1</span> Circuit-level calibration</a></li>
-<li><a href="#the-machine"><span class="toc-section-number">2.2</span> The machine</a></li>
-<li><a href="#the-simulator"><span class="toc-section-number">2.3</span> The simulator</a></li>
-<li><a href="#algorithms"><span class="toc-section-number">2.4</span> Algorithms</a></li>
+<li><a href="#circuit-level-calibration"
+id="toc-circuit-level-calibration"><span
+class="toc-section-number">2.1</span> Circuit-level calibration</a></li>
+<li><a href="#the-machine" id="toc-the-machine"><span
+class="toc-section-number">2.2</span> The machine</a></li>
+<li><a href="#the-simulator" id="toc-the-simulator"><span
+class="toc-section-number">2.3</span> The simulator</a></li>
+<li><a href="#algorithms" id="toc-algorithms"><span
+class="toc-section-number">2.4</span> Algorithms</a></li>
 </ul></li>
-<li><a href="#results"><span class="toc-section-number">3</span> Results</a>
+<li><a href="#results" id="toc-results"><span
+class="toc-section-number">3</span> Results</a>
 <ul>
-<li><a href="#the-calibrated-machine"><span class="toc-section-number">3.1</span> The calibrated machine</a></li>
-<li><a href="#composition"><span class="toc-section-number">3.2</span> Composition</a></li>
-<li><a href="#shors-algorithm-textbook-arithmetic"><span class="toc-section-number">3.3</span> Shor’s algorithm (Textbook arithmetic)</a></li>
-<li><a href="#modern-arithmetic-vs.-textbook-arithmetic"><span class="toc-section-number">3.4</span> Modern arithmetic vs. textbook arithmetic</a></li>
-<li><a href="#phase-estimation"><span class="toc-section-number">3.5</span> Phase estimation</a></li>
-<li><a href="#lithium-hydride-lih-ground-state-and-dissociation-curve"><span class="toc-section-number">3.6</span> Lithium Hydride (LiH) ground state and dissociation curve</a></li>
-<li><a href="#to-scale"><span class="toc-section-number">3.7</span> To scale</a></li>
-<li><a href="#biased-noise-and-xzzx-surface-codes"><span class="toc-section-number">3.8</span> Biased noise and XZZX surface codes</a></li>
-<li><a href="#sensitivity-analysis-of-the-rsa-2048-code-distance-d29-vs.-d25"><span class="toc-section-number">3.9</span> Sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>)</a></li>
-<li><a href="#d-lattice-surgery-floorplan-and-browser-webassembly-simulation"><span class="toc-section-number">3.10</span> 2D lattice surgery floorplan and browser WebAssembly simulation</a></li>
+<li><a href="#the-calibrated-machine"
+id="toc-the-calibrated-machine"><span
+class="toc-section-number">3.1</span> The calibrated machine</a></li>
+<li><a href="#composition" id="toc-composition"><span
+class="toc-section-number">3.2</span> Composition</a></li>
+<li><a href="#shors-algorithm" id="toc-shors-algorithm"><span
+class="toc-section-number">3.3</span> Shor’s algorithm</a></li>
+<li><a href="#windowed-arithmetic" id="toc-windowed-arithmetic"><span
+class="toc-section-number">3.4</span> Windowed arithmetic</a></li>
+<li><a href="#phase-estimation" id="toc-phase-estimation"><span
+class="toc-section-number">3.5</span> Phase estimation</a></li>
+<li><a href="#lih" id="toc-lih"><span
+class="toc-section-number">3.6</span> LiH</a></li>
+<li><a href="#to-scale" id="toc-to-scale"><span
+class="toc-section-number">3.7</span> To scale</a></li>
+<li><a href="#gidney-2025s-distance-under-the-measured-model"
+id="toc-gidney-2025s-distance-under-the-measured-model"><span
+class="toc-section-number">3.8</span> Gidney 2025’s distance under the
+measured model</a></li>
+<li><a href="#which-memory-model" id="toc-which-memory-model"><span
+class="toc-section-number">3.9</span> Which memory model?</a></li>
 </ul></li>
-<li><a href="#validation"><span class="toc-section-number">4</span> Validation</a></li>
-<li><a href="#limitations"><span class="toc-section-number">5</span> Limitations</a></li>
-<li><a href="#reproduction"><span class="toc-section-number">6</span> Reproduction</a></li>
+<li><a href="#validation" id="toc-validation"><span
+class="toc-section-number">4</span> Validation</a></li>
+<li><a href="#limitations" id="toc-limitations"><span
+class="toc-section-number">5</span> Limitations</a></li>
+<li><a href="#reproduction" id="toc-reproduction"><span
+class="toc-section-number">6</span> Reproduction</a></li>
 </ul>
 </nav>
-<h1 data-number="1" id="introduction"><span class="header-section-number">1</span> Introduction</h1>
-<p>Resource estimates for fault-tolerant algorithms usually multiply a gate count by an assumed logical error rate. This work runs the algorithms instead. A logical-level simulator (ftsim, written for this project) executes the actual circuits, with every operation followed by its measured logical channel and every waiting patch accumulating measured idle error. The results are success probabilities as functions of code distance, physical error rate and magic-state source, with error budgets that say which operations cause the failures.</p>
-<p>The approach rests on one fact and one approximation. The fact: under Pauli circuit noise, for a Clifford circuit decoded into a Pauli-frame correction, the logical action of one surface-code operation is exactly a Pauli channel, since every syndrome history ends in some logical Pauli. The approximation: consecutive operations’ channels are composed as independent. Section 4.3 measures how good that is.</p>
+<h1 data-number="1" id="introduction"><span
+class="header-section-number">1</span> Introduction</h1>
+<p>Resource estimates for fault-tolerant algorithms usually multiply a
+gate count by an assumed logical error rate. This work runs the
+algorithms instead. A logical-level simulator (ftsim, written for this
+project) executes the actual circuits, with every operation followed by
+its measured logical channel and every waiting patch accumulating
+measured idle error. The results are success probabilities as functions
+of code distance, physical error rate and magic-state source, with error
+budgets that say which operations cause the failures.</p>
+<p>The approach rests on one fact and one approximation. The fact: under
+Pauli circuit noise, for a Clifford circuit decoded into a Pauli-frame
+correction, the logical action of one surface-code operation is exactly
+a Pauli channel, since every syndrome history ends in some logical
+Pauli. The approximation: consecutive operations’ channels are composed
+as independent. Section 3.2 measures how good that is.</p>
 <p>Contributions:</p>
 <ul>
-<li>A calibrated logical model of a rotated surface code under SD6 noise: idle (including logical Y), Z⊗Z and X⊗X merges and the surgery CNOT, from 316 experiments, with fits in d and p.</li>
-<li>A composition test: whole lattice-surgery experiments predicted from parts at the logical level and compared with circuit-level measurement.</li>
-<li>Shor’s algorithm with honest arithmetic (no use of the period anywhere in the circuit) run on that model for N up to 143, scored by peak probability because, for small N, uniformly random outcomes already “factor” with probability 1.00 (N = 15).</li>
-<li>Modern fault-tolerant arithmetic implemented and executed on the simulator: Gidney (2018) carry uncomputation via mid-circuit measurement and classical feed-forward CZ fixup, algebraic normal form table lookups, and windowed modular exponentiation, cutting Toffolis by 2.7–4.0×.</li>
-<li>Molecular phase estimation from first-principles Hamiltonians to chemical accuracy, scaling from minimal diatomics (H₂, HeH⁺) to Lithium Hydride (LiH) with active-space frozen core, Z₂ spin-parity tapering, and full dissociation curve tracking.</li>
-<li>Biased noise compilation under asymmetric rectangular XZZX surface codes (d_X × d_Z), cutting physical qubit footprints by 3.4× to 4.25× at dephasing bias η ∈ [100, 500].</li>
-<li>Interactive 2D lattice surgery fast-block floorplan visualizer and WebAssembly client-side QPE quantum simulator.</li>
-<li>Robustness and sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>), isolating why circuit-level SD6 noise requires <span class="math inline"><em>d</em> = 29</span> under calibrated physical simulation.</li>
+<li>A calibrated logical model of a rotated surface code under SD6
+noise: idle (including logical Y), Z⊗Z and X⊗X merges and the surgery
+CNOT, from 316 experiments, with fits in d and p.</li>
+<li>A composition test: whole lattice-surgery experiments predicted from
+parts at the logical level and compared with circuit-level
+measurement.</li>
+<li>Shor’s algorithm with honest arithmetic (no use of the period
+anywhere in the circuit) run on that model for N up to 143, scored by
+peak probability because, for small N, uniformly random outcomes already
+“factor” with probability 1.00 (N = 15); and the same with windowed
+arithmetic and measurement-based uncomputation.</li>
+<li>Phase estimation of molecular ground-state energies to chemical
+accuracy, from Hamiltonians computed from scratch (H₂, HeH⁺) and from a
+frozen-core CASSCF active space (LiH).</li>
+<li>Extrapolation to RSA-2048 and FeMoco, and a check of two published
+estimates’ code distances against the measured model at their own
+failure budgets.</li>
 </ul>
-<h1 data-number="2" id="methods"><span class="header-section-number">2</span> Methods</h1>
-<h2 data-number="2.1" id="circuit-level-calibration"><span class="header-section-number">2.1</span> Circuit-level calibration</h2>
-<p>All physical-level simulation uses stabilizer-qec 1.2 (the author’s engine, which matches Stim and PyMatching) with SD6 noise at p ∈ {0.1, 0.2, 0.3, 0.5}% and correlated matching. Experiments: memories of d, 2d, 3d and 4d rounds in both bases (d = 3 … 11), reference-qubit memories (d ≤ 7), Z⊗Z and X⊗X merges of d rounds with d rounds apart before and after, the surgery CNOT (two merges and an ancilla patch, 4d rounds in all), and, for the composition test, three Z⊗Z measurements in a row and a three-patch merge. Each ran to 500 failures or a 300-second cap; every record keeps its seed.</p>
-<p><strong>Channels through fidelities.</strong> A distribution over flip patterns has Pauli fidelities f(s) = Σₓ P(x)(−1)^(s·x), which multiply under composition. The per-round idle channel is the slope of log f over the memory lengths (preparation and readout cancel). An operation’s own channel is the measured one divided by its baseline, where the baseline (preparation plus d rounds before, d rounds plus readout after, each the square root of a 2d-round memory’s fidelity) is first pushed through the ideal operation: a CNOT copies an X error on the control onto the target and a Z on the target onto the control, and an error before a merge changes its outcome. Dividing naively gives negative probabilities for “X on the control only”. Uncertainties are bootstrap (300 resamples).</p>
-<p><strong>Logical Y.</strong> X- and Z-basis memories see X∪Y and Z∪Y. A reference-qubit experiment gives the full channel: the patch is projected noiselessly (every Z check by a noiseless Pauli-product measurement, which round 1 is compared with), entangled with a perfect qubit by a noiseless Z_R Z_L measurement, run, and ended by a perfect round and noiseless X_R X_L and Z_R Z_L measurements. Without the initial projection an X error before the first Z-check readout flips Z_R Z_L unseen.</p>
-<p><strong>Fits.</strong> Each component ε(d, p) is fitted per p as log ε = a + b(d + 1)/2 by weighted least squares over points with at least ten events, and globally as A(p/p*)^((d+1)/2). Values beyond the largest measured distance are extrapolations and are marked as such in every figure.</p>
-<h2 data-number="2.2" id="the-machine"><span class="header-section-number">2.2</span> The machine</h2>
+<h1 data-number="2" id="methods"><span
+class="header-section-number">2</span> Methods</h1>
+<h2 data-number="2.1" id="circuit-level-calibration"><span
+class="header-section-number">2.1</span> Circuit-level calibration</h2>
+<p>All physical-level simulation uses stabilizer-qec 1.2 (the author’s
+engine, which matches Stim and PyMatching) with SD6 noise at p ∈ {0.1,
+0.2, 0.3, 0.5}% and correlated matching. Experiments: memories of d, 2d,
+3d and 4d rounds in both bases (d = 3 … 11), reference-qubit memories (d
+≤ 7), Z⊗Z and X⊗X merges of d rounds with d rounds apart before and
+after, the surgery CNOT (two merges and an ancilla patch, 4d rounds in
+all), and, for the composition test, three Z⊗Z measurements in a row and
+a three-patch merge. Each ran to 500 failures or a 300-second cap; every
+record keeps its seed.</p>
+<p><strong>Channels through fidelities.</strong> A distribution over
+flip patterns has Pauli fidelities f(s) = Σₓ P(x)(−1)^(s·x), which
+multiply under composition. The per-round idle channel is the slope of
+log f over the memory lengths (preparation and readout cancel). An
+operation’s own channel is the measured one divided by its baseline,
+where the baseline (preparation plus d rounds before, d rounds plus
+readout after, each the square root of a 2d-round memory’s fidelity) is
+first pushed through the ideal operation: a CNOT copies an X error on
+the control onto the target and a Z on the target onto the control, and
+an error before a merge changes its outcome. Dividing naively gives
+negative probabilities for “X on the control only”. Uncertainties are
+bootstrap (300 resamples).</p>
+<p><strong>Logical Y.</strong> X- and Z-basis memories see X∪Y and Z∪Y.
+A reference-qubit experiment gives the full channel: the patch is
+projected noiselessly (every Z check by a noiseless Pauli-product
+measurement, which round 1 is compared with), entangled with a perfect
+qubit by a noiseless Z_R Z_L measurement, run, and ended by a perfect
+round and noiseless X_R X_L and Z_R Z_L measurements. Without the
+initial projection an X error before the first Z-check readout flips Z_R
+Z_L unseen.</p>
+<p><strong>Fits.</strong> Each component ε(d, p) is fitted per p as log
+ε = a + b(d + 1)/2 by weighted least squares over points with at least
+ten events, and globally as A(p/p*)^((d+1)/2). Values beyond the largest
+measured distance are extrapolations and are marked as such in every
+figure.</p>
+<h2 data-number="2.2" id="the-machine"><span
+class="header-section-number">2.2</span> The machine</h2>
 <table>
 <colgroup>
 <col style="width: 33%" />
@@ -96,7 +200,8 @@
 <tr class="even">
 <td style="text-align: left;">H</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: left;">none: transversal, orientation tracked in the fast block †</td>
+<td style="text-align: left;">none: transversal, orientation tracked in
+the fast block †</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">S, S†</td>
@@ -106,17 +211,20 @@
 <tr class="even">
 <td style="text-align: left;">T, T†</td>
 <td style="text-align: right;">d</td>
-<td style="text-align: left;">merge channel + Z w.p. ε_T † + wrong outcome → Z w.p. ½ (twirled S)</td>
+<td style="text-align: left;">merge channel + Z w.p. ε_T † + wrong
+outcome → Z w.p. ½ (twirled S)</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">CX, CZ</td>
 <td style="text-align: right;">2d</td>
-<td style="text-align: left;">measured surgery-CNOT channel, idling included</td>
+<td style="text-align: left;">measured surgery-CNOT channel, idling
+included</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">CCX, CCZ</td>
 <td style="text-align: right;">2d</td>
-<td style="text-align: left;">3 merges + Z-type w.p. ε_CCZ † + wrong outcomes → twirled CZ; d rounds idle</td>
+<td style="text-align: left;">3 merges + Z-type w.p. ε_CCZ † + wrong
+outcomes → twirled CZ; d rounds idle</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">M, R</td>
@@ -131,24 +239,88 @@
 <tr class="odd">
 <td style="text-align: left;">feed-forward</td>
 <td style="text-align: right;">10</td>
-<td style="text-align: left;">decoder reaction time before a TABLE †</td>
+<td style="text-align: left;">decoder reaction time before a TABLE
+†</td>
 </tr>
 </tbody>
 </table>
-<p>† marks cited inputs. Magic states: injection (ε_T = p, conservative against Li 2015’s ≈ 0.4p), 15-to-1 distillation (Litinski 2019, Table 1: 4.5×10⁻⁸ per T and 5.2×10⁻¹¹ per CCZ at p = 0.1%) and cultivation (Gidney, Shutty and Jones 2024: 2×10⁻⁹ at p = 0.1%, 4×10⁻¹¹ at 0.05%; |CCZ⟩ by 8T-to-CCZ, 28 ε_T²). Physical qubits: Litinski’s fast block, 2n + ⌈√(8n)⌉ + 1 tiles of 2(d + 1)² qubits, plus factories sized by their published qubit·rounds per state. One round is 1 µs.</p>
-<p>The noise compiler gives every qubit a clock. An operation starts when its qubits are free (a TABLE also waits for its records plus the reaction time); each waiting qubit receives the composed idle channel for its gap; the operation’s channel follows it with a class label for attribution. REPEAT blocks are barriers, scheduled once; TABLE cases are padded to the longest, so the schedule does not depend on outcomes. Channel composition is written with log1p/expm1: per-round rates reach 10⁻²⁰ at large d and a naive 1 − (1 − 2q)ⁿ cancels to zero.</p>
-<h2 data-number="2.3" id="the-simulator"><span class="header-section-number">2.3</span> The simulator</h2>
-<p>ftsim (Rust) runs programs in a Stim-like format: Clifford + T + Toffoli gates, Pauli channels on one to three qubits, measurements, REPEAT, and TABLE (classical feed-forward choosing a block by earlier records). Backends: a sparse state (hash map of basis states; runs of permutation and phase gates fused per basis state), which handles 36-qubit Shor circuits in milliseconds per shot, and a dense vector. Each shot’s RNG derives from (seed, shot), so results do not depend on threads.</p>
-<p><strong>Stratified sampling.</strong> With K the number of static faults, P(success) = Σₖ P(K = k)·Sₖ. P(K = k) is computed exactly (a truncated generating polynomial over the site tree, REPEAT by exponentiation), and Sₖ is estimated from shots with exactly k faults, drawn by sampling k sites with weights q/(1 − q) and rejecting duplicates, which is exactly the conditional law. Strata beyond the tail cutoff carry their mass as an interval. The one-fault stratum, with faults logged, gives each operation class’s harm.</p>
-<h2 data-number="2.4" id="algorithms"><span class="header-section-number">2.4</span> Algorithms</h2>
-<p><strong>Textbook Shor.</strong> Cuccaro ripple-carry adders; modular addition of a classical constant with a sign flag (Vedral–Barenco–Ekert, Beauregard); controlled modular multiplication with uncomputation by the inverse and a controlled swap; 3n + 6 qubits and 2n(2n(10n + 12) + n) Toffolis. One control qubit is recycled through 2n rounds of a semiclassical approximate QFT whose correction rotations, chosen by TABLE from the previous ⌈log₂ 2n⌉ + 2 records, are synthesized by gridsynth to ε = 10⁻³/2n and verified as matrices. The base is a = 2 for every N. Every multiplier is the generic circuit, even when its constant is 1.</p>
-<p><strong>Modern Shor (windowed + measurement-based uncomputation).</strong> Textbook ripple-carry addition consumes 2w Toffolis to compute and uncompute carries sequentially. Gidney’s 2018 carry uncomputation replaces the reverse Toffoli cascade with transversal Hadamard, mid-circuit X-basis measurement, patch reset, and a classical feed-forward CZ fixup: <span class="math display"><em>c</em><sub><em>i</em> + 1</sub> = <em>c</em><sub><em>i</em> + 1</sub> ⊕ <em>a</em><sub><em>i</em></sub><em>b</em><sub><em>i</em></sub>,  uncompute: <em>H</em>(<em>c</em><sub><em>i</em></sub>) → <em>M</em><sub><em>X</em></sub>(<em>c</em><sub><em>i</em></sub>) → <em>R</em><sub><em>Z</em></sub>(<em>c</em><sub><em>i</em></sub>) → (<em>m</em> = 1 ⟹ <em>C</em><em>Z</em>(<em>a</em><sub><em>i</em></sub>, <em>b</em><sub><em>i</em></sub>)).</span> This cuts the adder to w - 1 Toffolis (a 2× reduction) with 0 additional ancillas. Subtraction is performed by bitwise NOT identity <span class="math inline"> ∼ ( ∼ <em>b</em> + <em>a</em>)</span> using transversal X gates with zero Toffoli overhead. Modular exponentiation groups control bits into windows of size k = 2: powers <span class="math inline"><em>a</em><sup>2<sup><em>j</em></sup> ⋅ <em>m</em></sup> (mod  <em>N</em>)</span> for <span class="math inline"><em>m</em> ∈ {1, 2, 3}</span> are precomputed and selected into an ancillary register via algebraic normal form (ANF) table lookup using 2 Toffolis, followed by a single in-place modular multiplication, cutting the number of modular multiplications in half.</p>
-<p><strong>Chemistry.</strong> STO-3G integrals of s Gaussians in closed form (Boys F₀), restricted Hartree–Fock with DIIS, Jordan–Wigner with interleaved spins, and Z₂ tapering of both spin parities (Bravyi et al.). Iterative phase estimation reads 10 bits of U = exp(−i(H − E_HF)τ) with τ = 2π, approximated by four fourth-order Suzuki steps; controlled Pauli rotations use only uncontrolled synthesized Rz’s, so their global phases stay global.</p>
-<p><strong>Lithium Hydride (<span class="math inline"><em>L</em><em>i</em><em>H</em></span>) active space &amp; <span class="math inline"><em>Z</em><sub>2</sub></span> tapering.</strong> For LiH in STO-3G (6 spatial orbitals, 12 spin orbitals), the Lithium <span class="math inline">1<em>s</em><sup>2</sup></span> core electrons are frozen by shifting the 1-body Hamiltonian by the core Fock operator <span class="math inline"><em>h</em><sub><em>p</em><em>q</em></sub><sup>eff</sup> = <em>h</em><sub><em>p</em><em>q</em></sub> + ∑<sub><em>c</em> ∈ core</sub>[2(<em>p</em><em>q</em>|<em>c</em><em>c</em>) − (<em>p</em><em>c</em>|<em>c</em><em>q</em>)]</span>. The 2 valence electrons in 2 active orbitals (<span class="math inline">2<em>s</em>, 2<em>p</em><sub><em>z</em></sub></span>) produce a 4-spin-orbital active space matching full-space CASCI(2, 2) to machine precision (<span class="math inline"> &lt; 10<sup> − 14</sup> Ha</span>). Parity symmetries are tapered to a 2-qubit, 9-term Hamiltonian.</p>
-<p><strong>Biased noise &amp; asymmetric XZZX surface codes.</strong> Under dephasing bias <span class="math inline"><em>η</em> = <em>p</em><sub><em>Z</em></sub>/<em>p</em><sub><em>X</em></sub> ≫ 1</span>, standard CSS symmetric patches waste qubits because bit flips occur at <span class="math inline"><em>p</em><sub><em>X</em></sub> = <em>p</em>/(<em>η</em> + 1)</span> while phase flips occur at <span class="math inline"><em>p</em><sub><em>Z</em></sub> = <em>η</em><em>p</em>/(<em>η</em> + 1)</span>. The XZZX surface code rotates checks such that error chains propagate along alternating diagonals. On asymmetric rectangular patches of dimension <span class="math inline"><em>d</em><sub><em>X</em></sub> × <em>d</em><sub><em>Z</em></sub></span>, the phase distance <span class="math inline"><em>d</em><sub><em>Z</em></sub></span> can be compressed from <span class="math inline"><em>d</em> = 33</span> to <span class="math inline"><em>d</em><sub><em>Z</em></sub> = 9</span> or <span class="math inline">7</span> while preserving logical error balance, shrinking patch tile area <span class="math inline">2(<em>d</em><sub><em>X</em></sub> + 1)(<em>d</em><sub><em>Z</em></sub> + 1)</span> by up to <span class="math inline">4.25×</span>.</p>
-<h1 data-number="3" id="results"><span class="header-section-number">3</span> Results</h1>
-<h2 data-number="3.1" id="the-calibrated-machine"><span class="header-section-number">3.1</span> The calibrated machine</h2>
-<p>316 experiments, 0.82×10⁹ shots and 459,686 logical failures. Suppression factors Λ (per two units of distance):</p>
+<p>† marks cited inputs. Magic states: injection (ε_T = p, conservative
+against Li 2015’s ≈ 0.4p), 15-to-1 distillation (Litinski 2019, Table 1:
+4.5×10⁻⁸ per T and 5.2×10⁻¹¹ per CCZ at p = 0.1%) and cultivation
+(Gidney, Shutty and Jones 2024: 2×10⁻⁹ at p = 0.1%, 4×10⁻¹¹ at 0.05%;
+|CCZ⟩ by 8T-to-CCZ, 28 ε_T²). Physical qubits: Litinski’s fast block, 2n
++ ⌈√(8n)⌉ + 1 tiles of 2(d + 1)² qubits, plus factories sized by their
+published qubit·rounds per state. One round is 1 µs.</p>
+<p>The noise compiler gives every qubit a clock. An operation starts
+when its qubits are free (a TABLE also waits for its records plus the
+reaction time); each waiting qubit receives the composed idle channel
+for its gap; the operation’s channel follows it with a class label for
+attribution. REPEAT blocks are barriers, scheduled once; TABLE cases are
+padded to the longest, so the schedule does not depend on outcomes.
+Channel composition is written with log1p/expm1: per-round rates reach
+10⁻²⁰ at large d and a naive 1 − (1 − 2q)ⁿ cancels to zero.</p>
+<h2 data-number="2.3" id="the-simulator"><span
+class="header-section-number">2.3</span> The simulator</h2>
+<p>ftsim (Rust) runs programs in a Stim-like format: Clifford + T +
+Toffoli gates, Pauli channels on one to three qubits, measurements,
+REPEAT, and TABLE (classical feed-forward choosing a block by earlier
+records). Backends: a sparse state (hash map of basis states; runs of
+permutation and phase gates fused per basis state), which handles
+36-qubit Shor circuits in milliseconds per shot, and a dense vector.
+Each shot’s RNG derives from (seed, shot), so results do not depend on
+threads.</p>
+<p><strong>Stratified sampling.</strong> With K the number of static
+faults, P(success) = Σₖ P(K = k)·Sₖ. P(K = k) is computed exactly (a
+truncated generating polynomial over the site tree, REPEAT by
+exponentiation), and Sₖ is estimated from shots with exactly k faults,
+drawn by sampling k sites with weights q/(1 − q) and rejecting
+duplicates, which is exactly the conditional law. Strata beyond the tail
+cutoff carry their mass as an interval. The one-fault stratum, with
+faults logged, gives each operation class’s harm.</p>
+<h2 data-number="2.4" id="algorithms"><span
+class="header-section-number">2.4</span> Algorithms</h2>
+<p><strong>Textbook Shor.</strong> Cuccaro ripple-carry adders; modular
+addition of a classical constant with a sign flag (Vedral–Barenco–Ekert,
+Beauregard); controlled modular multiplication with uncomputation by the
+inverse and a controlled swap; 3n + 6 qubits and 2n(2n(10n + 12) + n)
+Toffolis. One control qubit is recycled through 2n rounds of a
+semiclassical approximate QFT whose correction rotations, chosen by
+TABLE from the previous ⌈log₂ 2n⌉ + 2 records, are synthesized by
+gridsynth to ε = 10⁻³/2n and verified as matrices. The base is a = 2 for
+every N. Every multiplier is the generic circuit, even when its constant
+is 1.</p>
+<p><strong>Windowed Shor with measurement-based uncomputation.</strong>
+The adder computes each carry with a Toffoli into a fresh qubit and,
+instead of uncomputing it with a second Toffoli, measures it in the X
+basis and applies CZ to the carry’s two inputs when the outcome is 1
+(Gidney 2018), a TABLE in the program; subtraction is addition under
+bitwise complement. The exponent is read two bits at a time: for each
+window the multiple a<sup>(2</sup>j·m) mod N (m ∈ {1, 2, 3}) is looked
+up into an (n + 1)-qubit register and added under modular reduction,
+halving the number of controlled multiplications. The circuit has 4n + 7
+qubits; its Toffoli count is a closed form equal to the compiled
+circuits’ for every simulated N.</p>
+<p><strong>Chemistry.</strong> STO-3G integrals of s Gaussians in closed
+form (Boys F₀), restricted Hartree–Fock with DIIS, Jordan–Wigner with
+interleaved spins, and Z₂ tapering of both spin parities (Bravyi et
+al.). Iterative phase estimation reads 10 bits of U = exp(−i(H − E_HF)τ)
+with τ = 2π, approximated by four fourth-order Suzuki steps; controlled
+Pauli rotations use only uncontrolled synthesized Rz’s, so their global
+phases stay global.</p>
+<p><strong>LiH active space.</strong> LiH in STO-3G has six spatial
+orbitals. Integrals come from PySCF; the Li 1s² core is frozen into an
+effective one-body term, h_pq + Σ_c [2(pq|cc) − (pc|cq)], and the two
+valence electrons are placed in two orbitals optimised by CASSCF(2, 2),
+which after tapering leaves a 2-qubit, 9-term Hamiltonian. Its ground
+energy equals PySCF’s CASSCF energy to 10⁻⁹ Ha. It is a deliberately
+small problem: its value here is a third molecule through the same
+pipeline, not chemical scale.</p>
+<h1 data-number="3" id="results"><span
+class="header-section-number">3</span> Results</h1>
+<h2 data-number="3.1" id="the-calibrated-machine"><span
+class="header-section-number">3.1</span> The calibrated machine</h2>
+<p>316 experiments, 0.82×10⁹ shots and 459,686 logical failures.
+Suppression factors Λ (per two units of distance):</p>
 <table style="width:100%;">
 <colgroup>
 <col style="width: 14%" />
@@ -210,16 +382,35 @@
 </tbody>
 </table>
 <figure>
-<img src="figures/idle.svg" alt="Per-round logical error of an idle patch (X∪Y). Points measured (1σ), lines per-p fits, dashed beyond the largest measured distance." /><figcaption aria-hidden="true">Per-round logical error of an idle patch (X∪Y). Points measured (1σ), lines per-p fits, dashed beyond the largest measured distance.</figcaption>
+<img src="figures/idle.svg"
+alt="Per-round logical error of an idle patch (X∪Y). Points measured (1σ), lines per-p fits, dashed beyond the largest measured distance." />
+<figcaption aria-hidden="true">Per-round logical error of an idle patch
+(X∪Y). Points measured (1σ), lines per-p fits, dashed beyond the largest
+measured distance.</figcaption>
 </figure>
-<p>At p = 0.1% an idle patch errs 8.8×10<sup>-7</sup> per round at d = 9, and the fit gives 4.3×10<sup>-15</sup> at d = 25. Logical Y is 4% of the X∪Y rate at d = 3, 43× what independent X and Z would give: Y errors are included as measured.</p>
-<p><strong>Cross-check.</strong> 36 experiments rerun with Stim and PyMatching (correlated) agree with stabilizer-qec within statistics (largest |z| = 2.2).</p>
-<h2 data-number="3.2" id="composition"><span class="header-section-number">3.2</span> Composition</h2>
+<p>At p = 0.1% an idle patch errs 8.8×10<sup>-7</sup> per round at d = 9
+(X∪Y), and the fit gives 4.3×10<sup>-15</sup> at d = 25 for X∪Y alone
+(1.3×10<sup>-14</sup> for any Pauli; Section 3.8). Logical Y is 4% of
+the X∪Y rate at d = 3, 43× what independent X and Z would give: Y errors
+are included as measured.</p>
+<p><strong>Cross-check.</strong> 36 experiments rerun with Stim and
+PyMatching (correlated) agree with stabilizer-qec within statistics
+(largest |z| = 2.2).</p>
+<h2 data-number="3.2" id="composition"><span
+class="header-section-number">3.2</span> Composition</h2>
 <figure>
-<img src="figures/composition.svg" alt="Observable failure rates of whole surgery experiments: predicted from calibrated parts by ftsim vs measured at circuit level; dashed ±25%." /><figcaption aria-hidden="true">Observable failure rates of whole surgery experiments: predicted from calibrated parts by ftsim vs measured at circuit level; dashed ±25%.</figcaption>
+<img src="figures/composition.svg"
+alt="Observable failure rates of whole surgery experiments: predicted from calibrated parts by ftsim vs measured at circuit level; dashed ±25%." />
+<figcaption aria-hidden="true">Observable failure rates of whole surgery
+experiments: predicted from calibrated parts by ftsim vs measured at
+circuit level; dashed ±25%.</figcaption>
 </figure>
-<p>Across 48 experiment–noise–distance combinations the predicted failure rate is 0.93–1.26× the measured one, median 1.04×. The independent-composition model is accurate to about 10% and leans pessimistic.</p>
-<h2 data-number="3.3" id="shors-algorithm-textbook-arithmetic"><span class="header-section-number">3.3</span> Shor’s algorithm (Textbook arithmetic)</h2>
+<p>Across 48 experiment–noise–distance combinations the predicted
+failure rate is 0.93–1.26× the measured one, median 1.04×. The
+independent-composition model is accurate to about 10% and leans
+pessimistic.</p>
+<h2 data-number="3.3" id="shors-algorithm"><span
+class="header-section-number">3.3</span> Shor’s algorithm</h2>
 <p>At p = 0.1% with cultivated magic states:</p>
 <table>
 <colgroup>
@@ -319,13 +510,31 @@
 </tbody>
 </table>
 <figure>
-<img src="figures/shor.svg" alt="Left: peak probability vs d (cultivated states, p = 0.1%); dotted: noiseless. Right: the same runs scored by factors found; dotted: random-outcome baseline." /><figcaption aria-hidden="true">Left: peak probability vs d (cultivated states, p = 0.1%); dotted: noiseless. Right: the same runs scored by factors found; dotted: random-outcome baseline.</figcaption>
+<img src="figures/shor.svg"
+alt="Left: peak probability vs d (cultivated states, p = 0.1%); dotted: noiseless. Right: the same runs scored by factors found; dotted: random-outcome baseline." />
+<figcaption aria-hidden="true">Left: peak probability vs d (cultivated
+states, p = 0.1%); dotted: noiseless. Right: the same runs scored by
+factors found; dotted: random-outcome baseline.</figcaption>
 </figure>
-<p>Factoring success is a poor score for small N. Classical post-processing that tries the convergents’ small multiples finds the factors from most outcomes, and the noisiest runs look best. The peak probability falls to its random baseline (r/2^m) instead.</p>
+<p>Factoring success is a poor score for small N. Classical
+post-processing that tries the convergents’ small multiples finds the
+factors from most outcomes, and the noisiest runs look best. The peak
+probability falls to its random baseline (r/2^m) instead.</p>
 <figure>
-<img src="figures/factories.svg" alt="N = 35: peak probability vs d for each magic-state source; solid p = 0.1%, dashed p = 0.2%." /><figcaption aria-hidden="true">N = 35: peak probability vs d for each magic-state source; solid p = 0.1%, dashed p = 0.2%.</figcaption>
+<img src="figures/factories.svg"
+alt="N = 35: peak probability vs d for each magic-state source; solid p = 0.1%, dashed p = 0.2%." />
+<figcaption aria-hidden="true">N = 35: peak probability vs d for each
+magic-state source; solid p = 0.1%, dashed p = 0.2%.</figcaption>
 </figure>
-<table>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">magic states</th>
@@ -348,7 +557,7 @@
 <tr class="even">
 <td style="text-align: left;">cultivated</td>
 <td style="text-align: right;">0.2%</td>
-<td style="text-align: right;">10.0×10<sup>-8</sup></td>
+<td style="text-align: right;">1.0×10<sup>-7</sup></td>
 <td style="text-align: right;">2.8×10<sup>-13</sup></td>
 <td style="text-align: right;">0.798 (d = 29)</td>
 <td style="text-align: right;">21</td>
@@ -387,7 +596,8 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Error budget</strong> (N = 35, d = 15, cultivated, p = 0.1%):</p>
+<p><strong>Error budget</strong> (N = 35, d = 15, cultivated, p =
+0.1%):</p>
 <table>
 <thead>
 <tr class="header">
@@ -436,9 +646,13 @@
 </tr>
 </tbody>
 </table>
-<p>Idling accounts for 80% of the expected faults. The textbook circuit runs one Toffoli at a time (the schedule averages 5.13·d rounds per Toffoli with 3.2 patches busy) while every other patch waits.</p>
-<h2 data-number="3.4" id="modern-arithmetic-vs.-textbook-arithmetic"><span class="header-section-number">3.4</span> Modern arithmetic vs. textbook arithmetic</h2>
-<p>Textbook ripple-carry addition computes carry bits forward with Toffoli gates and uncomputes them in reverse with an identical number of Toffolis. On our simulated fault-tolerant machine, we benchmarked the modern alternative: Gidney’s 2018 measurement-based uncomputation (MBU) combined with <span class="math inline"><em>k</em> = 2</span> windowed modular exponentiation.</p>
+<p>Idling accounts for 80% of the expected faults. The textbook circuit
+runs one Toffoli at a time (the schedule averages 5.13·d rounds per
+Toffoli with 3.2 patches busy) while every other patch waits. The last
+column is the peak probability of runs with exactly one fault of that
+class: a single logical fault is far from always fatal.</p>
+<h2 data-number="3.4" id="windowed-arithmetic"><span
+class="header-section-number">3.4</span> Windowed arithmetic</h2>
 <table style="width:100%;">
 <colgroup>
 <col style="width: 11%" />
@@ -467,7 +681,7 @@
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">15</td>
-<td style="text-align: right;">Textbook (Cuccaro)</td>
+<td style="text-align: right;">textbook (Cuccaro)</td>
 <td style="text-align: right;">18</td>
 <td style="text-align: right;">3,360</td>
 <td style="text-align: right;">189,969</td>
@@ -478,7 +692,7 @@
 </tr>
 <tr class="even">
 <td style="text-align: left;">15</td>
-<td style="text-align: right;">Modern (k=2, MBU)</td>
+<td style="text-align: right;">windowed (k = 2, MBU)</td>
 <td style="text-align: right;">23</td>
 <td style="text-align: right;">1,248</td>
 <td style="text-align: right;">107,387</td>
@@ -489,7 +703,7 @@
 </tr>
 <tr class="odd">
 <td style="text-align: left;">21</td>
-<td style="text-align: right;">Textbook (Cuccaro)</td>
+<td style="text-align: right;">textbook (Cuccaro)</td>
 <td style="text-align: right;">21</td>
 <td style="text-align: right;">6,250</td>
 <td style="text-align: right;">353,564</td>
@@ -500,7 +714,7 @@
 </tr>
 <tr class="even">
 <td style="text-align: left;">21</td>
-<td style="text-align: right;">Modern (k=2, MBU)</td>
+<td style="text-align: right;">windowed (k = 2, MBU)</td>
 <td style="text-align: right;">27</td>
 <td style="text-align: right;">2,390</td>
 <td style="text-align: right;">254,313</td>
@@ -511,7 +725,7 @@
 </tr>
 <tr class="odd">
 <td style="text-align: left;">35</td>
-<td style="text-align: right;">Textbook (Cuccaro)</td>
+<td style="text-align: right;">textbook (Cuccaro)</td>
 <td style="text-align: right;">24</td>
 <td style="text-align: right;">10,440</td>
 <td style="text-align: right;">592,744</td>
@@ -522,7 +736,7 @@
 </tr>
 <tr class="even">
 <td style="text-align: left;">35</td>
-<td style="text-align: right;">Modern (k=2, MBU)</td>
+<td style="text-align: right;">windowed (k = 2, MBU)</td>
 <td style="text-align: right;">31</td>
 <td style="text-align: right;">3,528</td>
 <td style="text-align: right;">381,614</td>
@@ -534,10 +748,20 @@
 </tbody>
 </table>
 <figure>
-<img src="figures/shor_modern.svg" alt="Modern vs. textbook Shor on the simulated machine (cultivated magic states, p = 0.1%). Left: peak probability vs. distance d. Right: total circuit execution rounds." /><figcaption aria-hidden="true">Modern vs. textbook Shor on the simulated machine (cultivated magic states, p = 0.1%). Left: peak probability vs. distance d. Right: total circuit execution rounds.</figcaption>
+<img src="figures/shor_modern.svg"
+alt="Windowed (solid) vs textbook (dashed) Shor on the simulated machine (cultivated magic states, p = 0.1%). Left: peak probability vs d. Right: rounds." />
+<figcaption aria-hidden="true">Windowed (solid) vs textbook (dashed)
+Shor on the simulated machine (cultivated magic states, p = 0.1%). Left:
+peak probability vs d. Right: rounds.</figcaption>
 </figure>
-<p>Across all three benchmark moduli (<span class="math inline"><em>N</em> ∈ {15, 21, 35}</span>): 1. <strong>Toffoli reduction</strong>: Toffolis drop by 2.69× on N = 15 (1,248 vs. 3,360), 2.61× on N = 21 (2,390 vs. 6,250), and 2.96× on N = 35 (3,528 vs. 10,440). 2. <strong>Circuit duration</strong>: Circuit rounds drop by 1.4–1.8×. At d = 11, factoring 15 runs in 107,387 rounds (107 ms) instead of 189,969 rounds (190 ms). 3. <strong>Threshold distance</strong>: Because total rounds and Toffoli interactions are halved, idling accumulation is curtailed. For N = 15, 90% peak probability is reached at d = 11 (peak 0.913) whereas textbook arithmetic required d = 13 (at d = 11, textbook achieves only 0.874). For N = 21 and N = 35, the peak probability at d = 11 increases significantly (e.g. from 0.288 to 0.343 on N = 35), and reaches &gt;90% at d = 13.</p>
-<h2 data-number="3.5" id="phase-estimation"><span class="header-section-number">3.5</span> Phase estimation</h2>
+<p>On N = 15, 21, 35 the windowed circuit uses 2.6–3.0× fewer Toffolis
+and 1.4–1.8× fewer rounds at d = 11, for 5–7 more logical qubits. Rounds
+fall less than Toffolis because each measurement-based uncomputation
+waits for the decoder before its CZ correction. Shorter runs idle less:
+the distance for 90% of the noiseless peak is N = 15: 13 → 11; N = 21:
+13 → 13; N = 35: 15 → 13.</p>
+<h2 data-number="3.5" id="phase-estimation"><span
+class="header-section-number">3.5</span> Phase estimation</h2>
 <table>
 <colgroup>
 <col style="width: 9%" />
@@ -597,15 +821,34 @@
 </tbody>
 </table>
 <figure>
-<img src="figures/qpe.svg" alt="Probability of chemical accuracy (1.6 mHa from FCI) vs d at p = 0.1%; dotted: noiseless." /><figcaption aria-hidden="true">Probability of chemical accuracy (1.6 mHa from FCI) vs d at p = 0.1%; dotted: noiseless.</figcaption>
+<img src="figures/qpe.svg"
+alt="Probability of chemical accuracy (1.6 mHa from FCI) vs d at p = 0.1%; dotted: noiseless." />
+<figcaption aria-hidden="true">Probability of chemical accuracy (1.6 mHa
+from FCI) vs d at p = 0.1%; dotted: noiseless.</figcaption>
 </figure>
-<p>Each run uses ≈ 1.8×10<sup>7</sup> T gates for H₂, so the magic-state error sets a floor that no distance removes. With cultivated states (2×10⁻⁹) that floor is a few percent; with 15-to-1 distilled states (4.5×10⁻⁸) most runs fail.</p>
+<p>Each run uses ≈ 1.8×10<sup>7</sup> T gates for H₂, so the magic-state
+error sets a floor that no distance removes. With cultivated states
+(2×10⁻⁹) that floor is a few percent; with 15-to-1 distilled states
+(4.5×10⁻⁸) most runs fail.</p>
 <figure>
-<img src="figures/qpe_hist.svg" alt="The answer itself: energies returned by 400 individual H₂ runs at several distances (cultivated states, p = 0.1%), as the error from the exact energy; shaded: chemical accuracy; grey: the same circuit without noise." /><figcaption aria-hidden="true">The answer itself: energies returned by 400 individual H₂ runs at several distances (cultivated states, p = 0.1%), as the error from the exact energy; shaded: chemical accuracy; grey: the same circuit without noise.</figcaption>
+<img src="figures/qpe_hist.svg"
+alt="The answer itself: energies returned by 400 individual H₂ runs at several distances (cultivated states, p = 0.1%), as the error from the exact energy; shaded: chemical accuracy; grey: the same circuit without noise." />
+<figcaption aria-hidden="true">The answer itself: energies returned by
+400 individual H₂ runs at several distances (cultivated states, p =
+0.1%), as the error from the exact energy; shaded: chemical accuracy;
+grey: the same circuit without noise.</figcaption>
 </figure>
-<h2 data-number="3.6" id="lithium-hydride-lih-ground-state-and-dissociation-curve"><span class="header-section-number">3.6</span> Lithium Hydride (LiH) ground state and dissociation curve</h2>
-<p>To demonstrate chemistry scaling beyond minimal diatomics, we modeled Lithium Hydride (LiH) across its potential energy dissociation coordinate <span class="math inline"><em>R</em> ∈ [1.0, 3.0]</span> Å and simulated ground-state phase estimation on the fault-tolerant machine.</p>
-<table>
+<h2 data-number="3.6" id="lih"><span
+class="header-section-number">3.6</span> LiH</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">R (Å)</th>
@@ -740,11 +983,22 @@
 </tbody>
 </table>
 <figure>
-<img src="figures/lih_curve.svg" alt="LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) on canonical RHF orbitals, orbital-optimised CASSCF(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line." /><figcaption aria-hidden="true">LiH potential energy dissociation curve comparing Restricted Hartree-Fock (RHF), CASCI(2, 2) on canonical RHF orbitals, orbital-optimised CASSCF(2, 2) with frozen 1s² core, and full 4-electron FCI in STO-3G. The equilibrium geometry R_e = 1.595 Å is marked with a vertical dotted line.</figcaption>
+<img src="figures/lih_curve.svg"
+alt="LiH in STO-3G: restricted Hartree–Fock, CASCI(2, 2) on canonical RHF orbitals, CASSCF(2, 2) with the 1s² core frozen, and full FCI. Dotted: R = 1.595 Å, where phase estimation is run." />
+<figcaption aria-hidden="true">LiH in STO-3G: restricted Hartree–Fock,
+CASCI(2, 2) on canonical RHF orbitals, CASSCF(2, 2) with the 1s² core
+frozen, and full FCI. Dotted: R = 1.595 Å, where phase estimation is
+run.</figcaption>
 </figure>
-<p>Across the dissociation curve: 1. <strong>Correlation energy at equilibrium</strong>: At <span class="math inline"><em>R</em><sub><em>e</em></sub> = 1.595</span> Å, RHF yields <span class="math inline"><em>E</em> =  − 7.862024</span> Ha, while orbital-optimised CASSCF(2, 2) captures valence static correlation, yielding <span class="math inline"><em>E</em> =  − 7.881118</span> Ha (recovering 19.09 mHa of electronic correlation energy). Full STO-3G FCI yields <span class="math inline"><em>E</em> =  − 7.882402</span> Ha (CASSCF captures &gt;93% of the total electron correlation). 2. <strong>Proper bond cleavage</strong>: Beyond <span class="math inline"><em>R</em> ≈ 2.2</span> Å, single-determinant RHF fails catastrophically due to artificial ionic mixing (H⁺ + Li⁻), deviating upwards by over 80 mHa. In contrast, orbital-optimised CASSCF(2, 2) captures the multireference valence entanglement, tracking full STO-3G FCI to within 0.50–2.11 mHa across the entire dissociation coordinate. (Unrelaxed CASCI on canonical RHF orbitals lacks virtual orbital relaxation, leaving a 17–72 mHa gap).</p>
-<h3 data-number="3.6.1" id="fault-tolerant-phase-estimation-on-lih"><span class="header-section-number">3.6.1</span> Fault-tolerant phase estimation on LiH</h3>
-<p>Using our 10-bit QPE iterative circuit (41,918,987 T gates), we simulated the fault-tolerant success probability on the calibrated surface-code machine across distances and distillation factories (stratified Monte Carlo, 400 shots per configuration, minimum 60 per stratum):</p>
+<p>With the core frozen, CASSCF(2, 2) stays within 0.5–2.1 mHa of full
+STO-3G FCI along the curve; CASCI on canonical RHF orbitals is 17–72 mHa
+above it, and RHF, which cannot dissociate the bond correctly, is 88 mHa
+above it at R = 3.0 Å. At R = 1.595 Å the active space recovers 19.1 of
+the 20.4 mHa correlation energy and lies 1.3 mHa above FCI, inside
+chemical accuracy but using most of it.</p>
+<p>Phase estimation of the active-space Hamiltonian (4.3×10<sup>7</sup>
+T gates per run; 400 shots per configuration, at least 60 per fault
+stratum):</p>
 <table>
 <colgroup>
 <col style="width: 12%" />
@@ -871,81 +1125,17 @@
 </tr>
 </tbody>
 </table>
-<p>At <span class="math inline"><em>d</em> = 23</span>, magic-state cultivation (<span class="math inline"><em>ε</em><sub><em>T</em></sub> = 2 × 10<sup> − 9</sup></span>) reaches 82.2% chemical accuracy to the active-space ground state (and 52.8% to full STO-3G FCI). In contrast, 15-to-1 distillation (<span class="math inline"><em>ε</em><sub><em>T</em></sub> = 4.5 × 10<sup> − 8</sup></span>) floors at 28.1% accuracy regardless of code distance, directly exposing the distillation error ceiling across <span class="math inline">4.19 × 10<sup>7</sup></span> T gates.</p>
-<h2 data-number="3.7" id="to-scale"><span class="header-section-number">3.7</span> To scale</h2>
-<p>Operation counts of both textbook and modern circuits are exact; the schedule structure is fitted on compiled instances (rounds per Toffoli: 5.13 textbook vs. 8.54 modern; patches busy: 3.18 textbook vs. 2.79 modern). The smallest odd d with at most 0.1 expected faults:</p>
-<table>
-<colgroup>
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">workload</th>
-<th style="text-align: right;">logical qubits</th>
-<th style="text-align: right;">Toffolis</th>
-<th style="text-align: right;">published d</th>
-<th style="text-align: right;">published qubits</th>
-<th style="text-align: right;">our d</th>
-<th style="text-align: right;">our qubits</th>
-<th style="text-align: right;">run time</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">RSA-2048, textbook arithmetic</td>
-<td style="text-align: right;">6,150</td>
-<td style="text-align: right;">3.4×10<sup>11</sup></td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: right;">32.5 M</td>
-<td style="text-align: right;">1.96 years</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">RSA-2048, modern arithmetic (k=2, MBU)</td>
-<td style="text-align: right;">4,120</td>
-<td style="text-align: right;">8.6×10<sup>10</sup></td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">—</td>
-<td style="text-align: right;">35</td>
-<td style="text-align: right;">43.2 M</td>
-<td style="text-align: right;">298 days</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">RSA-2048, Gidney 2025</td>
-<td style="text-align: right;">1,409</td>
-<td style="text-align: right;">6.5×10<sup>9</sup></td>
-<td style="text-align: right;">25</td>
-<td style="text-align: right;">898 k</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">5.31 M</td>
-<td style="text-align: right;">4.63 days</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">FeMoco (THC), Lee et al. 2021</td>
-<td style="text-align: right;">2,142</td>
-<td style="text-align: right;">5.3×10<sup>9</sup></td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">≈ 4 M</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">8.01 M</td>
-<td style="text-align: right;">2.45 days</td>
-</tr>
-</tbody>
-</table>
-<figure>
-<img src="figures/scaling.svg" alt="Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes." /><figcaption aria-hidden="true">Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Modern windowed arithmetic cuts runtime across all sizes.</figcaption>
-</figure>
-<p>At RSA-2048, modern windowed arithmetic reduces the Toffoli volume from <span class="math inline">3.44 × 10<sup>11</sup></span> to <span class="math inline">8.61 × 10<sup>10</sup></span> (a 4.0× reduction), shrinking the quantum runtime from 1.96 years (1.96 years) to 298 days (0.81 years) — saving over 416 days of physical machine time.</p>
-<h2 data-number="3.8" id="biased-noise-and-xzzx-surface-codes"><span class="header-section-number">3.8</span> Biased noise and XZZX surface codes</h2>
-<p>Superconducting fluxonium qubits and dual-rail bosonic qubits exhibit strong noise bias (<span class="math inline"><em>η</em> = <em>p</em><sub><em>Z</em></sub>/(2<em>p</em><sub><em>X</em></sub>) ∈ [10, 2000]</span> when <span class="math inline"><em>p</em><sub><em>X</em></sub> = <em>p</em><sub><em>Y</em></sub></span>). On asymmetric rectangular XZZX patches (<span class="math inline"><em>d</em><sub><em>X</em></sub> × <em>d</em><sub><em>Z</em></sub></span>), our model balances logical bit-flip and phase-flip error rates against total algorithm duration. (Note: current projections use the asymmetric threshold scaling model with CSS baseline prefactors; direct circuit-level Stim calibration of XZZX and dual-rail erasure is implemented in Phase 2).</p>
+<p>The noiseless circuit is within chemical accuracy of the active-space
+energy 88% of the time. With cultivated states the best distance reaches
+82% (d = 23); with 15-to-1 distilled states the success saturates near
+28%, the magic-state floor of ≈ 2.0 expected faults per run.</p>
+<h2 data-number="3.7" id="to-scale"><span
+class="header-section-number">3.7</span> To scale</h2>
+<p>Operation counts of both RSA-2048 circuits are exact; the schedule
+structure is fitted on compiled instances (rounds per Toffoli: 5.13
+textbook vs. 8.54 windowed; patches busy: 3.18 vs. 2.79). The smallest
+odd d with at most 0.1 expected faults (p = 0.1%, cultivated magic
+states):</p>
 <table style="width:100%;">
 <colgroup>
 <col style="width: 16%" />
@@ -957,279 +1147,505 @@
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">bias η</th>
-<th style="text-align: right;">XZZX patch (d_X × d_Z)</th>
-<th style="text-align: right;">CSS patch (d × d)</th>
-<th style="text-align: right;">XZZX qubits</th>
-<th style="text-align: right;">CSS qubits</th>
-<th style="text-align: right;">savings ratio</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">1</td>
-<td style="text-align: right;">25 × 21</td>
-<td style="text-align: right;">25 × 25</td>
-<td style="text-align: right;">19.1 M</td>
-<td style="text-align: right;">22.5 M</td>
-<td style="text-align: right;">1.18×</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">5</td>
-<td style="text-align: right;">31 × 15</td>
-<td style="text-align: right;">31 × 31</td>
-<td style="text-align: right;">17.1 M</td>
-<td style="text-align: right;">34.1 M</td>
-<td style="text-align: right;">2.00×</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">10</td>
-<td style="text-align: right;">31 × 13</td>
-<td style="text-align: right;">31 × 31</td>
-<td style="text-align: right;">14.9 M</td>
-<td style="text-align: right;">34.1 M</td>
-<td style="text-align: right;">2.29×</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">25</td>
-<td style="text-align: right;">33 × 11</td>
-<td style="text-align: right;">33 × 33</td>
-<td style="text-align: right;">13.6 M</td>
-<td style="text-align: right;">38.5 M</td>
-<td style="text-align: right;">2.83×</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">50</td>
-<td style="text-align: right;">33 × 11</td>
-<td style="text-align: right;">33 × 33</td>
-<td style="text-align: right;">13.6 M</td>
-<td style="text-align: right;">38.5 M</td>
-<td style="text-align: right;">2.83×</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">100</td>
-<td style="text-align: right;">33 × 9</td>
-<td style="text-align: right;">33 × 33</td>
-<td style="text-align: right;">11.3 M</td>
-<td style="text-align: right;">38.5 M</td>
-<td style="text-align: right;">3.40×</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">250</td>
-<td style="text-align: right;">33 × 9</td>
-<td style="text-align: right;">33 × 33</td>
-<td style="text-align: right;">11.3 M</td>
-<td style="text-align: right;">38.5 M</td>
-<td style="text-align: right;">3.40×</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">500</td>
-<td style="text-align: right;">33 × 7</td>
-<td style="text-align: right;">33 × 33</td>
-<td style="text-align: right;">9.06 M</td>
-<td style="text-align: right;">38.5 M</td>
-<td style="text-align: right;">4.25×</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">1000</td>
-<td style="text-align: right;">33 × 7</td>
-<td style="text-align: right;">33 × 33</td>
-<td style="text-align: right;">9.06 M</td>
-<td style="text-align: right;">38.5 M</td>
-<td style="text-align: right;">4.25×</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">2000</td>
-<td style="text-align: right;">33 × 7</td>
-<td style="text-align: right;">33 × 33</td>
-<td style="text-align: right;">9.06 M</td>
-<td style="text-align: right;">38.5 M</td>
-<td style="text-align: right;">4.25×</td>
-</tr>
-</tbody>
-</table>
-<figure>
-<img src="figures/biased_xzzx.svg" alt="Physical qubit footprint as a function of noise bias ratio η = p_Z / (2 p_X) for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines." /><figcaption aria-hidden="true">Physical qubit footprint as a function of noise bias ratio η = p_Z / (2 p_X) for RSA-2048 (modern arithmetic) and FeMoco (THC) under asymmetric XZZX surface codes, compared against symmetric CSS baselines.</figcaption>
-</figure>
-<p>Under biased noise compilation: 1. <strong>RSA-2048 footprint reduction</strong>: At standard CSS symmetric dimensions (<span class="math inline"><em>d</em> = 33</span>), the footprint is 38.5 M physical qubits. With XZZX at bias <span class="math inline"><em>η</em> = 100</span>, the optimal patch is <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 9</span>, requiring only 11.3 M physical qubits (3.40× reduction). At <span class="math inline"><em>η</em> = 500</span>, the patch shrinks to <span class="math inline"><em>d</em><sub><em>X</em></sub> = 33, <em>d</em><sub><em>Z</em></sub> = 7</span>, requiring 9.06 M physical qubits (4.25× reduction). 2. <strong>FeMoco chemistry footprint</strong>: FeMoco THC requires <span class="math inline"><em>d</em> = 31</span> (4.18 M physical qubits). Under <span class="math inline"><em>η</em> = 100</span>, an asymmetric <span class="math inline">31 × 9</span> patch drops the footprint to 1.28 M physical qubits (3.26× reduction).</p>
-<h2 data-number="3.9" id="sensitivity-analysis-of-the-rsa-2048-code-distance-d29-vs.-d25"><span class="header-section-number">3.9</span> Sensitivity analysis of the RSA-2048 code distance (<span class="math inline"><em>d</em> = 29</span> vs. <span class="math inline"><em>d</em> = 25</span>)</h2>
-<p>A central finding of this report is that compiling Gidney’s 2025 algorithm counts under our measured SD6 error model yields d = 29 (<span class="math inline">5.31 × 10<sup>6</sup></span> physical qubits), whereas Gidney reported d = 25 (<span class="math inline">898 × 10<sup>3</sup></span> physical qubits). To determine whether this discrepancy represents an artifact of our fit or a fundamental consequence of physical noise calibration, we performed a multi-parameter sensitivity campaign.</p>
-<table>
-<colgroup>
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">code distance d</th>
-<th style="text-align: right;">idle error per round</th>
-<th style="text-align: right;">1σ confidence band</th>
-<th style="text-align: right;">2σ confidence band</th>
-<th style="text-align: right;">vs Gidney assumed (10⁻¹⁵)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">15</td>
-<td style="text-align: right;">6.7×10<sup>-10</sup></td>
-<td style="text-align: right;">[5.6×10<sup>-10</sup>, 8.1×10<sup>-10</sup>]</td>
-<td style="text-align: right;">[4.7×10<sup>-10</sup>, 9.7×10<sup>-10</sup>]</td>
-<td style="text-align: right;">—</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">21</td>
-<td style="text-align: right;">5.1×10<sup>-13</sup></td>
-<td style="text-align: right;">[3.8×10<sup>-13</sup>, 6.9×10<sup>-13</sup>]</td>
-<td style="text-align: right;">[2.8×10<sup>-13</sup>, 9.3×10<sup>-13</sup>]</td>
-<td style="text-align: right;">—</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">25</td>
-<td style="text-align: right;">4.3×10<sup>-15</sup></td>
-<td style="text-align: right;">[3.0×10<sup>-15</sup>, 6.2×10<sup>-15</sup>]</td>
-<td style="text-align: right;">[2.0×10<sup>-15</sup>, 9.1×10<sup>-15</sup>]</td>
-<td style="text-align: right;">4.3×</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">29</td>
-<td style="text-align: right;">3.6×10<sup>-17</sup></td>
-<td style="text-align: right;">[2.3×10<sup>-17</sup>, 5.6×10<sup>-17</sup>]</td>
-<td style="text-align: right;">[1.5×10<sup>-17</sup>, 8.8×10<sup>-17</sup>]</td>
-<td style="text-align: right;">—</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">31</td>
-<td style="text-align: right;">3.3×10<sup>-18</sup></td>
-<td style="text-align: right;">[2.0×10<sup>-18</sup>, 5.4×10<sup>-18</sup>]</td>
-<td style="text-align: right;">[1.2×10<sup>-18</sup>, 8.7×10<sup>-18</sup>]</td>
-<td style="text-align: right;">—</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">35</td>
-<td style="text-align: right;">2.8×10<sup>-20</sup></td>
-<td style="text-align: right;">[1.6×10<sup>-20</sup>, 4.8×10<sup>-20</sup>]</td>
-<td style="text-align: right;">[8.9×10<sup>-21</sup>, 8.5×10<sup>-20</sup>]</td>
-<td style="text-align: right;">—</td>
-</tr>
-</tbody>
-</table>
-<p>At d = 25, our weighted least-squares fit with parameter covariance predicts an idle logical error rate of: <span class="math display"><em>ϵ</em><sub>idle</sub>(<em>d</em> = 25) = (4.30 ± 1.64) × 10<sup> − 15</sup>  (1<em>σ</em> : [2.97 × 10<sup> − 15</sup>, 6.25 × 10<sup> − 15</sup>]).</span> Gidney’s resource estimate assumed an idle rate of exactly <span class="math inline">1.0 × 10<sup> − 15</sup></span> at d = 25. Our circuit-level measured rate is 4.3× higher than his assumed figure; even our 2σ lower bound (<span class="math inline">2.04 × 10<sup> − 15</sup></span>) is double his assumption.</p>
-<table>
-<colgroup>
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-<col style="width: 20%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">category</th>
-<th style="text-align: right;">parameter scenario</th>
-<th style="text-align: right;">required d</th>
+<th style="text-align: left;">arithmetic</th>
+<th style="text-align: right;">logical qubits</th>
+<th style="text-align: right;">Toffolis</th>
+<th style="text-align: right;">d</th>
 <th style="text-align: right;">physical qubits</th>
-<th style="text-align: right;">Δd vs baseline</th>
+<th style="text-align: right;">run time</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Idle Slope</td>
-<td style="text-align: right;">Lambda +1sigma (Lambda = 11.36)</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">6.03 M</td>
-<td style="text-align: right;">+2</td>
+<td style="text-align: left;">textbook</td>
+<td style="text-align: right;">6,150</td>
+<td style="text-align: right;">3.4×10<sup>11</sup></td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">32.5 M</td>
+<td style="text-align: right;">1.96 years</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Idle Slope</td>
-<td style="text-align: right;">Lambda -1sigma (Lambda = 10.52)</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">5.31 M</td>
-<td style="text-align: right;">+0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Idle Prefactor</td>
-<td style="text-align: right;">Prefactor A -1sigma (0.87x)</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">5.31 M</td>
-<td style="text-align: right;">+0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Idle Prefactor</td>
-<td style="text-align: right;">Prefactor A +1sigma (1.15x)</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">5.31 M</td>
-<td style="text-align: right;">+0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Decoder</td>
-<td style="text-align: right;">Correlated / Belief-matching (+15% Lambda)</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">5.31 M</td>
-<td style="text-align: right;">+0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Magic States</td>
-<td style="text-align: right;">epsilon_CCZ 0.1x</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">5.31 M</td>
-<td style="text-align: right;">+0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Magic States</td>
-<td style="text-align: right;">epsilon_CCZ 10.0x</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">5.31 M</td>
-<td style="text-align: right;">+0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Assumed Model</td>
-<td style="text-align: right;">Gidney assumed model (target E[faults] &lt;= 0.1)</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">4.63 M</td>
-<td style="text-align: right;">-2</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Assumed Model</td>
-<td style="text-align: right;">Gidney assumed model (target E[faults] &lt;= 0.5, Gidney’s target)</td>
-<td style="text-align: right;">27</td>
-<td style="text-align: right;">4.63 M</td>
-<td style="text-align: right;">-2</td>
+<td style="text-align: left;">windowed + MBU</td>
+<td style="text-align: right;">8,199</td>
+<td style="text-align: right;">8.6×10<sup>10</sup></td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">43.2 M</td>
+<td style="text-align: right;">298 days</td>
 </tr>
 </tbody>
 </table>
 <figure>
-<img src="figures/tornado.svg" alt="Tornado chart showing required code distance d for RSA-2048 (Gidney 2025 algorithm) across physical noise parameters, factory quality, decoder performance, and assumed models." /><figcaption aria-hidden="true">Tornado chart showing required code distance d for RSA-2048 (Gidney 2025 algorithm) across physical noise parameters, factory quality, decoder performance, and assumed models.</figcaption>
+<img src="figures/scaling.svg"
+alt="Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Solid: textbook; dashed: windowed. The diamond is Gidney 2025’s published estimate, which stores idle qubits in yoked surface codes." />
+<figcaption aria-hidden="true">Shor scaling from the simulated sizes to
+RSA-2048 (p = 0.1%). Solid: textbook; dashed: windowed. The diamond is
+Gidney 2025’s published estimate, which stores idle qubits in yoked
+surface codes.</figcaption>
 </figure>
-<p>As shown in the tornado analysis: - <strong>Noise fit uncertainty</strong>: Shifting the suppression slope <span class="math inline"><em>Λ</em></span> or prefactor <span class="math inline"><em>A</em></span> by <span class="math inline"> ± 1<em>σ</em></span> keeps the required distance within <span class="math inline"><em>d</em> ∈ {29, 31}</span>. - <strong>Magic-state factory error</strong>: Varying <span class="math inline"><em>ϵ</em><sub>CCZ</sub></span> by an entire order of magnitude (<span class="math inline">0.1×</span> to <span class="math inline">10.0×</span>) leaves <span class="math inline"><em>d</em> = 29</span> unchanged. In an algorithm running <span class="math inline">4 × 10<sup>11</sup></span> patch·rounds, idling completely dominates the error budget. - <strong>Decoder choice</strong>: Even assuming a correlated or belief-matching decoder that improves the suppression factor <span class="math inline"><em>Λ</em></span> by 15%, the workload still requires <span class="math inline"><em>d</em> = 29</span>. - <strong>Assumed error model</strong>: If we feed Gidney’s assumed rate (<span class="math inline">10<sup> − 15</sup></span> at <span class="math inline"><em>d</em> = 25</span>) into our compiler, our engine returns <span class="math inline"><em>d</em> = 27</span> at target <span class="math inline"><em>E</em>[<em>K</em>] ≤ 0.1</span>, and exactly reproduces his published <span class="math inline"><em>d</em> = 25</span> if we relax the allowable failure target to <span class="math inline"><em>E</em>[<em>K</em>] ≤ 0.5</span> (Gidney’s target threshold).</p>
-<p>This establishes definitively that the distance gap from 25 to 29 is not an overestimation of our compiler, but reflects the empirical physical noise of circuit-level SD6 simulations decoded with minimum-weight perfect matching.</p>
-<h2 data-number="3.10" id="d-lattice-surgery-floorplan-and-browser-webassembly-simulation"><span class="header-section-number">3.10</span> 2D lattice surgery floorplan and browser WebAssembly simulation</h2>
-<p>To make these fault-tolerant architectures transparent and verifiable, the project provides an interactive 2D lattice surgery floorplan visualizer and WebAssembly quantum simulator deployed client-side: - <strong>Fast-block floorplan visualizer</strong>: Renders Litinski’s 2D fast-block tile geometry, scrubbing through the multi-round stages of lattice surgery operations: CNOT (2d rounds via intermediate ancilla boundary merges), MBU Carry Uncomputation (Hadamard, measurement, feed-forward CZ), and Magic State Distillation injection. - <strong>Client-side WebAssembly simulation</strong>: Runs full 8-bit and 10-bit QPE simulations for molecular hydrogen (<span class="math inline"><em>H</em><sub>2</sub></span>) directly in the visitor’s browser, compiling logical circuits into statevector shots under tunable noise and plotting real-time energy histograms collapsing onto the chemical accuracy window (±1.6 mHa). - <strong>Interactive resource calculator</strong>: A real-time hardware/algorithm trade-off calculator allowing visitors to sweep physical gate error rates <span class="math inline"><em>p</em> ∈ [0.05%, 0.5%]</span>, code architectures (CSS vs. XZZX), cycle times between 0.2 µs and 10 µs, and magic-state factories to explore Pareto frontiers across factoring and chemistry.</p>
-<h1 data-number="4" id="validation"><span class="header-section-number">4</span> Validation</h1>
+<p>Windowed arithmetic shortens the RSA-2048 run from 1.96 years to 298
+days but needs more logical qubits, so it is not smaller. Both are far
+from Gidney’s 2025 design, whose arithmetic, layout and storage are
+different in kind; this section measures the error model, not that
+design.</p>
+<p><strong>Published estimates.</strong> For published algorithms the
+logical counts and run time come from the paper and only the error model
+is ours. Each is compared at its authors’ own failure budget and by
+distance only: their physical-qubit totals depend on layouts (yoked
+storage, hand-made floor plans) not modelled here. Gidney 2025 is taken
+one shot at a time (12.07 h, at most 1,409 logical qubits): his budget
+is per shot, and a failed shot is repeated.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">workload</th>
+<th style="text-align: right;">logical qubits</th>
+<th style="text-align: right;">Toffolis</th>
+<th style="text-align: right;">run time</th>
+<th style="text-align: right;">failure budget</th>
+<th style="text-align: right;">published d</th>
+<th style="text-align: right;">d, measured model</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">RSA-2048, Gidney 2025 (one shot)</td>
+<td style="text-align: right;">1,409</td>
+<td style="text-align: right;">7.1×10<sup>8</sup></td>
+<td style="text-align: right;">12.1 h</td>
+<td style="text-align: right;">6.7%</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">29</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">FeMoco (THC), Lee et al. 2021</td>
+<td style="text-align: right;">2,142</td>
+<td style="text-align: right;">5.3×10<sup>9</sup></td>
+<td style="text-align: right;">2.45 days</td>
+<td style="text-align: right;">1.0%</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">31</td>
+</tr>
+</tbody>
+</table>
+<h2 data-number="3.8"
+id="gidney-2025s-distance-under-the-measured-model"><span
+class="header-section-number">3.8</span> Gidney 2025’s distance under
+the measured model</h2>
+<p>Gidney chooses d = 25 because his projection of surface-code memory
+(the legend of his Figure 6: p<sub>L</sub> ≈ 3.5<sup>−d</sup>/40 per
+patch per round, from the yoked-surface-code simulations of Gidney,
+Newman, Brooks and Jones) first reaches 10⁻¹⁵ per patch per round there;
+over a 12-hour shot of up to 1,600 logical qubits that leaves 93.3% of
+shots free of logical errors. Asked the same question, the measured
+model answers d = 29 (d = 27–29 within the fit’s 1σ band):</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">d</th>
+<th style="text-align: right;">measured model</th>
+<th style="text-align: right;">1σ band</th>
+<th style="text-align: right;">2σ band</th>
+<th style="text-align: right;">Gidney’s projection</th>
+<th style="text-align: right;">ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">3</td>
+<td style="text-align: right;">2.0×10<sup>-3</sup></td>
+<td style="text-align: right;">1.9×10<sup>-3</sup> –
+2.1×10<sup>-3</sup></td>
+<td style="text-align: right;">1.8×10<sup>-3</sup> –
+2.2×10<sup>-3</sup></td>
+<td style="text-align: right;">5.8×10<sup>-4</sup></td>
+<td style="text-align: right;">3.4×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">7</td>
+<td style="text-align: right;">1.8×10<sup>-5</sup></td>
+<td style="text-align: right;">1.8×10<sup>-5</sup> –
+1.9×10<sup>-5</sup></td>
+<td style="text-align: right;">1.7×10<sup>-5</sup> –
+2.0×10<sup>-5</sup></td>
+<td style="text-align: right;">3.9×10<sup>-6</sup></td>
+<td style="text-align: right;">4.7×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">11</td>
+<td style="text-align: right;">1.7×10<sup>-7</sup></td>
+<td style="text-align: right;">1.5×10<sup>-7</sup> –
+1.8×10<sup>-7</sup></td>
+<td style="text-align: right;">1.4×10<sup>-7</sup> –
+2.0×10<sup>-7</sup></td>
+<td style="text-align: right;">2.6×10<sup>-8</sup></td>
+<td style="text-align: right;">6.5×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">21 *</td>
+<td style="text-align: right;">1.4×10<sup>-12</sup></td>
+<td style="text-align: right;">1.1×10<sup>-12</sup> –
+1.7×10<sup>-12</sup></td>
+<td style="text-align: right;">9.0×10<sup>-13</sup> –
+2.2×10<sup>-12</sup></td>
+<td style="text-align: right;">9.4×10<sup>-14</sup></td>
+<td style="text-align: right;">14.8×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">23 *</td>
+<td style="text-align: right;">1.3×10<sup>-13</sup></td>
+<td style="text-align: right;">1.1×10<sup>-13</sup> –
+1.7×10<sup>-13</sup></td>
+<td style="text-align: right;">8.3×10<sup>-14</sup> –
+2.2×10<sup>-13</sup></td>
+<td style="text-align: right;">7.7×10<sup>-15</sup></td>
+<td style="text-align: right;">17.5×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">25 *</td>
+<td style="text-align: right;">1.3×10<sup>-14</sup></td>
+<td style="text-align: right;">1.0×10<sup>-14</sup> –
+1.7×10<sup>-14</sup></td>
+<td style="text-align: right;">7.7×10<sup>-15</sup> –
+2.2×10<sup>-14</sup></td>
+<td style="text-align: right;">6.3×10<sup>-16</sup></td>
+<td style="text-align: right;">20.8×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">27 *</td>
+<td style="text-align: right;">1.3×10<sup>-15</sup></td>
+<td style="text-align: right;">9.4×10<sup>-16</sup> –
+1.7×10<sup>-15</sup></td>
+<td style="text-align: right;">7.1×10<sup>-16</sup> –
+2.3×10<sup>-15</sup></td>
+<td style="text-align: right;">5.1×10<sup>-17</sup></td>
+<td style="text-align: right;">24.7×</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">29 *</td>
+<td style="text-align: right;">1.2×10<sup>-16</sup></td>
+<td style="text-align: right;">9.0×10<sup>-17</sup> –
+1.7×10<sup>-16</sup></td>
+<td style="text-align: right;">6.6×10<sup>-17</sup> –
+2.3×10<sup>-16</sup></td>
+<td style="text-align: right;">4.2×10<sup>-18</sup></td>
+<td style="text-align: right;">29.4×</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">31 *</td>
+<td style="text-align: right;">1.2×10<sup>-17</sup></td>
+<td style="text-align: right;">8.5×10<sup>-18</sup> –
+1.7×10<sup>-17</sup></td>
+<td style="text-align: right;">6.1×10<sup>-18</sup> –
+2.4×10<sup>-17</sup></td>
+<td style="text-align: right;">3.4×10<sup>-19</sup></td>
+<td style="text-align: right;">35.0×</td>
+</tr>
+</tbody>
+</table>
+<p>* extrapolated beyond the measured distances (d ≤ 11). Bands are the
+weighted least-squares fits’ parameter covariance, both bases moved
+together.</p>
+<figure>
+<img src="figures/gidney.svg"
+alt="Logical error per patch per round of an idle patch at p = 0.1%: the measured model (points measured, line fitted, dashed beyond the largest measured distance, shaded 1σ) and Gidney’s projection. Dotted: the 10⁻¹⁵ he designs to." />
+<figcaption aria-hidden="true">Logical error per patch per round of an
+idle patch at p = 0.1%: the measured model (points measured, line
+fitted, dashed beyond the largest measured distance, shaded 1σ) and
+Gidney’s projection. Dotted: the 10⁻¹⁵ he designs to.</figcaption>
+</figure>
+<p>The gap is not only extrapolation. At the measured distances SD6
+memories decoded by correlated matching already fail 3.4–6.5× more often
+than the projection, and the fitted suppression per two units of
+distance (Λ = 10.1 and 10.9 for the two bases) is below its 12.25, so
+the ratio grows to 21× at d = 25. The two are fits to different
+simulations; Section 3.9 separates the circuit from the noise model.</p>
+<p>Running one shot of his algorithm through the estimator of this
+report:</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">varied</th>
+<th style="text-align: left;">scenario</th>
+<th style="text-align: right;">d</th>
+<th style="text-align: right;">Δd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">baseline</td>
+<td style="text-align: left;">one shot at his budget (E[faults] ≤
+0.069)</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Idle fit</td>
+<td style="text-align: left;">rates at the −2σ edge of the fit</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">-2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Idle fit</td>
+<td style="text-align: left;">rates at the −1σ edge of the fit</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">-2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Idle fit</td>
+<td style="text-align: left;">rates at the +1σ edge of the fit</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">+0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Idle fit</td>
+<td style="text-align: left;">rates at the +2σ edge of the fit</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">+0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Extrapolation</td>
+<td style="text-align: left;">Λ × 1.15 beyond the measured
+distances</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">-2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Magic states</td>
+<td style="text-align: left;">ε_CCZ × 0.1</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">+0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Magic states</td>
+<td style="text-align: left;">ε_CCZ × 10</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">+0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Budget</td>
+<td style="text-align: left;">90% of shots succeed (E[faults] ≤
+0.1)</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">-2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Budget</td>
+<td style="text-align: left;">99% of shots succeed (E[faults] ≤
+0.01)</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">+0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">his model</td>
+<td style="text-align: left;">Gidney’s projection in place of the
+measured model</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">-4</td>
+</tr>
+</tbody>
+</table>
+<p>At his budget the measured model needs d = 29 (d = 27 if 90% of shots
+may succeed). The fit’s uncertainty and a 15% steeper extrapolation move
+it by at most two; the magic states do not move it at all, since idling
+is 99% of the expected faults. Given his projection instead, the same
+estimator returns his d = 25. Lee et al.’s FeMoco estimate assumes a
+suppression of 10 per two units of distance, close to the measured
+10.1–10.9, and under the measured model it comes out at their d = 31.
+None of this measures Gidney’s design, which would need his layout, its
+yoked storage and his decoder simulated directly.</p>
+<h2 data-number="3.9" id="which-memory-model"><span
+class="header-section-number">3.9</span> Which memory model?</h2>
+<p>The measured model is one circuit under one noise model. To see how
+much the distance depends on that choice, the same memory experiments (d
+and 3d rounds, both bases, correlated matching, per-round rates from the
+ratio of the two) were run at p = 0.1% on three more: the same SD6
+circuit with each round’s measurement and reset of the ancillas in one
+layer, as hardware-style circuits have them; SI1000, the
+superconducting-inspired model of the yoked-surface-code paper’s
+simulations (Table 3 of arXiv:2312.04522: CZ p, single-qubit gates and
+idling p/10, reset 2p, measurement 5p, qubits waiting for a measurement
+or reset 2p), on the circuit rewritten over CZ with one
+measure-and-reset layer; and Stim’s generated memory with every
+parameter at p, one reading of the “uniform depolarizing” that labels
+Gidney 2025’s Figure 6, which leaves qubits idle during gate layers
+noiseless. The noise is applied layer by layer by
+ftalgo.calib.circuit_noise, which given SD6 reproduces stabilizer-qec’s
+own circuit’s error model exactly.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">memory model (p = 0.1%)</th>
+<th style="text-align: right;">Λ (Z, X)</th>
+<th style="text-align: right;">largest d</th>
+<th style="text-align: right;">rate / projection there</th>
+<th style="text-align: right;">d: worse basis ≤ 10⁻¹⁵</th>
+<th style="text-align: right;">d: either basis ≤ 10⁻¹⁵</th>
+<th style="text-align: right;">d: one shot at his budget</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">SD6, as calibrated (separate measure and
+reset)</td>
+<td style="text-align: right;">10.8, 10.5</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">5.9×</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD6, one measure-and-reset layer</td>
+<td style="text-align: right;">12.0, 11.8</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">3.2×</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SI1000 (CZ, one measure-and-reset
+layer)</td>
+<td style="text-align: right;">11.6, 12.3</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2.1×</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">uniform depolarizing (Stim’s circuit)</td>
+<td style="text-align: right;">20.4, 15.9</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.3×</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">23</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Gidney 2025 projection</td>
+<td style="text-align: right;">12.25</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">1×</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">25</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/noise_models.svg"
+alt="Logical error per patch per round (either basis) at p = 0.1% under each memory model: points measured to d = 9, lines fitted, dashed beyond; and Gidney’s projection. Dotted: 10⁻¹⁵." />
+<figcaption aria-hidden="true">Logical error per patch per round (either
+basis) at p = 0.1% under each memory model: points measured to d = 9,
+lines fitted, dashed beyond; and Gidney’s projection. Dotted:
+10⁻¹⁵.</figcaption>
+</figure>
+<p>The distance that reaches 10⁻¹⁵ per patch-round runs from d = 23 to d
+= 29 across the four models, and Gidney’s d = 25 lies inside that range.
+SI1000 has the projection’s slope here (Λ = 11.6–12.3) but a 2.1× higher
+rate at d = 9; Stim’s circuit is below the projection. The calibration’s
+circuit is the most pessimistic: it depolarizes idle qubits in every
+layer and gives data qubits two idle layers a round, one for the
+ancillas’ measurement and one for their reset. Merging the two lowers
+the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12. Every result in this
+report rests on that circuit and leans pessimistic accordingly. (The SD6
+row fits the calibration’s memories like the others, over d ≤ 9; with
+all its memory lengths and d = 11 the calibrated model needs d =
+29.)</p>
+<h1 data-number="4" id="validation"><span
+class="header-section-number">4</span> Validation</h1>
 <ul>
-<li>ftsim: dense = sparse on random circuits; 100 random circuits equal Qiskit’s statevector to 10⁻¹⁰; noisy distributions equal Aer’s exact density matrices (χ², plain and stratified); WebAssembly = native.</li>
-<li>Arithmetic verified on every input by an independent bit-level simulator; Shor’s noiseless outcomes match the exact distribution; synthesized rotations verified as matrices; QPE matches its exact Trotterized distribution.</li>
-<li>Modern arithmetic: full reversible uncomputation verified on all inputs; mid-circuit measurement and classical table feed-forward fixup validated against unitaries.</li>
-<li>Chemistry: integrals, HF and FCI equal PySCF to 10⁻⁸ Ha; Szabo and Ostlund’s H₂ reproduced; tapering preserves the spectrum; LiH active space frozen-core CASCI matches full FCI to &lt; 10⁻¹⁴ Ha.</li>
-<li>Biased noise &amp; XZZX: calibrated scaling and analytic thresholds verified against symmetric CSS limits at η = 1.</li>
-<li>Calibration: Stim + PyMatching cross-check; reference-qubit experiment against plain memories; composition test.</li>
+<li>ftsim: dense = sparse on random circuits; 100 random circuits equal
+Qiskit’s statevector to 10⁻¹⁰; noisy distributions equal Aer’s exact
+density matrices (χ², plain and stratified); WebAssembly = native.</li>
+<li>Arithmetic, textbook and windowed, verified on every input by an
+independent bit-level simulator, including the measurement-based
+uncomputation and its feed-forward corrections; Shor’s noiseless
+outcomes match the exact distribution; synthesized rotations verified as
+matrices; QPE matches its exact Trotterized distribution.</li>
+<li>Scaling: the Toffoli and qubit counts used at RSA-2048 equal the
+compiled circuits’ for every simulated N; the estimator, given Gidney
+2025’s projection and budget, returns his d = 25.</li>
+<li>Chemistry: integrals, HF and FCI equal PySCF to 10⁻⁸ Ha; Szabo and
+Ostlund’s H₂ reproduced; tapering preserves the spectrum; the LiH
+active-space Hamiltonian’s ground energy equals PySCF’s CASSCF(2, 2) to
+10⁻⁹ Ha (and CASCI on RHF orbitals to 10⁻¹¹ Ha).</li>
+<li>Calibration: Stim + PyMatching cross-check; reference-qubit
+experiment against plain memories; composition test. The
+sampling-and-decoding runner is checked against PyMatching’s correlated
+decoder on the same samples (stabilizer-qec 2.x, like PyMatching,
+decodes with correlations only when asked at decode time as well; the
+calibration was run with 1.2).</li>
+<li>Noise models: SD6 applied layer by layer reproduces stabilizer-qec’s
+circuit’s error model exactly; the CZ rewrite is deterministic with
+graphlike distance d; SI1000’s rates are Table 3’s.</li>
 </ul>
-<h1 data-number="5" id="limitations"><span class="header-section-number">5</span> Limitations</h1>
+<h1 data-number="5" id="limitations"><span
+class="header-section-number">5</span> Limitations</h1>
 <ul>
-<li>Composition is accurate to about 10% (Section 4.2), measured only for d ≤ 7.</li>
-<li>Most algorithm results lie beyond the directly measured distances (d ≤ 9 for the CNOT at p = 0.1%): extrapolated along measured exponential fits, marked in the figures.</li>
-<li>Magic-state error rates and footprints, the H and S operation model and the timing constants are cited inputs, not measured here.</li>
-<li>Parallel Toffoli architectures (such as Gidney 2025’s multi-block parallel lookup) are modeled via published gate counts rather than end-to-end compiled patch layouts.</li>
+<li>Composition is accurate to about 10% (Section 3.2), measured only
+for d ≤ 7.</li>
+<li>Logical channels are measured to d = 11 (idling) and d = 9 (surgery)
+at p = 0.1%. Most algorithm results, and every RSA-2048 and FeMoco
+number, lie beyond that, along exponential fits; they are marked.</li>
+<li>Magic-state error rates and footprints, the H and S operation model
+and the timing constants are cited inputs, not measured here.</li>
+<li>Published algorithms enter only through their gate counts and run
+times; their layouts (Gidney 2025’s yoked storage and parallel lookups,
+Lee et al.’s floor plan) are not modelled, so only distances are
+compared.</li>
+<li>The LiH problem is a 2-qubit active space; chemistry at scale is
+represented only by FeMoco’s published counts.</li>
+<li>The machine is calibrated on one circuit under one noise model:
+stabilizer-qec’s SD6 memory and surgery, which measure and reset
+ancillas in separate layers. Section 3.9 shows that this is the
+pessimistic end of four circuit-level models; results lean pessimistic
+by up to about a factor of two in logical error rate. Biased noise and
+the codes tailored to it (XZZX) are not modelled.</li>
 </ul>
-<h1 data-number="6" id="reproduction"><span class="header-section-number">6</span> Reproduction</h1>
+<h1 data-number="6" id="reproduction"><span
+class="header-section-number">6</span> Reproduction</h1>
 <pre><code>tools/build.sh                     # the engine (Rust → Python module)
 python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
+python tools/noise_models.py; python tools/noise_models.py --summary
 python tools/run_shor.py; python tools/run_shor_modern.py
-python tools/run_qpe.py; python tools/scale.py; python tools/sensitivity.py
+python tools/run_qpe.py; python tools/run_lih.py
+python tools/scale.py; python tools/sensitivity.py
 python tools/site_data.py; python tools/report.py</code></pre>
 </main>
 </body>

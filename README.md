@@ -1,13 +1,15 @@
 # Fault-tolerant algorithms, run end to end
 
+[![CI](https://github.com/Jaspersands/ft-algorithms/actions/workflows/ci.yml/badge.svg)](https://github.com/Jaspersands/ft-algorithms/actions/workflows/ci.yml)
+
 Shor's algorithm and molecular phase estimation, compiled to Clifford + T + Toffoli and run
 **end to end** on a simulated surface-code quantum computer whose every logical error rate was
 **measured** by circuit-level simulation. The results are success probabilities as functions of
 code distance, physical error rate and magic-state source, with error budgets that say which
 operations make the algorithm fail, and the same error model extrapolated to RSA-2048 and FeMoco.
 
-- **Explainer site** with a live demo (Shor for N = 15 running in your browser on WebAssembly):
-  `site/index.html` (serve `site/` with any static server).
+- **Explainer site** with a live demo (Shor for N = 15 and H₂ phase estimation running in your
+  browser on WebAssembly): [ft.jaspersands.com](https://ft.jaspersands.com) (source in `site/`).
 - **Technical report**: [report/report.html](report/report.html) · [PDF](report/report.pdf).
   Every number in it is computed from the committed data by `tools/report.py`.
 
@@ -17,7 +19,7 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 |---|---|---|
 | physical | rotated surface code, SD6 circuit noise; memory, lattice-surgery merges and CNOTs simulated and decoded (correlated matching) | [stabilizer-qec](https://pypi.org/project/stabilizer-qec/) |
 | logical | each operation's Pauli channel, extracted with baselines pushed through the operation; fits in d and p; logical Y from a reference-qubit experiment | `python/ftalgo/calib/` |
-| program | Shor with full modular exponentiation (Textbook Cuccaro & Modern Windowed + MBU); STO-3G chemistry from scratch; iterative QPE with Suzuki-4 steps; gridsynth rotations | `python/ftalgo/{shor,arith,arith_modern,phase,qpe,synth}.py`, `chem/` |
+| program | Shor with full modular exponentiation (textbook Cuccaro, and windowed with measurement-based uncomputation); STO-3G chemistry from scratch for H₂ and HeH⁺, a PySCF CASSCF active space for LiH; iterative QPE with Suzuki-4 steps; gridsynth rotations | `python/ftalgo/{shor,arith,arith_modern,phase,qpe,synth}.py`, `chem/` |
 | machine | per-qubit clocks, measured idle channel for every gap, decoder reaction time, magic-state factories (cited) | `python/ftalgo/{arch,schedule}.py` |
 | run | **ftsim**: Rust state-vector Monte Carlo (sparse and dense), feed-forward, seeded, stratified by the exact number of faults; Python module and WebAssembly | `src/` |
 
@@ -36,7 +38,7 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 | 77 | 27 | 16,170 | 0.774 | 15 | 67 k | 1.25 s |
 | 143 | 30 | 23,680 | 0.774 | 15 | 70.8 k | 1.81 s |
 
-**Shor (Modern Windowed + MBU)** (p = 0.1%, cultivated magic states; 2.7–3.0× Toffoli reduction):
+**Shor (Modern Windowed + MBU)** (p = 0.1%, cultivated magic states; 2.6–3.0× fewer Toffolis):
 
 | N | logical qubits | Toffolis | noiseless peak | d for 90% of it | physical qubits | run time |
 |---:|---:|---:|---:|---:|---:|---:|
@@ -44,36 +46,43 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
 | 21 | 27 | 2,390 | 0.793 | 13 | 47 k | 298 ms |
 | 35 | 31 | 3,528 | 0.784 | 13 | 50.2 k | 447 ms |
 
-**Phase estimation** (chemical accuracy, 1.6 mHa from FCI; p = 0.1%, cultivated):
+**Phase estimation** (p = 0.1%, cultivated magic states; success = energy within chemical accuracy, 1.6 mHa, of the exact ground state of the Hamiltonian simulated):
 
-| molecule | T gates per run | noiseless | d for 90% of it | run time |
-|---|---:|---:|---:|---:|
-| H2 | 1.79e7 | 0.92 | 19 | 7.2 min |
-| HeH+ | 4.37e7 | 0.97 | 21 | 20.3 min |
-
-**Cryptographic scale (RSA-2048, p = 0.1%, cultivated magic states, target E[faults] ≤ 0.1)**:
-
-| Workload / Implementation | Logical qubits | Toffolis | Distance d | Physical qubits | Quantum run time |
+| molecule | system qubits | T gates per run | noiseless | d for 90% of it | run time |
 |---|---:|---:|---:|---:|---:|
-| Textbook Cuccaro (this work) | 6,150 | 3.44e11 | 35 | 32.5 M | 1.96 years (1.96 yr) |
-| Modern Windowed + MBU (this work) | 4,120 | 8.61e10 | 35 | 43.2 M | 298 days (0.81 yr) |
-| Gidney 2025 counts (our measured model) | 1,409 | 6.50e9 | 29 | 5.31 M | 4.63 days |
-| Gidney 2025 published (assumed model) | 1,409 | 6.50e9 | 25 | 898 k | 4.96 days |
+| H2 | 2 | 1.79e7 | 0.92 | 19 | 7.2 min |
+| HeH+ | 2 | 4.37e7 | 0.97 | 21 | 20.3 min |
+| LiH, CAS(2, 2) | 2 | 4.32e7 | 0.88 | 23 | 21.9 min |
 
-**Headline defensibility (d = 29 vs. d = 25)**: Compiling Gidney's 2025 counts under our measured SD6 model gives d = 29. At d = 25, our circuit-level simulations decoded by correlated matching measure an idle logical error rate of 4.30e-15 per round (1σ: [2.97e-15, 6.25e-15]), which is **4.3× higher** than Gidney's assumed 1.0e-15. Perturbing noise parameters (Λ ± 1σ, prefactor ± 1σ, factory ε_CCZ × 0.1/10×, correlated matching) keeps required distance at d ∈ {29, 31}. Feeding Gidney's assumed error model into our compiler reproduces his published d = 25.
+H₂ and HeH⁺ in STO-3G are simulated whole (tapered to 2 qubits). LiH is a deliberately small active space: Li 1s² frozen, two electrons in two CASSCF orbitals, 9 Pauli terms on 2 qubits; its exact energy is 1.3 mHa above full STO-3G FCI at R = 1.595 Å.
 
-**Biased noise & XZZX surface codes (RSA-2048 Modern, p = 0.1%, target E[faults] ≤ 0.01)**:
+**RSA-2048, this work's circuits** (p = 0.1%, cultivated magic states, E[faults] ≤ 0.1; operation counts exact, schedule fitted on compiled instances, error rates extrapolated):
 
-| Bias η = p_Z/p_X | XZZX distance (dX × dZ) | Tile qubits | Symmetric distance | Symmetric tile | XZZX physical | Symmetric physical | Qubit savings |
-|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 25 × 21 | 1144 | 25 | 1352 | 19.1 M | 22.5 M | **1.18×** |
-| 10 | 31 × 13 | 896 | 31 | 2048 | 14.9 M | 34.1 M | **2.29×** |
-| 50 | 33 × 11 | 816 | 33 | 2312 | 13.6 M | 38.5 M | **2.83×** |
-| 100 | 33 × 9 | 680 | 33 | 2312 | 11.3 M | 38.5 M | **3.40×** |
-| 500 | 33 × 7 | 544 | 33 | 2312 | 9.06 M | 38.5 M | **4.25×** |
-| 1000 | 33 × 7 | 544 | 33 | 2312 | 9.06 M | 38.5 M | **4.25×** |
+| arithmetic | logical qubits | Toffolis | d | physical qubits | run time |
+|---|---:|---:|---:|---:|---:|
+| Textbook Cuccaro | 6,150 | 3.44e11 | 35 | 32.5 M | 1.96 years |
+| Modern windowed + MBU | 8,199 | 8.61e10 | 35 | 43.2 M | 298 days |
 
-**Molecular chemistry scaling (LiH, active space CAS(2, 2) + Z₂ tapering)**: Frozen Li 1s² core, 2 tapered qubits, 9 Pauli terms. Potential energy dissociation minimum at R_e = 1.595 Å (E_HF = -7.8620 Ha, E_CASSCF = -7.8811 Ha, PySCF CASSCF match to < 10⁻¹⁰ Ha). 10-bit QPE circuit requires 4.32e7 T gates.
+**Published estimates under the measured model** (p = 0.1%; each at its authors' failure budget; distances only, since their qubit totals use layouts this model does not include):
+
+| workload | failure budget | published d | d, measured model |
+|---|---:|---:|---:|
+| RSA-2048, Gidney 2025 (one shot) | 6.7% | 25 | 29 |
+| FeMoco (THC), Lee et al. 2021 | 1.0% | 31 | 31 |
+
+Gidney 2025 picks d = 25 because his projection of surface-code memory reaches 1e-15 errors per patch per round there. The measured model (SD6 noise, correlated matching) reaches it at d = 29 (d = 27–29 within the fit's 1σ band). At the measured distances its rates are already 3.4–6.5× his projection, and the gap widens with d because the fitted suppression per two units of distance (Λ = 10.1 and 10.9 for the two bases) is below the projection's 12.25; at d = 25 the fit extrapolates to 1.30e-14 per patch-round (1σ: 9.95e-15–1.70e-14). One shot of his algorithm through the estimator needs d = 29 at his budget (d = 27 at 90%); the same estimator with his projection in place of the measured model returns d = 25. The table below shows how much of that gap is the circuit and noise model rather than his design.
+
+**Which memory model?** Memories at p = 0.1% under other circuits and noise models, each decoded by correlated matching and fitted the same way (per-round rates from d and 3d rounds), against the projection:
+
+| memory model | Λ (Z, X) | measured to d | rate ÷ projection there | d, worse basis ≤ 1e-15 | d, either basis ≤ 1e-15 | d, one shot at his budget |
+|---|---:|---:|---:|---:|---:|---:|
+| SD6, as calibrated: separate measure and reset layers | 10.8, 10.5 | 9 | 5.9× | 27 | 29 | 27 |
+| SD6, one measure-and-reset layer | 12.0, 11.8 | 9 | 3.2× | 27 | 27 | 27 |
+| SI1000 on CZ, one measure-and-reset layer | 11.6, 12.3 | 9 | 2.1× | 27 | 27 | 27 |
+| uniform depolarizing, Stim's generated circuit | 20.4, 15.9 | 9 | 0.3× | 23 | 23 | 23 |
+| Gidney 2025 projection, 3.5^−d/40 | 12.25 | — | 1× | 25 | 25 | 25 |
+
+The distance that reaches 1e-15 per patch-round at p = 0.1% runs from d = 23 to d = 29 across these circuit-level models, and Gidney's d = 25 lies inside that range. SI1000, the noise model of the yoked-surface-code paper's simulations (arXiv:2312.04522), has the projection's slope here (Λ = 11.6–12.3) but a 2.1× higher rate at d = 9, and needs d = 27. Gidney 2025 labels the projection uniform depolarizing; Stim's generated circuit with every parameter at p, one reading of that which leaves qubits idle during gate layers noiseless, is below it. The calibration's circuit is the most pessimistic of the four: it depolarizes idle qubits in every layer and measures and resets the ancillas in separate layers, so data qubits idle through two of them each round. Merging them alone lowers the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12, so every result here leans pessimistic by about that. (The SD6 row is the calibration's own memories fitted like the others, over d ≤ 9; with all its memory lengths and d = 11 the calibrated model needs d = 29.)
 <!-- results:end -->
 
 ## How it is checked
@@ -82,10 +91,12 @@ operations make the algorithm fail, and the same error model extrapolated to RSA
   stratified), dense against sparse, WebAssembly against native.
 - **Arithmetic** verified on every input by an independent bit-level simulator; Shor's noiseless output
   against the exact phase-estimation distribution; every synthesized rotation as a matrix.
-- **Modern arithmetic** verified on all inputs: Gidney measurement-based carry uncomputation,
-  classical feed-forward CZ fixups, and windowed modular exponentiation match exact algebra.
-- **Sensitivity analysis**: parameter covariance, 1σ/2σ bands, and multi-factor tornado analysis.
-- **Chemistry** against PySCF (integrals, HF and FCI to 1e-8 Ha) and Szabo & Ostlund.
+- **Windowed arithmetic** verified on every input the same way, including the measurement-based
+  carry uncomputation and its feed-forward CZ fixups.
+- **Scaling**: the Toffoli and qubit counts used at RSA-2048 equal the compiled circuits' for every
+  simulated N; the estimator, given Gidney 2025's own error projection and budget, returns his d = 25.
+- **Chemistry** against PySCF (integrals, HF and FCI to 1e-8 Ha) and Szabo & Ostlund; the LiH
+  active-space Hamiltonian's ground energy equals PySCF's CASSCF(2, 2) to 1e-9 Ha.
 - **Calibration** against Stim + PyMatching; the reference-qubit experiment against plain memories;
   **composition**: whole surgery experiments predicted from their parts vs measured.
 
@@ -104,7 +115,10 @@ tools/build.sh                           # Rust engine → python/ftalgo/_ftsim.
 .venv/bin/python tools/calibrate.py      # circuit-level experiments (resumable, ~hours)
 .venv/bin/python tools/fit_model.py      # data/calibration/model.json
 .venv/bin/python tools/compose_check.py && .venv/bin/python tools/xcheck.py
-.venv/bin/python tools/run_shor.py && .venv/bin/python tools/run_qpe.py && .venv/bin/python tools/scale.py
+.venv/bin/python tools/noise_models.py && .venv/bin/python tools/noise_models.py --summary   # SI1000, uniform (~1 h)
+.venv/bin/python tools/run_shor.py && .venv/bin/python tools/run_shor_modern.py
+.venv/bin/python tools/run_qpe.py && .venv/bin/python tools/run_lih.py
+.venv/bin/python tools/scale.py && .venv/bin/python tools/sensitivity.py
 .venv/bin/python tools/site_data.py && .venv/bin/python tools/report.py && .venv/bin/python tools/readme_tables.py
 cargo build --release --target wasm32-unknown-unknown --lib && cp target/wasm32-unknown-unknown/release/ftsim.wasm site/wasm/
 ```
@@ -115,7 +129,11 @@ Every dataset records its seed and the versions that produced it.
 
 Magic-state error rates and factory footprints (Litinski 2019; Gidney, Shutty & Jones 2024; Gidney
 2025), the H and S operation model of the fast-block layout, 1 µs rounds and a 10 µs decoder reaction
-time are cited inputs, not measured here. Algorithm runs at distances beyond the directly measured
-range use extrapolated channels and are marked as such. See the report's Limitations.
+time are cited inputs, not measured here. Logical channels are measured up to d = 11 (idling) and
+d = 9 (surgery) at p = 0.1%; runs at larger distances use extrapolated channels and are marked as
+such, and every RSA-2048 and FeMoco number is an extrapolation. The calibrated circuit is
+stabilizer-qec's SD6 memory, which measures and resets ancillas in separate layers; with one
+measure-and-reset layer the same noise errs about half as often at d = 9 (see "Which memory model?"),
+so results lean pessimistic. See the report's Limitations.
 
-MIT licensed.
+MIT licensed. To cite it, see [CITATION.cff](CITATION.cff).

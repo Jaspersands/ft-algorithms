@@ -12,8 +12,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
 def real(paths):
-    """Drops sync-conflict copies ("name 2.json")."""
-    return [f for f in paths if not re.search(r" \d+\.json$", f)]
+    """Drops sync-conflict copies ("name 2.json"), in a fixed order: glob's order is the
+    filesystem's, and the tables must not depend on it."""
+    return sorted(f for f in paths if not re.search(r" \d+\.json$", f))
 
 
 def jl(p):
@@ -66,7 +67,8 @@ def build() -> str:
     base_mod = {r["N"]: r for r in rs_mod if "d" not in r}
     runs_mod = [r for r in rs_mod if "d" in r]
     if base_mod:
-        out.append("\n**Shor (Modern Windowed + MBU)** (p = 0.1%, cultivated magic states; 2.7–3.0× Toffoli reduction):\n")
+        cut = [base[N]["toffoli"] / base_mod[N]["toffoli"] for N in base_mod if N in base]
+        out.append(f"\n**Shor (Modern Windowed + MBU)** (p = 0.1%, cultivated magic states; {min(cut):.1f}–{max(cut):.1f}× fewer Toffolis):\n")
         out.append("| N | logical qubits | Toffolis | noiseless peak | d for 90% of it | physical qubits | run time |\n|---:|---:|---:|---:|---:|---:|---:|")
         for N in sorted(base_mod):
             b = base_mod[N]
@@ -78,54 +80,95 @@ def build() -> str:
     # Phase estimation
     q = [jl(f) for f in real(glob.glob(str(ROOT / "data/results/qpe/*.json")))]
     qb = {r["molecule"]: r for r in q if "d" not in r}
+    lih = jl(ROOT / "data/results/lih.json")
     if qb:
-        out.append("\n**Phase estimation** (chemical accuracy, 1.6 mHa from FCI; p = 0.1%, cultivated):\n")
-        out.append("| molecule | T gates per run | noiseless | d for 90% of it | run time |\n|---|---:|---:|---:|---:|")
+        out.append("\n**Phase estimation** (p = 0.1%, cultivated magic states; success = energy within chemical accuracy, "
+                   "1.6 mHa, of the exact ground state of the Hamiltonian simulated):\n")
+        out.append("| molecule | system qubits | T gates per run | noiseless | d for 90% of it | run time |\n|---|---:|---:|---:|---:|---:|")
         for m, b in qb.items():
             rr = sorted((r for r in q if "d" in r and r["molecule"] == m and r["factory"] == "cultivation"), key=lambda r: r["d"])
             hit = next((r for r in rr if r["scores"][0] >= 0.9 * b["noiseless"][0]), None)
-            out.append(f"| {m} | {sci(b['t_count'])} | {b['noiseless'][0]:.2f} | {hit['d'] if hit else '—'} | {fmt_time(hit['seconds']) if hit else '—'} |")
+            out.append(f"| {m} | {b['qubits']} | {sci(b['t_count'])} | {b['noiseless'][0]:.2f} | {hit['d'] if hit else '—'} | "
+                       f"{fmt_time(hit['seconds']) if hit else '—'} |")
+        rr = sorted((r for r in lih["runs"] if r["factory"] == "cultivation" and r["p"] == 0.001), key=lambda r: r["d"])
+        hit = next((r for r in rr if r["scores"][0] >= 0.9 * lih["noiseless"][0]), None)
+        out.append(f"| LiH, CAS(2, 2) | {lih['qubits']} | {sci(lih['t_count'])} | {lih['noiseless'][0]:.2f} | {hit['d'] if hit else '—'} | "
+                   f"{fmt_time(hit['seconds']) if hit else '—'} |")
+        out.append(f"\nH₂ and HeH⁺ in STO-3G are simulated whole (tapered to {qb['H2']['qubits']} qubits). LiH is a deliberately small "
+                   f"active space: Li 1s² frozen, two electrons in two CASSCF orbitals, {lih['terms']} Pauli terms on {lih['qubits']} "
+                   f"qubits; its exact energy is {abs(lih['e_active'] - lih['e_fci_full']) * 1e3:.1f} mHa above full STO-3G FCI at "
+                   f"R = {lih['r_equilibrium']} Å.")
 
-    # To scale & Headline comparison
+    # To scale
     sc = jl(ROOT / "data/results/scaling.json")
-    tb = next(r for r in sc["textbook"] if r["n"] == 2048 and r["factory"] == "cultivation")
-    mod = next((r for r in sc.get("modern", []) if r["n"] == 2048 and r["factory"] == "cultivation"), None)
-    g = next(p for p in sc["published"] if p["name"].startswith("RSA"))
-    sens = jl(ROOT / "data/results/sensitivity.json") if (ROOT / "data/results/sensitivity.json").exists() else None
+    rows = [(lab, next(r for r in sc[k] if r["n"] == 2048 and r["factory"] == "cultivation"))
+            for lab, k in (("Textbook Cuccaro", "textbook"), ("Modern windowed + MBU", "modern"))]
+    out.append(f"\n**RSA-2048, this work's circuits** (p = 0.1%, cultivated magic states, E[faults] ≤ {sc['target_expected_faults']:g}; "
+               "operation counts exact, schedule fitted on compiled instances, error rates extrapolated):\n")
+    out.append("| arithmetic | logical qubits | Toffolis | d | physical qubits | run time |\n|---|---:|---:|---:|---:|---:|")
+    for lab, r in rows:
+        out.append(f"| {lab} | {r['logical_qubits']:,} | {sci(r['toffolis'])} | {r['d']} | {fmt_q(r['physical_qubits'])} | {fmt_time(r['seconds'])} |")
 
-    out.append("\n**Cryptographic scale (RSA-2048, p = 0.1%, cultivated magic states, target E[faults] ≤ 0.1)**:\n")
-    out.append("| Workload / Implementation | Logical qubits | Toffolis | Distance d | Physical qubits | Quantum run time |")
-    out.append("|---|---:|---:|---:|---:|---:|")
-    out.append(f"| Textbook Cuccaro (this work) | {3 * 2048 + 6:,} | 3.44e11 | {tb['d']} | {fmt_q(tb['physical_qubits'])} | {fmt_time(tb['seconds'])} ({tb['seconds'] / 86400 / 365.25:.2f} yr) |")
-    if mod:
-        out.append(f"| Modern Windowed + MBU (this work) | {2 * 2048 + 2 * 2 + 20:,} | 8.61e10 | {mod['d']} | {fmt_q(mod['physical_qubits'])} | {fmt_time(mod['seconds'])} ({mod['seconds'] / 86400 / 365.25:.2f} yr) |")
-    out.append(f"| Gidney 2025 counts (our measured model) | {g['logical_qubits']:,} | {sci(g['toffolis'])} | {g['estimate']['d']} | {fmt_q(g['estimate']['physical_qubits'])} | {fmt_time(g['estimate']['seconds'])} |")
-    out.append(f"| Gidney 2025 published (assumed model) | {g['logical_qubits']:,} | {sci(g['toffolis'])} | 25 | 898 k | 4.96 days |")
+    # Published estimates, each at its authors' budget
+    sens = jl(ROOT / "data/results/sensitivity.json")
+    out.append("\n**Published estimates under the measured model** (p = 0.1%; each at its authors' failure budget; distances "
+               "only, since their qubit totals use layouts this model does not include):\n")
+    out.append("| workload | failure budget | published d | d, measured model |\n|---|---:|---:|---:|")
+    for g in sc["published"]:
+        out.append(f"| {g['name']} | {(1 - math.exp(-g['target'])) * 100:.1f}% | {g['published_d']} | {g['estimate']['d']} |")
+    pr = sens["per_round"]
+    rows25 = {r["d"]: r for r in pr["rows"]}
+    meas = [r["measured"] / r["gidney"] for r in pr["rows"] if not r["extrapolated"]]
+    lam = sorted(f["lambda"] for f in sens["fits"].values())
+    r25 = rows25[sens["published_d"]]
+    budget90 = next(s for s in sens["scenarios"] if s["category"] == "Budget" and "90%" in s["name"])
+    out.append(
+        f"\nGidney 2025 picks d = {sens['published_d']} because his projection of surface-code memory reaches "
+        f"{pr['target']:.0e} errors per patch per round there. The measured model (SD6 noise, correlated matching) "
+        f"reaches it at d = {pr['d_measured']} (d = {pr['d_band']['-1']}–{pr['d_band']['1']} within the fit's 1σ band). "
+        f"At the measured distances its rates are already {min(meas):.1f}–{max(meas):.1f}× his projection, and the gap "
+        f"widens with d because the fitted suppression per two units of distance (Λ = {lam[0]:.1f} and {lam[-1]:.1f} for "
+        f"the two bases) is below the projection's {sens['gidney_lambda']:.2f}; at d = {sens['published_d']} the fit extrapolates to "
+        f"{sci(r25['measured'])} per patch-round (1σ: {sci(r25['lo1'])}–{sci(r25['hi1'])}). One shot of his algorithm "
+        f"through the estimator needs d = {sens['baseline']['d']} at his budget (d = {budget90['d']} at 90%); the same "
+        f"estimator with his projection in place of the measured model returns d = {sens['gidney_projection']['d']}. "
+        f"The table below shows how much of that gap is the circuit and noise model rather than his design.")
 
-    if sens:
-        band25 = sens["fit_covariance"]["band"]["25"]
-        out.append(f"\n**Headline defensibility (d = 29 vs. d = 25)**: Compiling Gidney's 2025 counts under our measured SD6 model gives d = 29. At d = 25, our circuit-level simulations decoded by correlated matching measure an idle logical error rate of {sci(band25['central'])} per round (1σ: [{sci(band25['lo_1sigma'])}, {sci(band25['hi_1sigma'])}]), which is **4.3× higher** than Gidney's assumed 1.0e-15. Perturbing noise parameters (Λ ± 1σ, prefactor ± 1σ, factory ε_CCZ × 0.1/10×, correlated matching) keeps required distance at d ∈ {{29, 31}}. Feeding Gidney's assumed error model into our compiler reproduces his published d = 25.")
-
-    # Biased noise & XZZX surface codes
-    bx_file = ROOT / "data/results/biased_xzzx.json"
-    if bx_file.exists():
-        bx = jl(bx_file)
-        if "rsa2048_modern" in bx:
-            pts = bx["rsa2048_modern"]["points"]
-            out.append("\n**Biased noise & XZZX surface codes (RSA-2048 Modern, p = 0.1%, target E[faults] ≤ 0.01)**:\n")
-            out.append("| Bias η = p_Z/p_X | XZZX distance (dX × dZ) | Tile qubits | Symmetric distance | Symmetric tile | XZZX physical | Symmetric physical | Qubit savings |\n|---:|---:|---:|---:|---:|---:|---:|---:|")
-            for p in pts:
-                if p["eta"] in (1.0, 10.0, 50.0, 100.0, 500.0, 1000.0):
-                    out.append(f"| {p['eta']:.0f} | {p['dx']} × {p['dz']} | {p['tile_qubits']} | {p['symmetric_d']} | {p['symmetric_tile_qubits']} | "
-                               f"{fmt_q(p['total_physical_qubits'])} | {fmt_q(p['symmetric_physical_qubits'])} | **{p['qubit_reduction_ratio']:.2f}×** |")
-
-    # LiH chemistry scaling
-    lih_file = ROOT / "data/results/lih.json"
-    if lih_file.exists():
-        lih = jl(lih_file)
-        e_active = lih.get("e_active", lih.get("e_casci", -7.8811))
-        e_hf = lih.get("e_hf", -7.8620)
-        out.append(f"\n**Molecular chemistry scaling (LiH, active space CAS(2, 2) + Z₂ tapering)**: Frozen Li 1s² core, 2 tapered qubits, 9 Pauli terms. Potential energy dissociation minimum at R_e = 1.595 Å (E_HF = {e_hf:.4f} Ha, E_CASSCF = {e_active:.4f} Ha, PySCF CASSCF match to < 10⁻¹⁰ Ha). 10-bit QPE circuit requires {sci(lih['t_count'])} T gates.")
+    nm = sens.get("noise_models")
+    if nm:
+        lab = {"sd6": "SD6, as calibrated: separate measure and reset layers", "sd6_mr": "SD6, one measure-and-reset layer",
+               "si1000": "SI1000 on CZ, one measure-and-reset layer", "uniform": "uniform depolarizing, Stim's generated circuit"}
+        out.append("\n**Which memory model?** Memories at p = 0.1% under other circuits and noise models, each decoded by "
+                   "correlated matching and fitted the same way (per-round rates from d and 3d rounds), against the projection:\n")
+        out.append("| memory model | Λ (Z, X) | measured to d | rate ÷ projection there | d, worse basis ≤ 1e-15 | d, either basis ≤ 1e-15 | d, one shot at his budget |")
+        out.append("|---|---:|---:|---:|---:|---:|---:|")
+        for k in ("sd6", "sd6_mr", "si1000", "uniform"):
+            if k not in nm:
+                continue
+            m = nm[k]
+            top = m["measured"][-1]
+            out.append(f"| {lab[k]} | {m['lambda']['z']:.1f}, {m['lambda']['x']:.1f} | {top['d']} | {(top['z'] + top['x']) / top['gidney']:.1f}× | "
+                       f"{m['d_basis'] or '> 61'} | {m['d_any'] or '> 61'} | {m['d_shot'] or '> 61'} |")
+        out.append(f"| Gidney 2025 projection, 3.5^−d/40 | {sens['gidney_lambda']:.2f} | — | 1× | {pr['d_gidney']} | {pr['d_gidney']} | "
+                   f"{sens['gidney_projection']['d']} |")
+        ds = [nm[k]["d_any"] for k in nm if nm[k]["d_any"]]
+        top = {k: nm[k]["measured"][-1] for k in nm}
+        mr = {b: top["sd6"][b] / top["sd6_mr"][b] for b in ("z", "x")}
+        si = nm["si1000"]
+        out.append(
+            f"\nThe distance that reaches 1e-15 per patch-round at p = 0.1% runs from d = {min(ds)} to d = {max(ds)} across these "
+            f"circuit-level models, and Gidney's d = {sens['published_d']} lies inside that range. SI1000, the noise model of the "
+            f"yoked-surface-code paper's simulations (arXiv:2312.04522), has the projection's slope here (Λ = "
+            f"{min(si['lambda'].values()):.1f}–{max(si['lambda'].values()):.1f}) but a "
+            f"{(top['si1000']['z'] + top['si1000']['x']) / top['si1000']['gidney']:.1f}× higher rate at d = {top['si1000']['d']}, and "
+            f"needs d = {si['d_any']}. Gidney 2025 labels the projection uniform depolarizing; Stim's generated circuit with every "
+            f"parameter at p, one reading of that which leaves qubits idle during gate layers noiseless, is below it. The "
+            f"calibration's circuit is the most pessimistic of the four: it "
+            f"depolarizes idle qubits in every layer and measures and resets the ancillas in separate layers, so data qubits idle "
+            f"through two of them each round. Merging them alone lowers the d = {top['sd6']['d']} rates "
+            f"{min(mr.values()):.1f}–{max(mr.values()):.1f}× and raises Λ to ≈ {min(nm['sd6_mr']['lambda'].values()):.0f}, so every "
+            f"result here leans pessimistic by about that. (The SD6 row is the calibration's own memories fitted like the others, "
+            f"over d ≤ {top['sd6']['d']}; with all its memory lengths and d = 11 the calibrated model needs d = {pr['d_measured']}.)")
 
     return "\n".join(out)
 
