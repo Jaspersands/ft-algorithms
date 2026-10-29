@@ -1,0 +1,29 @@
+{
+ "name": "cnot-z-d3-p0.001",
+ "kind": "cnot",
+ "inputs": "z",
+ "d": 3,
+ "p": 0.001,
+ "merged": 3,
+ "rounds": 12,
+ "counts": {
+  "shots": 49152,
+  "num_obs": 2,
+  "patterns": {
+   "1": 321,
+   "2": 808,
+   "3": 183
+  },
+  "seconds": 0.09
+ },
+ "seed": 930166787,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "fd57f6c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py --mr",
+ "circuit": "one measure-and-reset layer",
+ "wall_seconds": 0.1
+}

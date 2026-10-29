@@ -190,3 +190,36 @@ def memory(d: int, rounds: int, basis: str, model: str, p: float, merge_mr: bool
     if merge_mr if merge_mr is not None else model == "si1000":
         moments = merge_measure_reset(moments)
     return apply_noise(moments, model, p, base.num_qubits)
+
+
+NOISE = {"X_ERROR", "Z_ERROR", "DEPOLARIZE1", "DEPOLARIZE2"}
+
+
+def merge_measure_reset_layers(circuit: stim.Circuit) -> stim.Circuit:
+    """A noisy circuit with each reset layer that follows a measurement layer folded into it: the
+    resets and their flips join the measurement layer, and the reset layer's idle depolarizing is
+    dropped, so qubits waiting for the two wait once. Every other noise channel is kept as it is,
+    so this applies to any of stabilizer-qec's circuits (surgery and reference-qubit memories
+    included, whose noiseless segments stay noiseless). On a memory it gives exactly sd6_mr."""
+    moments: list[list[stim.CircuitInstruction]] = [[]]
+    for inst in circuit.flattened():
+        if inst.name == "TICK":
+            moments.append([])
+        else:
+            moments[-1].append(inst)
+    out: list[list[stim.CircuitInstruction]] = []
+    for m in moments:
+        gates = [i for i in m if i.name not in NOISE and i.name not in ANNOTATIONS]
+        if out and gates and all(i.name in RESET for i in gates) and not any(i.name in ANNOTATIONS for i in m):
+            prev = [i for i in out[-1] if i.name not in NOISE and i.name not in ANNOTATIONS]
+            if prev and all(i.name in MEASURE for i in prev):
+                out[-1] = out[-1] + [i for i in m if i.name != "DEPOLARIZE1"]
+                continue
+        out.append(m)
+    c = stim.Circuit()
+    for k, m in enumerate(out):
+        for i in m:
+            c.append(i)
+        if k + 1 < len(out):
+            c.append("TICK")
+    return c

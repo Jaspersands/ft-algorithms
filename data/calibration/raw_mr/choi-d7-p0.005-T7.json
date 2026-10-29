@@ -1,0 +1,27 @@
+{
+ "name": "choi-d7-p0.005-T7",
+ "kind": "choi",
+ "d": 7,
+ "p": 0.005,
+ "rounds": 7,
+ "counts": {
+  "shots": 16384,
+  "num_obs": 2,
+  "patterns": {
+   "1": 372,
+   "2": 368,
+   "3": 16
+  },
+  "seconds": 0.164
+ },
+ "seed": 766918358,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "fd57f6c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py --mr",
+ "circuit": "one measure-and-reset layer",
+ "wall_seconds": 0.2
+}

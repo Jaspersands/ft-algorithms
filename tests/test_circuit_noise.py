@@ -62,3 +62,16 @@ def test_merged_measure_reset_layer():
     assert ticks(sep) - ticks(mr) == 5 - 1  # every round but the last resets its ancillas
     mr.detector_error_model(decompose_errors=True)
     assert len(mr.shortest_graphlike_error()) == 5
+
+
+def test_folding_reset_layers_of_noisy_circuits():
+    # On a memory, folding the reset layer into the measurement layer of stabilizer-qec's own
+    # noisy circuit is sd6_mr exactly; on surgery it keeps the circuit deterministic at distance d.
+    folded = cn.merge_measure_reset_layers(stim.Circuit(str(sq.memory_circuit(distance=3, rounds=4, p=0.001, basis="x"))))
+    assert _errors(folded.detector_error_model()) == _errors(cn.memory(3, 4, "x", "sd6_mr", 0.001).detector_error_model())
+    cnot = stim.Circuit(str(sq.surgery.cnot(3, merged=3, p=0.001, inputs="z")))
+    f = cn.merge_measure_reset_layers(cnot)
+    f.detector_error_model(decompose_errors=True)
+    assert len(f.shortest_graphlike_error()) == 3
+    ticks = lambda c: sum(1 for i in c.flattened() if i.name == "TICK")  # noqa: E731
+    assert ticks(f) < ticks(cnot)

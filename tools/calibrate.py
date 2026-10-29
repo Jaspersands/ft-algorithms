@@ -6,6 +6,7 @@ can be interrupted and resumed (finished experiments are skipped). Cheap experim
     python tools/calibrate.py               # run everything missing
     python tools/calibrate.py --list        # show the plan
     python tools/calibrate.py --only 'mem-*-d3-*'
+    python tools/calibrate.py --mr          # the same grid with one measure-and-reset layer → raw_mr/
 """
 
 from __future__ import annotations
@@ -23,6 +24,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "python"))
 
 from ftalgo.calib.choi import choi_memory  # noqa: E402
 from ftalgo.calib.qec import run  # noqa: E402
+
+import stim  # noqa: E402
 
 RAW = os.path.join(os.path.dirname(__file__), "..", "data", "calibration", "raw")
 PS = [0.001, 0.002, 0.003, 0.005]
@@ -80,12 +83,14 @@ def main() -> None:
     ap.add_argument("--only", default="*")
     ap.add_argument("--target", type=int, default=TARGET)
     ap.add_argument("--cap", type=float, default=CAP_SECONDS)
+    ap.add_argument("--mr", action="store_true", help="fold each reset layer into the measurement layer before it (raw_mr/)")
     args = ap.parse_args()
-    os.makedirs(RAW, exist_ok=True)
+    raw = RAW + "_mr" if args.mr else RAW
+    os.makedirs(raw, exist_ok=True)
     vers = versions()
     todo = [e for e in experiments() if fnmatch.fnmatch(e[0], args.only)]
     for name, meta, build in todo:
-        path = os.path.join(RAW, name + ".json")
+        path = os.path.join(raw, name + ".json")
         done = os.path.exists(path)
         if args.list:
             print(("done " if done else "todo ") + name)
@@ -94,6 +99,12 @@ def main() -> None:
             continue
         seed = zlib.crc32(name.encode())
         circuit = build()
+        # Keep a batch's detector data near 32 MB: 4M-shot batches of the d = 11 memories run out of memory.
+        max_batch = max(1 << 14, min(1 << 22, (1 << 28) // max(stim.Circuit(str(circuit)).num_detectors, 1) // 64 * 64))
+        if args.mr:
+            from ftalgo.calib.circuit_noise import merge_measure_reset_layers
+
+            circuit = str(merge_measure_reset_layers(stim.Circuit(str(circuit))))
         t0 = time.time()
         # Grow the batch so a low-rate experiment amortizes overhead; stop at the time cap.
         total = None
@@ -103,7 +114,7 @@ def main() -> None:
             total = res if total is None else total.merge(res)
             if total.failures >= args.target or time.time() - t0 > args.cap or total.shots >= MAX_SHOTS:
                 break
-            batch = min(batch * 2, 1 << 22)
+            batch = min(batch * 2, max_batch)
         rec = {
             "name": name,
             **meta,
@@ -111,7 +122,8 @@ def main() -> None:
             "seed": seed,
             "seed_note": "batches seeded seed + shots done so far",
             "versions": vers,
-            "command": "python tools/calibrate.py",
+            "command": "python tools/calibrate.py" + (" --mr" if args.mr else ""),
+            "circuit": "one measure-and-reset layer" if args.mr else "separate measurement and reset layers",
             "wall_seconds": round(time.time() - t0, 1),
         }
         with open(path + ".tmp", "w") as f:
