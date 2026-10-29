@@ -1,0 +1,26 @@
+{
+ "name": "mem-x-d3-p0.003-T3",
+ "kind": "memory",
+ "basis": "x",
+ "d": 3,
+ "p": 0.003,
+ "rounds": 3,
+ "counts": {
+  "shots": 49152,
+  "num_obs": 1,
+  "patterns": {
+   "1": 947
+  },
+  "seconds": 0.015
+ },
+ "seed": 1095799346,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "fd57f6c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py --mr",
+ "circuit": "one measure-and-reset layer",
+ "wall_seconds": 0.0
+}

@@ -1,0 +1,34 @@
+{
+ "name": "line-n3-d5-p0.001",
+ "kind": "line",
+ "n": 3,
+ "d": 5,
+ "p": 0.001,
+ "merged": 5,
+ "rounds": 15,
+ "counts": {
+  "shots": 245760,
+  "num_obs": 5,
+  "patterns": {
+   "1": 20,
+   "2": 24,
+   "4": 109,
+   "5": 111,
+   "8": 91,
+   "11": 90,
+   "16": 102,
+   "18": 109
+  },
+  "seconds": 1.877
+ },
+ "seed": 1892985719,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "fd57f6c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py --mr",
+ "circuit": "one measure-and-reset layer",
+ "wall_seconds": 2.3
+}

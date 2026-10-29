@@ -58,17 +58,19 @@ H₂ and HeH⁺ in STO-3G are simulated whole (tapered to 2 qubits). LiH is a de
 
 **RSA-2048, this work's circuits** (p = 0.1%, cultivated magic states, E[faults] ≤ 0.1; operation counts exact, schedule fitted on compiled instances, error rates extrapolated):
 
-| arithmetic | logical qubits | Toffolis | d | physical qubits | run time |
-|---|---:|---:|---:|---:|---:|
-| Textbook Cuccaro | 6,150 | 3.44e11 | 35 | 32.5 M | 1.96 years |
-| Modern windowed + MBU | 8,199 | 8.61e10 | 35 | 43.2 M | 298 days |
+| arithmetic | calibration | logical qubits | Toffolis | d | physical qubits | run time |
+|---|---|---:|---:|---:|---:|---:|
+| Textbook Cuccaro | separate measure and reset layers | 6,150 | 3.44e11 | 35 | 32.5 M | 1.96 years |
+| Textbook Cuccaro | one measure-and-reset layer | 6,150 | 3.44e11 | 33 | 29 M | 1.85 years |
+| Modern windowed + MBU | separate measure and reset layers | 8,199 | 8.61e10 | 35 | 43.2 M | 298 days |
+| Modern windowed + MBU | one measure-and-reset layer | 8,199 | 8.61e10 | 33 | 38.5 M | 281 days |
 
 **Published estimates under the measured model** (p = 0.1%; each at its authors' failure budget; distances only, since their qubit totals use layouts this model does not include):
 
-| workload | failure budget | published d | d, measured model |
-|---|---:|---:|---:|
-| RSA-2048, Gidney 2025 (one shot) | 6.7% | 25 | 29 |
-| FeMoco (THC), Lee et al. 2021 | 1.0% | 31 | 31 |
+| workload | failure budget | published d | d, measured model | d, recalibrated with one measure-and-reset layer |
+|---|---:|---:|---:|---:|
+| RSA-2048, Gidney 2025 (one shot) | 6.7% | 25 | 29 | 27 |
+| FeMoco (THC), Lee et al. 2021 | 1.0% | 31 | 31 | 29 |
 
 Gidney 2025 picks d = 25 because his projection of surface-code memory reaches 1e-15 errors per patch per round there. The measured model (SD6 noise, correlated matching) reaches it at d = 29 (d = 27–29 within the fit's 1σ band). At the measured distances its rates are already 3.4–6.5× his projection, and the gap widens with d because the fitted suppression per two units of distance (Λ = 10.1 and 10.9 for the two bases) is below the projection's 12.25; at d = 25 the fit extrapolates to 1.30e-14 per patch-round (1σ: 9.95e-15–1.70e-14). One shot of his algorithm through the estimator needs d = 29 at his budget (d = 27 at 90%); the same estimator with his projection in place of the measured model returns d = 25. The table below shows how much of that gap is the circuit and noise model rather than his design.
 
@@ -83,6 +85,8 @@ Gidney 2025 picks d = 25 because his projection of surface-code memory reaches 1
 | Gidney 2025 projection, 3.5^−d/40 | 12.25 | — | 1× | 25 | 25 | 25 |
 
 The distance that reaches 1e-15 per patch-round at p = 0.1% runs from d = 23 to d = 29 across these circuit-level models, and Gidney's d = 25 lies inside that range. SI1000, the noise model of the yoked-surface-code paper's simulations (arXiv:2312.04522), has the projection's slope here (Λ = 11.6–12.3) but a 2.1× higher rate at d = 9, and needs d = 27. Gidney 2025 labels the projection uniform depolarizing; Stim's generated circuit with every parameter at p, one reading of that which leaves qubits idle during gate layers noiseless, is below it. The calibration's circuit is the most pessimistic of the four: it depolarizes idle qubits in every layer and measures and resets the ancillas in separate layers, so data qubits idle through two of them each round. Merging them alone lowers the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12, so every result here leans pessimistic by about that. (The SD6 row is the calibration's own memories fitted like the others, over d ≤ 9; with all its memory lengths and d = 11 the calibrated model needs d = 29.)
+
+**Recalibrated with one measure-and-reset layer.** Every calibration experiment was rerun on the same circuits with each reset layer folded into the measurement layer before it (`tools/calibrate.py --mr`; data/calibration/raw_mr/, model_mr.json). Idling then has Λ = 11.6–12.5, reaches 1e-15 per patch-round at d = 27 (d = 27 at either 1σ edge), and one shot of Gidney's algorithm needs d = 27 at his budget. The tables above show both calibrations; the simulated algorithm runs (Shor, phase estimation) use the original one.
 <!-- results:end -->
 
 ## How it is checked

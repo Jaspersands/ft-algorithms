@@ -1,6 +1,7 @@
 """Composition check over the grid: whole surgery experiments predicted (ftsim, logical level)
 from calibrated parts vs measured (stabilizer-qec, circuit level). Writes
-data/calibration/composition.json."""
+data/calibration/composition.json; with --mr, the same for the calibration with one
+measure-and-reset layer (raw_mr/ → composition_mr.json)."""
 
 import json
 import os
@@ -9,11 +10,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "python"))
 
 from ftalgo.calib.compose import compare  # noqa: E402
-from ftalgo.calib.model import load_raw  # noqa: E402
+from ftalgo.calib.model import DATA, load_raw  # noqa: E402
 
-OUT = os.path.join(os.path.dirname(__file__), "..", "data", "calibration", "composition.json")
+MR = "--mr" in sys.argv
+OUT = os.path.join(DATA, "composition_mr.json" if MR else "composition.json")
 
-raw = load_raw()
+raw = load_raw(os.path.join(DATA, "raw_mr" if MR else "raw"))
 res = []
 for p in (0.001, 0.002, 0.003, 0.005):
     for d in (3, 5, 7):

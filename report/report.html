@@ -23,7 +23,7 @@ computer</h1>
 machine whose logical error rates were measured by circuit-level
 simulation</p>
   <p class="byline">Jasper
-Sands · 2026-10-29 · commit <code>85a88fb</code></p>
+Sands · 2026-10-29 · commit <code>2587003</code></p>
   <p class="links"><a href="../index.html">the explainer site</a> · <a href="https://github.com/Jaspersands/ft-algorithms">github.com/Jaspersands/ft-algorithms</a> · <a href="report.pdf">PDF</a></p>
 </header>
 <section class="abstract">
@@ -1138,16 +1138,18 @@ odd d with at most 0.1 expected faults (p = 0.1%, cultivated magic
 states):</p>
 <table style="width:100%;">
 <colgroup>
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
-<col style="width: 16%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">arithmetic</th>
+<th style="text-align: left;">calibration</th>
 <th style="text-align: right;">logical qubits</th>
 <th style="text-align: right;">Toffolis</th>
 <th style="text-align: right;">d</th>
@@ -1158,6 +1160,7 @@ states):</p>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">textbook</td>
+<td style="text-align: left;">separate measure and reset layers</td>
 <td style="text-align: right;">6,150</td>
 <td style="text-align: right;">3.4×10<sup>11</sup></td>
 <td style="text-align: right;">35</td>
@@ -1165,12 +1168,31 @@ states):</p>
 <td style="text-align: right;">1.96 years</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">textbook</td>
+<td style="text-align: left;">one measure-and-reset layer</td>
+<td style="text-align: right;">6,150</td>
+<td style="text-align: right;">3.4×10<sup>11</sup></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">29 M</td>
+<td style="text-align: right;">1.85 years</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">windowed + MBU</td>
+<td style="text-align: left;">separate measure and reset layers</td>
 <td style="text-align: right;">8,199</td>
 <td style="text-align: right;">8.6×10<sup>10</sup></td>
 <td style="text-align: right;">35</td>
 <td style="text-align: right;">43.2 M</td>
 <td style="text-align: right;">298 days</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">windowed + MBU</td>
+<td style="text-align: left;">one measure-and-reset layer</td>
+<td style="text-align: right;">8,199</td>
+<td style="text-align: right;">8.6×10<sup>10</sup></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">38.5 M</td>
+<td style="text-align: right;">281 days</td>
 </tr>
 </tbody>
 </table>
@@ -1194,15 +1216,16 @@ distance only: their physical-qubit totals depend on layouts (yoked
 storage, hand-made floor plans) not modelled here. Gidney 2025 is taken
 one shot at a time (12.07 h, at most 1,409 logical qubits): his budget
 is per shot, and a failed shot is repeated.</p>
-<table style="width:100%;">
+<table>
 <colgroup>
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1212,7 +1235,8 @@ is per shot, and a failed shot is repeated.</p>
 <th style="text-align: right;">run time</th>
 <th style="text-align: right;">failure budget</th>
 <th style="text-align: right;">published d</th>
-<th style="text-align: right;">d, measured model</th>
+<th style="text-align: right;">d, as calibrated</th>
+<th style="text-align: right;">d, one measure-and-reset layer</th>
 </tr>
 </thead>
 <tbody>
@@ -1224,6 +1248,7 @@ is per shot, and a failed shot is repeated.</p>
 <td style="text-align: right;">6.7%</td>
 <td style="text-align: right;">25</td>
 <td style="text-align: right;">29</td>
+<td style="text-align: right;">27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">FeMoco (THC), Lee et al. 2021</td>
@@ -1233,6 +1258,7 @@ is per shot, and a failed shot is repeated.</p>
 <td style="text-align: right;">1.0%</td>
 <td style="text-align: right;">31</td>
 <td style="text-align: right;">31</td>
+<td style="text-align: right;">29</td>
 </tr>
 </tbody>
 </table>
@@ -1580,11 +1606,23 @@ rate at d = 9; Stim’s circuit is below the projection. The calibration’s
 circuit is the most pessimistic: it depolarizes idle qubits in every
 layer and gives data qubits two idle layers a round, one for the
 ancillas’ measurement and one for their reset. Merging the two lowers
-the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12. Every result in this
-report rests on that circuit and leans pessimistic accordingly. (The SD6
-row fits the calibration’s memories like the others, over d ≤ 9; with
-all its memory lengths and d = 11 the calibrated model needs d =
-29.)</p>
+the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12. Every simulated algorithm
+run in this report rests on that circuit and leans pessimistic
+accordingly. (The SD6 row fits the calibration’s memories like the
+others, over d ≤ 9; with all its memory lengths and d = 11 the
+calibrated model needs d = 29.)</p>
+<p><strong>Recalibrated with one measure-and-reset layer.</strong> Every
+calibration experiment was rerun on stabilizer-qec’s circuits with each
+reset layer folded into the measurement layer before it
+(ftalgo.calib.circuit_noise.merge_measure_reset_layers: every noise
+channel kept except the reset layer’s idle depolarizing; on memories it
+is the SD6 one-layer model above exactly). Idling then has Λ = 11.6–12.5
+at p = 0.1%, reaches 10⁻¹⁵ per patch-round at d = 27 (d = 27 at either
+1σ edge), and one shot of Gidney’s algorithm needs d = 27 at his budget;
+textbook RSA-2048 needs d = 33 (29 M physical qubits). Whole surgery
+experiments predicted from its parts are 0.87–1.14× the measured failure
+rate (median 1.02×), as for the original calibration. Section 3.7’s
+tables give both calibrations.</p>
 <h1 data-number="4" id="validation"><span
 class="header-section-number">4</span> Validation</h1>
 <ul>
@@ -1629,11 +1667,13 @@ Lee et al.’s floor plan) are not modelled, so only distances are
 compared.</li>
 <li>The LiH problem is a 2-qubit active space; chemistry at scale is
 represented only by FeMoco’s published counts.</li>
-<li>The machine is calibrated on one circuit under one noise model:
-stabilizer-qec’s SD6 memory and surgery, which measure and reset
-ancillas in separate layers. Section 3.9 shows that this is the
-pessimistic end of four circuit-level models; results lean pessimistic
-by up to about a factor of two in logical error rate. Biased noise and
+<li>The algorithm runs use the machine calibrated on stabilizer-qec’s
+SD6 memory and surgery circuits, which measure and reset ancillas in
+separate layers: Section 3.9 shows that this is the pessimistic end of
+four circuit-level models, by up to about a factor of two in logical
+error rate. The recalibration with one measure-and-reset layer is used
+for the extrapolations only; rerunning the algorithm grid on it (about
+80 CPU-hours, mostly Shor for N = 143) is left to do. Biased noise and
 the codes tailored to it (XZZX) are not modelled.</li>
 </ul>
 <h1 data-number="6" id="reproduction"><span
@@ -1643,6 +1683,7 @@ python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
 python tools/noise_models.py; python tools/noise_models.py --summary
+python tools/calibrate.py --mr; python tools/fit_model.py --mr; python tools/compose_check.py --mr
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
 python tools/scale.py; python tools/sensitivity.py

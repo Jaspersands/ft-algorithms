@@ -50,6 +50,11 @@ plt.rcParams.update({
 })
 
 
+def band(b, within="within 1σ"):
+    """A 1σ distance band as text: 'd = 27–29 within 1σ', or 'd = 27 at either 1σ edge'."""
+    return f"d = {b['-1']} at either 1σ edge" if b["-1"] == b["1"] else f"d = {b['-1']}–{b['1']} {within}"
+
+
 def jload(p):
     return json.loads(pathlib.Path(p).read_text())
 
@@ -385,12 +390,26 @@ def main():
 
     tb = next(r for r in sc["textbook"] if r["n"] == 2048 and r["factory"] == "cultivation")
     mod2048 = next(r for r in sc["modern"] if r["n"] == 2048 and r["factory"] == "cultivation")
-    V["scale_table"] = table(["arithmetic", "logical qubits", "Toffolis", "d", "physical qubits", "run time"],
-                             [[lab, f"{r['logical_qubits']:,}", sci(r["toffolis"]), r["d"], fmt_q(r["physical_qubits"]), fmt_time(r["seconds"])]
-                              for lab, r in (("textbook", tb), ("windowed + MBU", mod2048))])
-    V["pub_table"] = table(["workload", "logical qubits", "Toffolis", "run time", "failure budget", "published d", "d, measured model"],
+    mrs = sc.get("mr")
+    cals = [("separate measure and reset layers", sc)] + ([("one measure-and-reset layer", mrs)] if mrs else [])
+    srows = []
+    for lab, k in (("textbook", "textbook"), ("windowed + MBU", "modern")):
+        for clab, src in cals:
+            r = next(x for x in src[k] if x["n"] == 2048 and x["factory"] == "cultivation")
+            srows.append([lab, clab, f"{r['logical_qubits']:,}", sci(r["toffolis"]), r["d"], fmt_q(r["physical_qubits"]), fmt_time(r["seconds"])])
+    V["scale_table"] = table(["arithmetic", "calibration", "logical qubits", "Toffolis", "d", "physical qubits", "run time"], srows,
+                             ["l", "l", "r", "r", "r", "r", "r"])
+    mrp = {g["name"]: g["estimate"]["d"] for g in (mrs or {}).get("published", [])}
+    V["pub_table"] = table(["workload", "logical qubits", "Toffolis", "run time", "failure budget", "published d", "d, as calibrated"]
+                           + (["d, one measure-and-reset layer"] if mrp else []),
                            [[p["name"], f"{p['logical_qubits']:,}", sci(p["toffolis"]), fmt_time(p["estimate"]["seconds"]),
-                             f"{100 * (1 - math.exp(-p['target'])):.1f}%", p["published_d"], p["estimate"]["d"]] for p in sc["published"]])
+                             f"{100 * (1 - math.exp(-p['target'])):.1f}%", p["published_d"], p["estimate"]["d"]] + ([mrp.get(p["name"], "—")] if mrp else [])
+                            for p in sc["published"]])
+    comp_mr_path = ROOT / "data" / "calibration" / "composition_mr.json"
+    V["comp_mr"] = None
+    if comp_mr_path.exists():
+        rm = sorted(e["any"]["predicted"] / e["any"]["measured"] for r in jload(comp_mr_path)["results"] for e in r["experiments"].values())
+        V["comp_mr"] = (rm[0], rm[-1], rm[len(rm) // 2])
     V["tb2048"] = tb
     V["mod2048"] = mod2048
     V["femoco"] = next(p for p in sc["published"] if p["name"].startswith("FeMoco"))
@@ -542,6 +561,22 @@ def main():
         ["distance", "factory", "noise p", "chem. acc. (CASSCF)", "chem. acc. (full FCI)", "E[faults]", "physical qubits", "quantum time"],
         qpe_lrows
     )
+
+    mrsens = sens.get("mr")
+    V["mr_text"] = ""
+    if mrsens and mrs:
+        lam = sorted(f["lambda"] for f in mrsens["fits"].values())
+        tb_mr = next(x for x in mrs["textbook"] if x["n"] == 2048 and x["factory"] == "cultivation")
+        comp = (f" Whole surgery experiments predicted from its parts are {V['comp_mr'][0]:.2f}–{V['comp_mr'][1]:.2f}× the measured failure "
+                f"rate (median {V['comp_mr'][2]:.2f}×), as for the original calibration." if V["comp_mr"] else "")
+        V["mr_text"] = f"""
+**Recalibrated with one measure-and-reset layer.** Every calibration experiment was rerun on stabilizer-qec's circuits with
+each reset layer folded into the measurement layer before it (ftalgo.calib.circuit_noise.merge_measure_reset_layers: every
+noise channel kept except the reset layer's idle depolarizing; on memories it is the SD6 one-layer model above exactly).
+Idling then has Λ = {lam[0]:.1f}–{lam[-1]:.1f} at p = 0.1%, reaches 10⁻¹⁵ per patch-round at d = {mrsens['d_round']}
+({band(mrsens['d_band'])}), and one shot of Gidney's algorithm needs d = {mrsens['one_shot']['d']}
+at his budget; textbook RSA-2048 needs d = {tb_mr['d']} ({fmt_q(tb_mr['physical_qubits'])} physical qubits).{comp} Section 3.7's
+tables give both calibrations."""
 
     # -- the text ------------------------------------------------------------------------------
     sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
@@ -833,7 +868,7 @@ Gidney chooses d = {sens['published_d']} because his projection of surface-code 
 p~L~ ≈ 3.5^−d^/40 per patch per round, from the yoked-surface-code simulations of Gidney, Newman, Brooks
 and Jones) first reaches 10⁻¹⁵ per patch per round there; over a 12-hour shot of up to 1,600
 logical qubits that leaves 93.3% of shots free of logical errors. Asked the same question, the measured
-model answers d = {pr['d_measured']} (d = {pr['d_band']['-1']}–{pr['d_band']['1']} within the fit's 1σ band):
+model answers d = {pr['d_measured']} ({band(pr['d_band'], "within the fit's 1σ band")}):
 
 {V['per_round_table']}
 
@@ -884,9 +919,10 @@ models, and Gidney's d = {sens['published_d']} lies inside that range. SI1000 ha
 circuit is below the projection. The calibration's circuit is the most pessimistic: it depolarizes idle
 qubits in every layer and gives data qubits two idle layers a round, one for the ancillas' measurement and
 one for their reset. Merging the two lowers the d = {nm['sd6']['measured'][-1]['d']} rates {V['nm_mr_lo']:.1f}–{V['nm_mr_hi']:.1f}× and raises Λ to
-≈ {min(nm['sd6_mr']['lambda'].values()):.0f}. Every result in this report rests on that circuit and leans pessimistic accordingly. (The SD6 row
-fits the calibration's memories like the others, over d ≤ {nm['sd6']['measured'][-1]['d']}; with all its memory lengths and
-d = 11 the calibrated model needs d = {pr['d_measured']}.)
+≈ {min(nm['sd6_mr']['lambda'].values()):.0f}. Every simulated algorithm run in this report rests on that circuit and leans pessimistic
+accordingly. (The SD6 row fits the calibration's memories like the others, over d ≤ {nm['sd6']['measured'][-1]['d']}; with all its
+memory lengths and d = 11 the calibrated model needs d = {pr['d_measured']}.)
+{V['mr_text']}
 
 # Validation
 
@@ -918,10 +954,12 @@ d = 11 the calibrated model needs d = {pr['d_measured']}.)
 - Published algorithms enter only through their gate counts and run times; their layouts (Gidney 2025's
   yoked storage and parallel lookups, Lee et al.'s floor plan) are not modelled, so only distances are compared.
 - The LiH problem is a 2-qubit active space; chemistry at scale is represented only by FeMoco's published counts.
-- The machine is calibrated on one circuit under one noise model: stabilizer-qec's SD6 memory and surgery,
-  which measure and reset ancillas in separate layers. Section 3.9 shows that this is the pessimistic end
-  of four circuit-level models; results lean pessimistic by up to about a factor of two in logical error
-  rate. Biased noise and the codes tailored to it (XZZX) are not modelled.
+- The algorithm runs use the machine calibrated on stabilizer-qec's SD6 memory and surgery circuits,
+  which measure and reset ancillas in separate layers: Section 3.9 shows that this is the pessimistic end
+  of four circuit-level models, by up to about a factor of two in logical error rate. The recalibration
+  with one measure-and-reset layer is used for the extrapolations only; rerunning the algorithm grid on it
+  (about 80 CPU-hours, mostly Shor for N = 143) is left to do. Biased noise and the codes tailored to it
+  (XZZX) are not modelled.
 
 # Reproduction
 
@@ -931,6 +969,7 @@ python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
 python tools/noise_models.py; python tools/noise_models.py --summary
+python tools/calibrate.py --mr; python tools/fit_model.py --mr; python tools/compose_check.py --mr
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
 python tools/scale.py; python tools/sensitivity.py

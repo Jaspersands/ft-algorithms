@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "python"))
 
 from ftalgo import scale  # noqa: E402
-from ftalgo.calib.model import LogicalModel  # noqa: E402
+from ftalgo.calib.model import DATA, LogicalModel  # noqa: E402
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "data", "results", "scaling.json")
 
@@ -41,6 +41,24 @@ for w, target, d_pub, q_pub, t_pub in scale.PUBLISHED:
     published.append({**dataclasses.asdict(w), "target": target, "published_d": d_pub, "published_qubits": q_pub,
                       "published_time": t_pub, "estimate": dataclasses.asdict(e)})
     print(w.name, f"at E[faults] <= {target:.3g}: d = {e.d} (published {d_pub})")
+
+# The same estimates under the calibration on circuits with one measure-and-reset layer
+# (tools/calibrate.py --mr, tools/fit_model.py --mr), where it exists. The schedule is the same.
+mr = None
+mr_path = os.path.join(DATA, "model_mr.json")
+if os.path.exists(mr_path):
+    model_mr = LogicalModel.load(mr_path)
+    mr = {"textbook": [], "modern": [], "published": []}
+    for factory in ("cultivation", "15to1"):
+        for n in (4, 5, 6, 8, 10, 16, 32, 64, 128, 256, 512, 1024, 2048):
+            for kind, w in (("textbook", scale.textbook_shor(n, st)), ("modern", scale.modern_shor(n, st_mod))):
+                e = scale.estimate(w, model_mr, factory=factory)
+                mr[kind].append({"n": n, "factory": factory, "logical_qubits": w.logical_qubits, "toffolis": w.toffolis,
+                                 **dataclasses.asdict(e)})
+    for w, target, d_pub, _, _ in scale.PUBLISHED:
+        e = scale.estimate(w, model_mr, target=target)
+        mr["published"].append({"name": w.name, "target": target, "published_d": d_pub, "estimate": dataclasses.asdict(e)})
+        print(w.name, f"(one measure-and-reset layer): d = {e.d}")
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, "w") as f:
     json.dump({
@@ -50,5 +68,6 @@ with open(OUT, "w") as f:
         "p": 1e-3,
         "textbook": rows,
         "modern": rows_mod,
-        "published": published
+        "published": published,
+        "mr": mr,
     }, f, indent=1)

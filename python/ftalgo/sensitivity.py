@@ -190,7 +190,7 @@ def _est(model, w: Workload, p: float, target: float, factory=FACTORIES["cultiva
     return {"d": e.d, "expected_faults": e.expected_faults, "breakdown": e.breakdown, "extrapolated": e.extrapolated}
 
 
-def run(model: LogicalModel, workload: Workload = GIDNEY_2025, p: float = 1e-3) -> dict[str, Any]:
+def run(model: LogicalModel, workload: Workload = GIDNEY_2025, p: float = 1e-3, model_mr: LogicalModel | None = None) -> dict[str, Any]:
     target = GIDNEY_2025_TARGET
     fits = {n: fit_covariance(model, n, p) for n in IDLE}
 
@@ -237,4 +237,10 @@ def run(model: LogicalModel, workload: Workload = GIDNEY_2025, p: float = 1e-3) 
         "gidney_projection": _est(GidneyProjection(), workload, p, target),
         "scenarios": scenarios,
         "noise_models": noise_models(workload),
+        "mr": None if model_mr is None else {
+            "fits": {n: fit_covariance(model_mr, n, p) for n in IDLE},
+            "d_round": distance_for_idle(model_mr, GIDNEY_2025_PER_ROUND, p),
+            "d_band": {str(k): distance_for_idle(IdleBand(model_mr, k, p), GIDNEY_2025_PER_ROUND, p) for k in (-1, 1)},
+            "one_shot": _est(model_mr, workload, p, target),
+        },
     }

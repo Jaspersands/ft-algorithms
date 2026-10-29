@@ -11,6 +11,11 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
+def band(b, within="within 1σ"):
+    """A 1σ distance band as text: 'd = 27–29 within 1σ', or 'd = 27 at either 1σ edge'."""
+    return f"d = {b['-1']} at either 1σ edge" if b["-1"] == b["1"] else f"d = {b['-1']}–{b['1']} {within}"
+
+
 def real(paths):
     """Drops sync-conflict copies ("name 2.json"), in a fixed order: glob's order is the
     filesystem's, and the tables must not depend on it."""
@@ -101,21 +106,29 @@ def build() -> str:
 
     # To scale
     sc = jl(ROOT / "data/results/scaling.json")
-    rows = [(lab, next(r for r in sc[k] if r["n"] == 2048 and r["factory"] == "cultivation"))
-            for lab, k in (("Textbook Cuccaro", "textbook"), ("Modern windowed + MBU", "modern"))]
     out.append(f"\n**RSA-2048, this work's circuits** (p = 0.1%, cultivated magic states, E[faults] ≤ {sc['target_expected_faults']:g}; "
                "operation counts exact, schedule fitted on compiled instances, error rates extrapolated):\n")
-    out.append("| arithmetic | logical qubits | Toffolis | d | physical qubits | run time |\n|---|---:|---:|---:|---:|---:|")
-    for lab, r in rows:
-        out.append(f"| {lab} | {r['logical_qubits']:,} | {sci(r['toffolis'])} | {r['d']} | {fmt_q(r['physical_qubits'])} | {fmt_time(r['seconds'])} |")
+    cal = [("separate measure and reset layers", sc)] + ([("one measure-and-reset layer", sc["mr"])] if sc.get("mr") else [])
+    head = "| arithmetic | calibration | logical qubits | Toffolis | d | physical qubits | run time |\n|---|---|---:|---:|---:|---:|---:|"
+    out.append(head if len(cal) > 1 else head.replace(" calibration |", "").replace("|---|---|", "|---|"))
+    for lab, k in (("Textbook Cuccaro", "textbook"), ("Modern windowed + MBU", "modern")):
+        for clab, src in cal:
+            r = next(x for x in src[k] if x["n"] == 2048 and x["factory"] == "cultivation")
+            c = f" {clab} |" if len(cal) > 1 else ""
+            out.append(f"| {lab} |{c} {r['logical_qubits']:,} | {sci(r['toffolis'])} | {r['d']} | {fmt_q(r['physical_qubits'])} | {fmt_time(r['seconds'])} |")
 
     # Published estimates, each at its authors' budget
     sens = jl(ROOT / "data/results/sensitivity.json")
     out.append("\n**Published estimates under the measured model** (p = 0.1%; each at its authors' failure budget; distances "
                "only, since their qubit totals use layouts this model does not include):\n")
-    out.append("| workload | failure budget | published d | d, measured model |\n|---|---:|---:|---:|")
+    mrp = {g["name"]: g for g in (sc.get("mr") or {}).get("published", [])}
+    if mrp:
+        out.append("| workload | failure budget | published d | d, measured model | d, recalibrated with one measure-and-reset layer |\n|---|---:|---:|---:|---:|")
+    else:
+        out.append("| workload | failure budget | published d | d, measured model |\n|---|---:|---:|---:|")
     for g in sc["published"]:
-        out.append(f"| {g['name']} | {(1 - math.exp(-g['target'])) * 100:.1f}% | {g['published_d']} | {g['estimate']['d']} |")
+        extra = f" {mrp[g['name']]['estimate']['d']} |" if mrp else ""
+        out.append(f"| {g['name']} | {(1 - math.exp(-g['target'])) * 100:.1f}% | {g['published_d']} | {g['estimate']['d']} |{extra}")
     pr = sens["per_round"]
     rows25 = {r["d"]: r for r in pr["rows"]}
     meas = [r["measured"] / r["gidney"] for r in pr["rows"] if not r["extrapolated"]]
@@ -125,7 +138,7 @@ def build() -> str:
     out.append(
         f"\nGidney 2025 picks d = {sens['published_d']} because his projection of surface-code memory reaches "
         f"{pr['target']:.0e} errors per patch per round there. The measured model (SD6 noise, correlated matching) "
-        f"reaches it at d = {pr['d_measured']} (d = {pr['d_band']['-1']}–{pr['d_band']['1']} within the fit's 1σ band). "
+        f"reaches it at d = {pr['d_measured']} ({band(pr['d_band'], "within the fit's 1σ band")}). "
         f"At the measured distances its rates are already {min(meas):.1f}–{max(meas):.1f}× his projection, and the gap "
         f"widens with d because the fitted suppression per two units of distance (Λ = {lam[0]:.1f} and {lam[-1]:.1f} for "
         f"the two bases) is below the projection's {sens['gidney_lambda']:.2f}; at d = {sens['published_d']} the fit extrapolates to "
@@ -169,6 +182,16 @@ def build() -> str:
             f"{min(mr.values()):.1f}–{max(mr.values()):.1f}× and raises Λ to ≈ {min(nm['sd6_mr']['lambda'].values()):.0f}, so every "
             f"result here leans pessimistic by about that. (The SD6 row is the calibration's own memories fitted like the others, "
             f"over d ≤ {top['sd6']['d']}; with all its memory lengths and d = 11 the calibrated model needs d = {pr['d_measured']}.)")
+    mr = sens.get("mr")
+    if mr:
+        lam_mr = sorted(f["lambda"] for f in mr["fits"].values())
+        out.append(
+            f"\n**Recalibrated with one measure-and-reset layer.** Every calibration experiment was rerun on the same "
+            f"circuits with each reset layer folded into the measurement layer before it (`tools/calibrate.py --mr`; "
+            f"data/calibration/raw_mr/, model_mr.json). Idling then has Λ = {lam_mr[0]:.1f}–{lam_mr[-1]:.1f}, reaches 1e-15 per "
+            f"patch-round at d = {mr['d_round']} ({band(mr['d_band'])}), and one shot of "
+            f"Gidney's algorithm needs d = {mr['one_shot']['d']} at his budget. The tables above show both calibrations; the "
+            f"simulated algorithm runs (Shor, phase estimation) use the original one.")
 
     return "\n".join(out)
 

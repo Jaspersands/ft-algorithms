@@ -1,0 +1,37 @@
+{
+ "name": "rep-k3-d7-p0.001",
+ "kind": "repeated_zz",
+ "k": 3,
+ "d": 7,
+ "p": 0.001,
+ "merged": 7,
+ "rounds": 37,
+ "counts": {
+  "shots": 1711360,
+  "num_obs": 5,
+  "patterns": {
+   "1": 7,
+   "2": 6,
+   "4": 8,
+   "8": 75,
+   "12": 31,
+   "14": 47,
+   "15": 78,
+   "16": 91,
+   "20": 32,
+   "22": 40,
+   "23": 102
+  },
+  "seconds": 56.604
+ },
+ "seed": 3923951473,
+ "seed_note": "batches seeded seed + shots done so far",
+ "versions": {
+  "stabilizer_qec": "2.1.0",
+  "ftalgo_git": "fd57f6c",
+  "decoder": "stabilizer_qec.Matching(enable_correlations=True)"
+ },
+ "command": "python tools/calibrate.py --mr",
+ "circuit": "one measure-and-reset layer",
+ "wall_seconds": 65.3
+}

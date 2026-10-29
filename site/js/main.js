@@ -302,14 +302,28 @@ function scaleFigures(sc) {
   plot($("fig-scale-t"), { width: 420, height: 320, x: { label: "modulus size n (bits)", log: true, min: 4, max: 2048, ticks: xt, format: String }, y: { label: "run time (s)", log: true, min: 0.1, max: 1e9 }, series: st, legend: false });
   const budget = (t) => `${(100 * (1 - Math.exp(-t))).toFixed(1)}%`;
   const rows = [];
+  const mr = sc.mr;
+  const mrD = (k, name) => {
+    if (!mr) return null;
+    const r = name ? mr.published.find((x) => x.name === name) : mr[k].find((x) => x.n === 2048 && x.factory === "cultivation");
+    return r ? (name ? r.estimate.d : r.d) : null;
+  };
   for (const [k, lab] of [["textbook", "RSA-2048, textbook arithmetic (this work)"], ["modern", "RSA-2048, windowed + MBU (this work)"]]) {
     const r = (sc[k] || []).find((x) => x.n === 2048 && x.factory === "cultivation");
     if (!r) continue;
     setK(k === "textbook" ? "scale.tb_time" : "scale.mod_time", fmtTime(r.seconds));
-    rows.push([lab, fmtInt(r.logical_qubits), fmtSci(r.toffolis), budget(sc.target_expected_faults), "—", r.d, fmtQ(r.physical_qubits), fmtTime(r.seconds)]);
+    const row = [lab, fmtInt(r.logical_qubits), fmtSci(r.toffolis), budget(sc.target_expected_faults), "—", r.d];
+    if (mr) row.push(mrD(k) ?? "—");
+    rows.push(row.concat([fmtQ(r.physical_qubits), fmtTime(r.seconds)]));
   }
-  for (const p of sc.published) rows.push([p.name, fmtInt(p.logical_qubits), fmtSci(p.toffolis), budget(p.target), p.published_d, p.estimate.d, "—", fmtTime(p.estimate.seconds)]);
-  table($("tab-scale"), ["workload", "logical qubits", "Toffolis", "failure budget", "published d", "d, measured model", "physical qubits", "run time"], rows, (r) => r[4] !== "—");
+  for (const p of sc.published) {
+    const row = [p.name, fmtInt(p.logical_qubits), fmtSci(p.toffolis), budget(p.target), p.published_d, p.estimate.d];
+    if (mr) row.push(mrD(null, p.name) ?? "—");
+    rows.push(row.concat(["—", fmtTime(p.estimate.seconds)]));
+  }
+  const head = ["workload", "logical qubits", "Toffolis", "failure budget", "published d", "d, as calibrated"];
+  if (mr) head.push("d, one measure-and-reset layer");
+  table($("tab-scale"), head.concat(["physical qubits", "run time"]), rows, (r) => r[4] !== "—");
 }
 
 function gidney(sens, sc) {
@@ -346,6 +360,14 @@ function gidney(sens, sc) {
   tb.unshift(["Baseline", `one shot at his budget (E[faults] ≤ ${sens.target.toFixed(3)})`, sens.baseline.d, "0"]);
   tb.push(["His model", "Gidney's projection in place of the measured model", sens.gidney_projection.d, `${sens.gidney_projection.d - sens.baseline.d}`]);
   table($("tab-scenarios"), ["varied", "scenario", "d", "Δd"], tb, (r) => r[0] === "His model");
+  if (sens.mr) {
+    setK("mr.d_round", sens.mr.d_round);
+    setK("mr.d_shot", sens.mr.one_shot.d);
+    const l = Object.values(sens.mr.fits).map((f) => f.lambda).sort((a, b) => a - b);
+    setK("mr.lambda", `${l[0].toFixed(1)}–${l[l.length - 1].toFixed(1)}`);
+  } else {
+    document.querySelectorAll(".needs-mr").forEach((e) => (e.style.display = "none"));
+  }
   const nm = sens.noise_models;
   if (nm) {
     const lab = { sd6: "SD6, as calibrated (separate measure and reset)", sd6_mr: "SD6, one measure-and-reset layer", si1000: "SI1000 (CZ, one measure-and-reset layer)", uniform: "uniform depolarizing (Stim's circuit)" };
