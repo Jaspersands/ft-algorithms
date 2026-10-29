@@ -4,7 +4,7 @@ subtitle: Algorithms run end to end on a surface-code machine whose logical erro
 author: Jasper Sands
 date: 2026-10-29
 version: 0.3
-commit: 85a88fb
+commit: 2587003
 description: Technical report of the ft-algorithms project.
 toc: true
 abstract: |
@@ -326,10 +326,12 @@ instances (rounds per Toffoli: 5.13 textbook vs. 8.54 windowed; patches busy:
 3.18 vs. 2.79). The smallest odd d with at most 0.1 expected faults
 (p = 0.1%, cultivated magic states):
 
-| arithmetic | logical qubits | Toffolis | d | physical qubits | run time |
-| :--- | ---: | ---: | ---: | ---: | ---: |
-| textbook | 6,150 | 3.4×10^11^ | 35 | 32.5 M | 1.96 years |
-| windowed + MBU | 8,199 | 8.6×10^10^ | 35 | 43.2 M | 298 days |
+| arithmetic | calibration | logical qubits | Toffolis | d | physical qubits | run time |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: |
+| textbook | separate measure and reset layers | 6,150 | 3.4×10^11^ | 35 | 32.5 M | 1.96 years |
+| textbook | one measure-and-reset layer | 6,150 | 3.4×10^11^ | 33 | 29 M | 1.85 years |
+| windowed + MBU | separate measure and reset layers | 8,199 | 8.6×10^10^ | 35 | 43.2 M | 298 days |
+| windowed + MBU | one measure-and-reset layer | 8,199 | 8.6×10^10^ | 33 | 38.5 M | 281 days |
 
 ![Shor scaling from the simulated sizes to RSA-2048 (p = 0.1%). Solid: textbook; dashed: windowed. The diamond is Gidney 2025's published estimate, which stores idle qubits in yoked surface codes.](figures/scaling.svg)
 
@@ -343,10 +345,10 @@ their physical-qubit totals depend on layouts (yoked storage, hand-made floor pl
 Gidney 2025 is taken one shot at a time (12.07 h, at most 1,409 logical qubits): his budget is per shot,
 and a failed shot is repeated.
 
-| workload | logical qubits | Toffolis | run time | failure budget | published d | d, measured model |
-| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
-| RSA-2048, Gidney 2025 (one shot) | 1,409 | 7.1×10^8^ | 12.1 h | 6.7% | 25 | 29 |
-| FeMoco (THC), Lee et al. 2021 | 2,142 | 5.3×10^9^ | 2.45 days | 1.0% | 31 | 31 |
+| workload | logical qubits | Toffolis | run time | failure budget | published d | d, as calibrated | d, one measure-and-reset layer |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| RSA-2048, Gidney 2025 (one shot) | 1,409 | 7.1×10^8^ | 12.1 h | 6.7% | 25 | 29 | 27 |
+| FeMoco (THC), Lee et al. 2021 | 2,142 | 5.3×10^9^ | 2.45 days | 1.0% | 31 | 31 | 29 |
 
 ## Gidney 2025's distance under the measured model
 
@@ -433,9 +435,17 @@ models, and Gidney's d = 25 lies inside that range. SI1000 has the projection's 
 circuit is below the projection. The calibration's circuit is the most pessimistic: it depolarizes idle
 qubits in every layer and gives data qubits two idle layers a round, one for the ancillas' measurement and
 one for their reset. Merging the two lowers the d = 9 rates 1.7–2.0× and raises Λ to
-≈ 12. Every result in this report rests on that circuit and leans pessimistic accordingly. (The SD6 row
-fits the calibration's memories like the others, over d ≤ 9; with all its memory lengths and
-d = 11 the calibrated model needs d = 29.)
+≈ 12. Every simulated algorithm run in this report rests on that circuit and leans pessimistic
+accordingly. (The SD6 row fits the calibration's memories like the others, over d ≤ 9; with all its
+memory lengths and d = 11 the calibrated model needs d = 29.)
+
+**Recalibrated with one measure-and-reset layer.** Every calibration experiment was rerun on stabilizer-qec's circuits with
+each reset layer folded into the measurement layer before it (ftalgo.calib.circuit_noise.merge_measure_reset_layers: every
+noise channel kept except the reset layer's idle depolarizing; on memories it is the SD6 one-layer model above exactly).
+Idling then has Λ = 11.6–12.5 at p = 0.1%, reaches 10⁻¹⁵ per patch-round at d = 27
+(d = 27 at either 1σ edge), and one shot of Gidney's algorithm needs d = 27
+at his budget; textbook RSA-2048 needs d = 33 (29 M physical qubits). Whole surgery experiments predicted from its parts are 0.87–1.14× the measured failure rate (median 1.02×), as for the original calibration. Section 3.7's
+tables give both calibrations.
 
 # Validation
 
@@ -467,10 +477,12 @@ d = 11 the calibrated model needs d = 29.)
 - Published algorithms enter only through their gate counts and run times; their layouts (Gidney 2025's
   yoked storage and parallel lookups, Lee et al.'s floor plan) are not modelled, so only distances are compared.
 - The LiH problem is a 2-qubit active space; chemistry at scale is represented only by FeMoco's published counts.
-- The machine is calibrated on one circuit under one noise model: stabilizer-qec's SD6 memory and surgery,
-  which measure and reset ancillas in separate layers. Section 3.9 shows that this is the pessimistic end
-  of four circuit-level models; results lean pessimistic by up to about a factor of two in logical error
-  rate. Biased noise and the codes tailored to it (XZZX) are not modelled.
+- The algorithm runs use the machine calibrated on stabilizer-qec's SD6 memory and surgery circuits,
+  which measure and reset ancillas in separate layers: Section 3.9 shows that this is the pessimistic end
+  of four circuit-level models, by up to about a factor of two in logical error rate. The recalibration
+  with one measure-and-reset layer is used for the extrapolations only; rerunning the algorithm grid on it
+  (about 80 CPU-hours, mostly Shor for N = 143) is left to do. Biased noise and the codes tailored to it
+  (XZZX) are not modelled.
 
 # Reproduction
 
@@ -480,6 +492,7 @@ python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
 python tools/noise_models.py; python tools/noise_models.py --summary
+python tools/calibrate.py --mr; python tools/fit_model.py --mr; python tools/compose_check.py --mr
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
 python tools/scale.py; python tools/sensitivity.py

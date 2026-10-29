@@ -149,12 +149,13 @@ tr.hl td { background: var(--accent-soft); }
 .stack .what { font-size: 0.93rem; }
 .stack .what b { font-weight: 600; }
 .stack .tool { display: block; font: 400 0.78rem/1.4 var(--mono); color: var(--ink-3); margin-top: 0.2rem; }
-@media (max-width: 560px) { .stack > div { grid-template-columns: 1fr; gap: 0.2rem; } }
+@media (max-width: 560px) { .stack > div { grid-template-columns: 1fr; gap: 0.2rem; } .n { white-space: normal; } }
 
 /* Demo ----------------------------------------------------------------------------------- */
 .demo { background: var(--surface); border: 1.5px solid var(--rule); margin: 2.2rem 0 1rem; }
 .demo .bar { display: flex; flex-wrap: wrap; gap: 0.8rem 1.4rem; align-items: center; padding: 0.9rem 1rem; border-bottom: 1px solid var(--rule-soft); }
-.demo label { font: 500 0.78rem/1 var(--mono); color: var(--ink-2); display: inline-flex; gap: 0.5rem; align-items: center; }
+.demo label { font: 500 0.78rem/1 var(--mono); color: var(--ink-2); display: inline-flex; gap: 0.5rem; align-items: center; max-width: 100%; }
+.demo select { min-width: 0; max-width: 100%; }
 .demo select, .demo button {
   font: 500 0.82rem/1 var(--mono); color: var(--ink); background: var(--paper);
   border: 1px solid var(--rule); border-radius: 0; padding: 0.42rem 0.6rem;
