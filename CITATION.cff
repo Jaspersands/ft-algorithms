@@ -14,6 +14,7 @@ authors:
   - given-names: Jasper
     family-names: Sands
 license: MIT
+version: 0.1.0
 repository-code: "https://github.com/Jaspersands/ft-algorithms"
 url: "https://ft.jaspersands.com"
 keywords:

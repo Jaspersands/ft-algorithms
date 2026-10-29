@@ -28,6 +28,14 @@ python-source = "python"
 module-name = "ftalgo._ftsim"
 features = ["python"]
 profile = "python"
+# The source distribution builds the package; the data, site, report and tools live in the repository.
+exclude = [
+    { path = "data/**/*", format = "sdist" },
+    { path = "site/**/*", format = "sdist" },
+    { path = "report/**/*", format = "sdist" },
+    { path = "tools/**/*", format = "sdist" },
+    { path = "tests/**/*", format = "sdist" },
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

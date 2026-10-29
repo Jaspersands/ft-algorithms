@@ -29,9 +29,15 @@ MATS = {
 }
 _EXACT = {0: [], 1: ["T"], 2: ["S"], 3: ["S", "T"], 4: ["Z"], 5: ["Z", "T"], 6: ["S_DAG"], 7: ["T_DAG"]}
 
+# In the repository the cache is data/synth/cache.json. An installed ftalgo has no data/ directory:
+# it reads the copy its wheel carries (ftalgo/_data/synth_cache.json) and writes new syntheses to a
+# per-user cache seeded from it.
+_REPO_CACHE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "synth", "cache.json")
+_PACKAGED_CACHE = os.path.join(os.path.dirname(__file__), "_data", "synth_cache.json")
 _CACHE_PATH = os.environ.get(
     "FTALGO_SYNTH_CACHE",
-    os.path.join(os.path.dirname(__file__), "..", "..", "data", "synth", "cache.json"),
+    _REPO_CACHE if os.path.isdir(os.path.dirname(_REPO_CACHE))
+    else os.path.join(os.path.expanduser("~"), ".cache", "ftalgo", "synth.json"),
 )
 _cache: dict[str, str] | None = None
 _dirty = False
@@ -60,11 +66,14 @@ def target(theta: float) -> np.ndarray:
 def _load() -> dict[str, str]:
     global _cache
     if _cache is None:
-        try:
-            with open(_CACHE_PATH) as f:
-                _cache = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            _cache = {}
+        _cache = {}
+        for path in (_CACHE_PATH, _PACKAGED_CACHE):
+            try:
+                with open(path) as f:
+                    _cache = json.load(f)
+                break
+            except (FileNotFoundError, json.JSONDecodeError):
+                continue
     return _cache
 
 

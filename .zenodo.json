@@ -1,0 +1,38 @@
+{
+  "title": "ft-algorithms: factoring and chemistry on a simulated fault-tolerant quantum computer",
+  "upload_type": "software",
+  "description": "<p>Shor's algorithm (full modular exponentiation, textbook and windowed arithmetic with measurement-based uncomputation) and molecular phase estimation, compiled to Clifford+T+Toffoli and run end to end on a simulated rotated surface-code machine. Every logical error channel (idling, lattice-surgery merges, the surgery CNOT) was measured in circuit-level experiments with stabilizer-qec and checked by a composition test; ftsim, a Rust state-vector simulator stratified by fault count, runs the programs natively, from Python and in the browser. Results are success probabilities against code distance, error budgets, and extrapolations to RSA-2048 and FeMoco compared with published estimates at their authors' own failure budgets, with the memory model's dependence on circuit and noise model measured.</p>",
+  "creators": [
+    {
+      "name": "Sands, Jasper"
+    }
+  ],
+  "access_right": "open",
+  "license": "MIT",
+  "keywords": [
+    "fault-tolerant quantum computing",
+    "surface code",
+    "lattice surgery",
+    "resource estimation",
+    "Shor's algorithm",
+    "quantum phase estimation",
+    "magic states"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/Jaspersands/ft-algorithms",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://ft.jaspersands.com/report/report.html",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.5281/zenodo.23212075",
+      "relation": "requires",
+      "scheme": "doi"
+    }
+  ]
+}
