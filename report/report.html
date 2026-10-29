@@ -23,7 +23,7 @@ computer</h1>
 machine whose logical error rates were measured by circuit-level
 simulation</p>
   <p class="byline">Jasper
-Sands · 2026-10-28 · commit <code>fb25b12</code></p>
+Sands · 2026-10-29 · commit <code>85a88fb</code></p>
   <p class="links"><a href="../index.html">the explainer site</a> · <a href="https://github.com/Jaspersands/ft-algorithms">github.com/Jaspersands/ft-algorithms</a> · <a href="report.pdf">PDF</a></p>
 </header>
 <section class="abstract">
@@ -45,10 +45,11 @@ Extrapolated with the same error model to RSA-2048, textbook arithmetic
 needs d = 35, 32.5 M physical qubits and 1.96 years; windowed arithmetic
 298 days with 43.2 M. At their authors’ own failure budgets, the model
 gives Lee et al.’s FeMoco estimate its published d = 31, and Gidney’s
-2025 RSA-2048 estimate d = 29 rather than 25: within the measured
-distances SD6 memories already fail 3.4–6.5× more often than the
-projection his distance rests on, and their fitted suppression is
-weaker.</p>
+2025 RSA-2048 estimate d = 29 rather than 25. Memories under three more
+circuit-level models put the distance for 10⁻¹⁵ per patch-round between
+23 and 29, a range that contains his choice and of which the
+calibration’s circuit, with separate measurement and reset layers, is
+the pessimistic end.</p>
 </section>
 <nav class="toc" aria-label="Contents">
 <h2 class="toc__title">Contents</h2>
@@ -90,6 +91,8 @@ class="toc-section-number">3.7</span> To scale</a></li>
 id="toc-gidney-2025s-distance-under-the-measured-model"><span
 class="toc-section-number">3.8</span> Gidney 2025’s distance under the
 measured model</a></li>
+<li><a href="#which-memory-model" id="toc-which-memory-model"><span
+class="toc-section-number">3.9</span> Which memory model?</a></li>
 </ul></li>
 <li><a href="#validation" id="toc-validation"><span
 class="toc-section-number">4</span> Validation</a></li>
@@ -1372,8 +1375,7 @@ memories decoded by correlated matching already fail 3.4–6.5× more often
 than the projection, and the fitted suppression per two units of
 distance (Λ = 10.1 and 10.9 for the two bases) is below its 12.25, so
 the ratio grows to 21× at d = 25. The two are fits to different
-simulations (circuits, noise-model details and decoders all differ);
-this work does not isolate which difference matters.</p>
+simulations; Section 3.9 separates the circuit from the noise model.</p>
 <p>Running one shot of his algorithm through the estimator of this
 report:</p>
 <table>
@@ -1472,10 +1474,117 @@ is 99% of the expected faults. Given his projection instead, the same
 estimator returns his d = 25. Lee et al.’s FeMoco estimate assumes a
 suppression of 10 per two units of distance, close to the measured
 10.1–10.9, and under the measured model it comes out at their d = 31.
-What the comparison shows is how much a distance chosen by extrapolation
-depends on the extrapolation; it is not a measurement of Gidney’s
-design, which would need his layout, its yoked storage and his decoder
-simulated directly.</p>
+None of this measures Gidney’s design, which would need his layout, its
+yoked storage and his decoder simulated directly.</p>
+<h2 data-number="3.9" id="which-memory-model"><span
+class="header-section-number">3.9</span> Which memory model?</h2>
+<p>The measured model is one circuit under one noise model. To see how
+much the distance depends on that choice, the same memory experiments (d
+and 3d rounds, both bases, correlated matching, per-round rates from the
+ratio of the two) were run at p = 0.1% on three more: the same SD6
+circuit with each round’s measurement and reset of the ancillas in one
+layer, as hardware-style circuits have them; SI1000, the
+superconducting-inspired model of the yoked-surface-code paper’s
+simulations (Table 3 of arXiv:2312.04522: CZ p, single-qubit gates and
+idling p/10, reset 2p, measurement 5p, qubits waiting for a measurement
+or reset 2p), on the circuit rewritten over CZ with one
+measure-and-reset layer; and Stim’s generated memory with every
+parameter at p, one reading of the “uniform depolarizing” that labels
+Gidney 2025’s Figure 6, which leaves qubits idle during gate layers
+noiseless. The noise is applied layer by layer by
+ftalgo.calib.circuit_noise, which given SD6 reproduces stabilizer-qec’s
+own circuit’s error model exactly.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">memory model (p = 0.1%)</th>
+<th style="text-align: right;">Λ (Z, X)</th>
+<th style="text-align: right;">largest d</th>
+<th style="text-align: right;">rate / projection there</th>
+<th style="text-align: right;">d: worse basis ≤ 10⁻¹⁵</th>
+<th style="text-align: right;">d: either basis ≤ 10⁻¹⁵</th>
+<th style="text-align: right;">d: one shot at his budget</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">SD6, as calibrated (separate measure and
+reset)</td>
+<td style="text-align: right;">10.8, 10.5</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">5.9×</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">SD6, one measure-and-reset layer</td>
+<td style="text-align: right;">12.0, 11.8</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">3.2×</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SI1000 (CZ, one measure-and-reset
+layer)</td>
+<td style="text-align: right;">11.6, 12.3</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2.1×</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">uniform depolarizing (Stim’s circuit)</td>
+<td style="text-align: right;">20.4, 15.9</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.3×</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">23</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Gidney 2025 projection</td>
+<td style="text-align: right;">12.25</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">1×</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">25</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="figures/noise_models.svg"
+alt="Logical error per patch per round (either basis) at p = 0.1% under each memory model: points measured to d = 9, lines fitted, dashed beyond; and Gidney’s projection. Dotted: 10⁻¹⁵." />
+<figcaption aria-hidden="true">Logical error per patch per round (either
+basis) at p = 0.1% under each memory model: points measured to d = 9,
+lines fitted, dashed beyond; and Gidney’s projection. Dotted:
+10⁻¹⁵.</figcaption>
+</figure>
+<p>The distance that reaches 10⁻¹⁵ per patch-round runs from d = 23 to d
+= 29 across the four models, and Gidney’s d = 25 lies inside that range.
+SI1000 has the projection’s slope here (Λ = 11.6–12.3) but a 2.1× higher
+rate at d = 9; Stim’s circuit is below the projection. The calibration’s
+circuit is the most pessimistic: it depolarizes idle qubits in every
+layer and gives data qubits two idle layers a round, one for the
+ancillas’ measurement and one for their reset. Merging the two lowers
+the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12. Every result in this
+report rests on that circuit and leans pessimistic accordingly. (The SD6
+row fits the calibration’s memories like the others, over d ≤ 9; with
+all its memory lengths and d = 11 the calibrated model needs d =
+29.)</p>
 <h1 data-number="4" id="validation"><span
 class="header-section-number">4</span> Validation</h1>
 <ul>
@@ -1495,7 +1604,14 @@ Ostlund’s H₂ reproduced; tapering preserves the spectrum; the LiH
 active-space Hamiltonian’s ground energy equals PySCF’s CASSCF(2, 2) to
 10⁻⁹ Ha (and CASCI on RHF orbitals to 10⁻¹¹ Ha).</li>
 <li>Calibration: Stim + PyMatching cross-check; reference-qubit
-experiment against plain memories; composition test.</li>
+experiment against plain memories; composition test. The
+sampling-and-decoding runner is checked against PyMatching’s correlated
+decoder on the same samples (stabilizer-qec 2.x, like PyMatching,
+decodes with correlations only when asked at decode time as well; the
+calibration was run with 1.2).</li>
+<li>Noise models: SD6 applied layer by layer reproduces stabilizer-qec’s
+circuit’s error model exactly; the CZ rewrite is deterministic with
+graphlike distance d; SI1000’s rates are Table 3’s.</li>
 </ul>
 <h1 data-number="5" id="limitations"><span
 class="header-section-number">5</span> Limitations</h1>
@@ -1513,8 +1629,12 @@ Lee et al.’s floor plan) are not modelled, so only distances are
 compared.</li>
 <li>The LiH problem is a 2-qubit active space; chemistry at scale is
 represented only by FeMoco’s published counts.</li>
-<li>Noise is SD6 throughout; biased noise and the codes tailored to it
-(XZZX) are not modelled.</li>
+<li>The machine is calibrated on one circuit under one noise model:
+stabilizer-qec’s SD6 memory and surgery, which measure and reset
+ancillas in separate layers. Section 3.9 shows that this is the
+pessimistic end of four circuit-level models; results lean pessimistic
+by up to about a factor of two in logical error rate. Biased noise and
+the codes tailored to it (XZZX) are not modelled.</li>
 </ul>
 <h1 data-number="6" id="reproduction"><span
 class="header-section-number">6</span> Reproduction</h1>
@@ -1522,6 +1642,7 @@ class="header-section-number">6</span> Reproduction</h1>
 python tools/calibrate.py          # circuit-level experiments (resumable)
 python tools/fit_model.py          # data/calibration/model.json
 python tools/compose_check.py; python tools/xcheck.py
+python tools/noise_models.py; python tools/noise_models.py --summary
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
 python tools/scale.py; python tools/sensitivity.py

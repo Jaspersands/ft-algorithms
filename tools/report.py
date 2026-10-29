@@ -468,6 +468,10 @@ def main():
                           m["d_basis"] or "> 61", m["d_any"] or "> 61", m["d_shot"] or "> 61"])
         nrows.append(["Gidney 2025 projection", f"{sens['gidney_lambda']:.2f}", "—", "1×", sens["per_round"]["d_gidney"], sens["per_round"]["d_gidney"],
                       sens["gidney_projection"]["d"]])
+        V["nm_dmin"] = min(m["d_any"] for m in nm.values() if m["d_any"])
+        V["nm_dmax"] = max(m["d_any"] for m in nm.values() if m["d_any"])
+        mr = [nm["sd6"]["measured"][-1][b] / nm["sd6_mr"]["measured"][-1][b] for b in ("z", "x")]
+        V["nm_mr_lo"], V["nm_mr_hi"] = min(mr), max(mr)
         V["nm_table"] = table(["memory model (p = 0.1%)", "Λ (Z, X)", "largest d", "rate / projection there", "d: worse basis ≤ 10⁻¹⁵",
                                "d: either basis ≤ 10⁻¹⁵", "d: one shot at his budget"], nrows, ["l", "r", "r", "r", "r", "r", "r"])
 
@@ -566,9 +570,10 @@ abstract: |
   physical qubits and {fmt_time(V['tb2048']['seconds'])}; windowed arithmetic {fmt_time(V['mod2048']['seconds'])}
   with {fmt_q(V['mod2048']['physical_qubits'])}. At their authors' own failure budgets, the model gives Lee
   et al.'s FeMoco estimate its published d = {V['femoco']['estimate']['d']}, and Gidney's 2025 RSA-2048
-  estimate d = {sens['baseline']['d']} rather than {sens['published_d']}: within the measured distances SD6
-  memories already fail {V['g']['ratio_lo']:.1f}–{V['g']['ratio_hi']:.1f}× more often than the projection his
-  distance rests on, and their fitted suppression is weaker.
+  estimate d = {sens['baseline']['d']} rather than {sens['published_d']}. Memories under three more circuit-level
+  models put the distance for 10⁻¹⁵ per patch-round between {V['nm_dmin']} and {V['nm_dmax']}, a range that contains
+  his choice and of which the calibration's circuit, with separate measurement and reset layers, is the
+  pessimistic end.
 ---
 
 # Introduction
@@ -841,8 +846,7 @@ The gap is not only extrapolation. At the measured distances SD6 memories decode
 already fail {V['g']['ratio_lo']:.1f}–{V['g']['ratio_hi']:.1f}× more often than the projection, and the fitted suppression per two
 units of distance (Λ = {V['g']['lams'][0]:.1f} and {V['g']['lams'][-1]:.1f} for the two bases) is below its
 {sens['gidney_lambda']:.2f}, so the ratio grows to {V['g']['r25']['measured'] / V['g']['r25']['gidney']:.0f}× at d = {sens['published_d']}. The two
-are fits to different simulations (circuits, noise-model details and decoders all differ); this work does
-not isolate which difference matters.
+are fits to different simulations; Section 3.9 separates the circuit from the noise model.
 
 Running one shot of his algorithm through the estimator of this report:
 
@@ -853,9 +857,36 @@ succeed). The fit's uncertainty and a 15% steeper extrapolation move it by at mo
 do not move it at all, since idling is {100 * sens['baseline']['breakdown']['idle'] / sum(sens['baseline']['breakdown'].values()):.0f}% of the expected faults. Given his projection
 instead, the same estimator returns his d = {sens['gidney_projection']['d']}. Lee et al.'s FeMoco estimate assumes a suppression
 of 10 per two units of distance, close to the measured {V['g']['lams'][0]:.1f}–{V['g']['lams'][-1]:.1f}, and under the measured model it
-comes out at their d = {V['femoco']['estimate']['d']}. What the comparison
-shows is how much a distance chosen by extrapolation depends on the extrapolation; it is not a measurement of
-Gidney's design, which would need his layout, its yoked storage and his decoder simulated directly.
+comes out at their d = {V['femoco']['estimate']['d']}. None of this measures Gidney's design, which would need his
+layout, its yoked storage and his decoder simulated directly.
+
+## Which memory model?
+
+The measured model is one circuit under one noise model. To see how much the distance depends on that
+choice, the same memory experiments (d and 3d rounds, both bases, correlated matching, per-round rates
+from the ratio of the two) were run at p = 0.1% on three more: the same SD6 circuit with each round's
+measurement and reset of the ancillas in one layer, as hardware-style circuits have them; SI1000, the
+superconducting-inspired model of the yoked-surface-code paper's simulations (Table 3 of arXiv:2312.04522:
+CZ p, single-qubit gates and idling p/10, reset 2p, measurement 5p, qubits waiting for a measurement or
+reset 2p), on the circuit rewritten over CZ with one measure-and-reset layer; and Stim's generated memory
+with every parameter at p, one reading of the "uniform depolarizing" that labels Gidney 2025's Figure 6,
+which leaves qubits idle during gate layers noiseless. The noise is applied layer by layer by
+ftalgo.calib.circuit_noise, which given SD6 reproduces stabilizer-qec's own circuit's error model exactly.
+
+{V.get('nm_table', '')}
+
+![Logical error per patch per round (either basis) at p = 0.1% under each memory model: points measured to d = 9, lines fitted, dashed beyond; and Gidney's projection. Dotted: 10⁻¹⁵.]({V.get('fig_nm', '')})
+
+The distance that reaches 10⁻¹⁵ per patch-round runs from d = {V['nm_dmin']} to d = {V['nm_dmax']} across the four
+models, and Gidney's d = {sens['published_d']} lies inside that range. SI1000 has the projection's slope here
+(Λ = {min(nm['si1000']['lambda'].values()):.1f}–{max(nm['si1000']['lambda'].values()):.1f}) but a
+{(nm['si1000']['measured'][-1]['z'] + nm['si1000']['measured'][-1]['x']) / nm['si1000']['measured'][-1]['gidney']:.1f}× higher rate at d = {nm['si1000']['measured'][-1]['d']}; Stim's
+circuit is below the projection. The calibration's circuit is the most pessimistic: it depolarizes idle
+qubits in every layer and gives data qubits two idle layers a round, one for the ancillas' measurement and
+one for their reset. Merging the two lowers the d = {nm['sd6']['measured'][-1]['d']} rates {V['nm_mr_lo']:.1f}–{V['nm_mr_hi']:.1f}× and raises Λ to
+≈ {min(nm['sd6_mr']['lambda'].values()):.0f}. Every result in this report rests on that circuit and leans pessimistic accordingly. (The SD6 row
+fits the calibration's memories like the others, over d ≤ {nm['sd6']['measured'][-1]['d']}; with all its memory lengths and
+d = 11 the calibrated model needs d = {pr['d_measured']}.)
 
 # Validation
 
@@ -871,7 +902,11 @@ Gidney's design, which would need his layout, its yoked storage and his decoder 
   preserves the spectrum; the LiH active-space Hamiltonian's ground energy equals PySCF's CASSCF(2, 2) to
   10⁻⁹ Ha (and CASCI on RHF orbitals to 10⁻¹¹ Ha).
 - Calibration: Stim + PyMatching cross-check; reference-qubit experiment against plain memories;
-  composition test.
+  composition test. The sampling-and-decoding runner is checked against PyMatching's correlated decoder
+  on the same samples (stabilizer-qec 2.x, like PyMatching, decodes with correlations only when asked at
+  decode time as well; the calibration was run with 1.2).
+- Noise models: SD6 applied layer by layer reproduces stabilizer-qec's circuit's error model exactly; the
+  CZ rewrite is deterministic with graphlike distance d; SI1000's rates are Table 3's.
 
 # Limitations
 
@@ -883,7 +918,10 @@ Gidney's design, which would need his layout, its yoked storage and his decoder 
 - Published algorithms enter only through their gate counts and run times; their layouts (Gidney 2025's
   yoked storage and parallel lookups, Lee et al.'s floor plan) are not modelled, so only distances are compared.
 - The LiH problem is a 2-qubit active space; chemistry at scale is represented only by FeMoco's published counts.
-- Noise is SD6 throughout; biased noise and the codes tailored to it (XZZX) are not modelled.
+- The machine is calibrated on one circuit under one noise model: stabilizer-qec's SD6 memory and surgery,
+  which measure and reset ancillas in separate layers. Section 3.9 shows that this is the pessimistic end
+  of four circuit-level models; results lean pessimistic by up to about a factor of two in logical error
+  rate. Biased noise and the codes tailored to it (XZZX) are not modelled.
 
 # Reproduction
 

@@ -70,7 +70,19 @@ H₂ and HeH⁺ in STO-3G are simulated whole (tapered to 2 qubits). LiH is a de
 | RSA-2048, Gidney 2025 (one shot) | 6.7% | 25 | 29 |
 | FeMoco (THC), Lee et al. 2021 | 1.0% | 31 | 31 |
 
-Gidney 2025 picks d = 25 because his projection of surface-code memory reaches 1e-15 errors per patch per round there. The measured model (SD6 noise, correlated matching) reaches it at d = 29 (d = 27–29 within the fit's 1σ band). At the measured distances its rates are already 3.4–6.5× his projection, and the gap widens with d because the fitted suppression per two units of distance (Λ = 10.1 and 10.9 for the two bases) is below the projection's 12.25; at d = 25 the fit extrapolates to 1.30e-14 per patch-round (1σ: 9.95e-15–1.70e-14). One shot of his algorithm through the estimator needs d = 29 at his budget (d = 27 at 90%); the same estimator with his projection in place of the measured model returns d = 25. Both models are extrapolations from simulations at small distance, so the comparison shows how much the distance depends on that extrapolation; it is not a measurement of his design.
+Gidney 2025 picks d = 25 because his projection of surface-code memory reaches 1e-15 errors per patch per round there. The measured model (SD6 noise, correlated matching) reaches it at d = 29 (d = 27–29 within the fit's 1σ band). At the measured distances its rates are already 3.4–6.5× his projection, and the gap widens with d because the fitted suppression per two units of distance (Λ = 10.1 and 10.9 for the two bases) is below the projection's 12.25; at d = 25 the fit extrapolates to 1.30e-14 per patch-round (1σ: 9.95e-15–1.70e-14). One shot of his algorithm through the estimator needs d = 29 at his budget (d = 27 at 90%); the same estimator with his projection in place of the measured model returns d = 25. The table below shows how much of that gap is the circuit and noise model rather than his design.
+
+**Which memory model?** Memories at p = 0.1% under other circuits and noise models, each decoded by correlated matching and fitted the same way (per-round rates from d and 3d rounds), against the projection:
+
+| memory model | Λ (Z, X) | measured to d | rate ÷ projection there | d, worse basis ≤ 1e-15 | d, either basis ≤ 1e-15 | d, one shot at his budget |
+|---|---:|---:|---:|---:|---:|---:|
+| SD6, as calibrated: separate measure and reset layers | 10.8, 10.5 | 9 | 5.9× | 27 | 29 | 27 |
+| SD6, one measure-and-reset layer | 12.0, 11.8 | 9 | 3.2× | 27 | 27 | 27 |
+| SI1000 on CZ, one measure-and-reset layer | 11.6, 12.3 | 9 | 2.1× | 27 | 27 | 27 |
+| uniform depolarizing, Stim's generated circuit | 20.4, 15.9 | 9 | 0.3× | 23 | 23 | 23 |
+| Gidney 2025 projection, 3.5^−d/40 | 12.25 | — | 1× | 25 | 25 | 25 |
+
+The distance that reaches 1e-15 per patch-round at p = 0.1% runs from d = 23 to d = 29 across these circuit-level models, and Gidney's d = 25 lies inside that range. SI1000, the noise model of the yoked-surface-code paper's simulations (arXiv:2312.04522), has the projection's slope here (Λ = 11.6–12.3) but a 2.1× higher rate at d = 9, and needs d = 27. Gidney 2025 labels the projection uniform depolarizing; Stim's generated circuit with every parameter at p, one reading of that which leaves qubits idle during gate layers noiseless, is below it. The calibration's circuit is the most pessimistic of the four: it depolarizes idle qubits in every layer and measures and resets the ancillas in separate layers, so data qubits idle through two of them each round. Merging them alone lowers the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12, so every result here leans pessimistic by about that. (The SD6 row is the calibration's own memories fitted like the others, over d ≤ 9; with all its memory lengths and d = 11 the calibrated model needs d = 29.)
 <!-- results:end -->
 
 ## How it is checked
@@ -119,6 +131,9 @@ Magic-state error rates and factory footprints (Litinski 2019; Gidney, Shutty & 
 2025), the H and S operation model of the fast-block layout, 1 µs rounds and a 10 µs decoder reaction
 time are cited inputs, not measured here. Logical channels are measured up to d = 11 (idling) and
 d = 9 (surgery) at p = 0.1%; runs at larger distances use extrapolated channels and are marked as
-such, and every RSA-2048 and FeMoco number is an extrapolation. See the report's Limitations.
+such, and every RSA-2048 and FeMoco number is an extrapolation. The calibrated circuit is
+stabilizer-qec's SD6 memory, which measures and resets ancillas in separate layers; with one
+measure-and-reset layer the same noise errs about half as often at d = 9 (see "Which memory model?"),
+so results lean pessimistic. See the report's Limitations.
 
 MIT licensed. To cite it, see [CITATION.cff](CITATION.cff).

@@ -132,8 +132,7 @@ def build() -> str:
         f"{sci(r25['measured'])} per patch-round (1σ: {sci(r25['lo1'])}–{sci(r25['hi1'])}). One shot of his algorithm "
         f"through the estimator needs d = {sens['baseline']['d']} at his budget (d = {budget90['d']} at 90%); the same "
         f"estimator with his projection in place of the measured model returns d = {sens['gidney_projection']['d']}. "
-        f"Both models are extrapolations from simulations at small distance, so the comparison shows how much the "
-        f"distance depends on that extrapolation; it is not a measurement of his design.")
+        f"The table below shows how much of that gap is the circuit and noise model rather than his design.")
 
     nm = sens.get("noise_models")
     if nm:
@@ -152,6 +151,24 @@ def build() -> str:
                        f"{m['d_basis'] or '> 61'} | {m['d_any'] or '> 61'} | {m['d_shot'] or '> 61'} |")
         out.append(f"| Gidney 2025 projection, 3.5^−d/40 | {sens['gidney_lambda']:.2f} | — | 1× | {pr['d_gidney']} | {pr['d_gidney']} | "
                    f"{sens['gidney_projection']['d']} |")
+        ds = [nm[k]["d_any"] for k in nm if nm[k]["d_any"]]
+        top = {k: nm[k]["measured"][-1] for k in nm}
+        mr = {b: top["sd6"][b] / top["sd6_mr"][b] for b in ("z", "x")}
+        si = nm["si1000"]
+        out.append(
+            f"\nThe distance that reaches 1e-15 per patch-round at p = 0.1% runs from d = {min(ds)} to d = {max(ds)} across these "
+            f"circuit-level models, and Gidney's d = {sens['published_d']} lies inside that range. SI1000, the noise model of the "
+            f"yoked-surface-code paper's simulations (arXiv:2312.04522), has the projection's slope here (Λ = "
+            f"{min(si['lambda'].values()):.1f}–{max(si['lambda'].values()):.1f}) but a "
+            f"{(top['si1000']['z'] + top['si1000']['x']) / top['si1000']['gidney']:.1f}× higher rate at d = {top['si1000']['d']}, and "
+            f"needs d = {si['d_any']}. Gidney 2025 labels the projection uniform depolarizing; Stim's generated circuit with every "
+            f"parameter at p, one reading of that which leaves qubits idle during gate layers noiseless, is below it. The "
+            f"calibration's circuit is the most pessimistic of the four: it "
+            f"depolarizes idle qubits in every layer and measures and resets the ancillas in separate layers, so data qubits idle "
+            f"through two of them each round. Merging them alone lowers the d = {top['sd6']['d']} rates "
+            f"{min(mr.values()):.1f}–{max(mr.values()):.1f}× and raises Λ to ≈ {min(nm['sd6_mr']['lambda'].values()):.0f}, so every "
+            f"result here leans pessimistic by about that. (The SD6 row is the calibration's own memories fitted like the others, "
+            f"over d ≤ {top['sd6']['d']}; with all its memory lengths and d = 11 the calibrated model needs d = {pr['d_measured']}.)")
 
     return "\n".join(out)
 

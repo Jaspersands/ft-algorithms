@@ -32,6 +32,9 @@ def main():
           f"Gidney's projection d = {r['gidney_projection']['d']} (published {r['published_d']})")
     for s in r["scenarios"]:
         print(f"  {s['category']:<14} {s['name']:<48} d = {s['d']}")
+    for k, m in (r["noise_models"] or {}).items():
+        print(f"  memory model {k:<8} Λ = {m['lambda']['z']:.1f}, {m['lambda']['x']:.1f}  d (worse basis, either, one shot) = "
+              f"{m['d_basis']}, {m['d_any']}, {m['d_shot']}")
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as f:
         json.dump(r, f, indent=1)
