@@ -29,25 +29,38 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "data", "results", "qpe")
 PARAMS = {"m": 10, "tau": 2 * math.pi, "steps": 4, "order": 4}
 
 
+D_RANGE = {"lo_faults": 12.0, "hi_faults": 0.01, "dmax": 35}
+
+
+def build(name):
+    """The phase-estimation circuit for a molecule, its parameters and qubit problem, and the
+    scorer: per shot [within chemical accuracy, within 4× that]."""
+    prob = qubit_problem(molecule(name))
+    circ, info = qpe.qpe_circuit(prob.hamiltonian, prob.hf_bits, e_ref=prob.e_hf, **PARAMS)
+
+    def score(rows):
+        e = info.energies(rows)
+        return np.stack([np.abs(e - prob.e_fci) < qpe.CHEMICAL_ACCURACY, np.abs(e - prob.e_fci) < 4 * qpe.CHEMICAL_ACCURACY], axis=1)
+
+    return circ, info, score, prob
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mol", nargs="*", default=["H2", "HeH+"])
     ap.add_argument("--p", type=float, nargs="*", default=[0.001])
     ap.add_argument("--factory", nargs="*", default=["cultivation", "15to1"])
     ap.add_argument("--shots", type=int, default=1000)
+    ap.add_argument("--model", default=None, help="a fitted model other than data/calibration/model.json")
+    ap.add_argument("--out", default=OUT)
     args = ap.parse_args()
-    os.makedirs(OUT, exist_ok=True)
-    model = LogicalModel.load()
+    out = args.out
+    os.makedirs(out, exist_ok=True)
+    model = LogicalModel.load(args.model) if args.model else LogicalModel.load()
     for name in args.mol:
-        prob = qubit_problem(molecule(name))
-        circ, info = qpe.qpe_circuit(prob.hamiltonian, prob.hf_bits, e_ref=prob.e_hf, **PARAMS)
-
-        def score(rows, info=info, prob=prob):
-            e = info.energies(rows)
-            return np.stack([np.abs(e - prob.e_fci) < qpe.CHEMICAL_ACCURACY, np.abs(e - prob.e_fci) < 4 * qpe.CHEMICAL_ACCURACY], axis=1)
-
+        circ, info, score, prob = build(name)
         tag = name.replace("+", "p")
-        base = os.path.join(OUT, f"{tag}-baselines.json")
+        base = os.path.join(out, f"{tag}-baselines.json")
         if not os.path.exists(base):
             ideal = qpe.ideal_distribution(prob.hamiltonian, prob.hf_bits, info)
             y = np.arange(1 << info.m)
@@ -66,9 +79,9 @@ def main():
             }, open(base, "w"), indent=1)
         for p in args.p:
             for fac in args.factory:
-                for d in d_range(circ, model, p, fac, lo_faults=12.0, hi_faults=0.01, dmax=35):
+                for d in d_range(circ, model, p, fac, **D_RANGE):
                     cfg = f"{tag}-{fac}-p{p}-d{d}"
-                    path = os.path.join(OUT, cfg + ".json")
+                    path = os.path.join(out, cfg + ".json")
                     if os.path.exists(path):
                         continue
                     r = run_config(circ, score, model, d=d, p=p, factory=fac, seed=zlib.crc32(cfg.encode()), shots=args.shots)

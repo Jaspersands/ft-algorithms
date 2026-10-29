@@ -1,0 +1,138 @@
+# The algorithm grid (tools/grid.py) under a chosen calibration, run by hand
+# (Actions → Algorithm grid → Run workflow). One job plans and builds the engine, up to
+# 256 jobs each run a share of the chunks, and a last job merges them and commits the
+# chunks and the merged results to the data-only branch grid-results:
+#
+#   grid-results/parts/        one JSON per chunk
+#   grid-results/<out>/        one JSON per configuration, laid out like data/results/
+#
+# Run it again after a partial run (a job past the time limit, a cancelled run): the plan
+# skips every chunk already on grid-results, so only the missing ones run.
+name: Algorithm grid
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Fitted model
+        default: data/calibration/model_mr.json
+      out:
+        description: Directory for the merged results (on grid-results)
+        default: results_mr
+      jobs:
+        description: Number of jobs
+        default: "60"
+
+permissions:
+  contents: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.plan.outputs.jobs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build the engine
+        run: |
+          pip install -q maturin numpy scipy mpmath pygridsynth pyscf
+          maturin build --release --out dist -q
+          python - <<'PY'
+          import glob, shutil, zipfile
+          whl = glob.glob("dist/ftalgo-*.whl")[0]
+          with zipfile.ZipFile(whl) as z:
+              name = [n for n in z.namelist() if n.startswith("ftalgo/_ftsim")][0]
+              with z.open(name) as src, open("python/" + name, "wb") as dst:
+                  shutil.copyfileobj(src, dst)
+          PY
+      - name: Chunks already done
+        run: |
+          mkdir -p done
+          if git fetch -q origin grid-results; then
+            git archive FETCH_HEAD parts | tar -x -C done || true
+          fi
+          ls done/parts 2>/dev/null | wc -l
+      - id: plan
+        name: Plan
+        run: |
+          python tools/grid.py plan --model "${{ inputs.model }}" --out "${{ inputs.out }}" \
+            --jobs "${{ inputs.jobs }}" --parts done/parts > plan.json
+          python -c "import json; print('jobs=' + json.dumps(list(range(len(json.load(open('plan.json'))['jobs'])))))" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plan
+          path: |
+            plan.json
+            python/ftalgo/_ftsim*
+
+  run:
+    needs: plan
+    if: needs.plan.outputs.jobs != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        job: ${{ fromJson(needs.plan.outputs.jobs) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -q numpy scipy mpmath pygridsynth pyscf
+      - uses: actions/download-artifact@v4
+        with:
+          name: plan
+      - name: Run this job's chunks
+        # Stop short of the job limit so the chunks finished so far are still uploaded.
+        continue-on-error: true
+        run: timeout 330m python tools/grid.py run --plan plan.json --job ${{ matrix.job }} --parts parts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: parts-${{ matrix.job }}
+          path: parts/*.json
+          if-no-files-found: ignore
+
+  collect:
+    needs: [plan, run]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -q numpy scipy
+      - uses: actions/download-artifact@v4
+        with:
+          name: plan
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: parts-*
+          path: new-parts
+          merge-multiple: true
+      - name: Merge and commit to grid-results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch -q origin grid-results; then
+            git worktree add -q ../res FETCH_HEAD
+            git -C ../res checkout -q -B grid-results
+          else
+            git worktree add -q --detach ../res
+            git -C ../res checkout -q --orphan grid-results
+            git -C ../res rm -rfq .
+          fi
+          mkdir -p ../res/parts
+          cp new-parts/*.json ../res/parts/ 2>/dev/null || true
+          cp plan.json ../res/plan.json
+          python tools/grid.py merge --plan plan.json --parts ../res/parts --out "../res/${{ inputs.out }}" | tee merge.txt
+          cd ../res
+          git add -A
+          git commit -q -m "Algorithm grid: $(cat "$GITHUB_WORKSPACE/merge.txt")" -m "model ${{ inputs.model }}, run ${{ github.run_id }}" || echo "nothing new"
+          git push -q origin grid-results
