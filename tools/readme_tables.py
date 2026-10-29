@@ -11,6 +11,11 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
+def band(b, within="within 1σ"):
+    """A 1σ distance band as text: 'd = 27–29 within 1σ', or 'd = 27 at either 1σ edge'."""
+    return f"d = {b['-1']} at either 1σ edge" if b["-1"] == b["1"] else f"d = {b['-1']}–{b['1']} {within}"
+
+
 def real(paths):
     """Drops sync-conflict copies ("name 2.json"), in a fixed order: glob's order is the
     filesystem's, and the tables must not depend on it."""
@@ -133,7 +138,7 @@ def build() -> str:
     out.append(
         f"\nGidney 2025 picks d = {sens['published_d']} because his projection of surface-code memory reaches "
         f"{pr['target']:.0e} errors per patch per round there. The measured model (SD6 noise, correlated matching) "
-        f"reaches it at d = {pr['d_measured']} (d = {pr['d_band']['-1']}–{pr['d_band']['1']} within the fit's 1σ band). "
+        f"reaches it at d = {pr['d_measured']} ({band(pr['d_band'], "within the fit's 1σ band")}). "
         f"At the measured distances its rates are already {min(meas):.1f}–{max(meas):.1f}× his projection, and the gap "
         f"widens with d because the fitted suppression per two units of distance (Λ = {lam[0]:.1f} and {lam[-1]:.1f} for "
         f"the two bases) is below the projection's {sens['gidney_lambda']:.2f}; at d = {sens['published_d']} the fit extrapolates to "
@@ -184,7 +189,7 @@ def build() -> str:
             f"\n**Recalibrated with one measure-and-reset layer.** Every calibration experiment was rerun on the same "
             f"circuits with each reset layer folded into the measurement layer before it (`tools/calibrate.py --mr`; "
             f"data/calibration/raw_mr/, model_mr.json). Idling then has Λ = {lam_mr[0]:.1f}–{lam_mr[-1]:.1f}, reaches 1e-15 per "
-            f"patch-round at d = {mr['d_round']} (d = {mr['d_band']['-1']}–{mr['d_band']['1']} within 1σ), and one shot of "
+            f"patch-round at d = {mr['d_round']} ({band(mr['d_band'])}), and one shot of "
             f"Gidney's algorithm needs d = {mr['one_shot']['d']} at his budget. The tables above show both calibrations; the "
             f"simulated algorithm runs (Shor, phase estimation) use the original one.")
 

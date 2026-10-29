@@ -50,6 +50,11 @@ plt.rcParams.update({
 })
 
 
+def band(b, within="within 1σ"):
+    """A 1σ distance band as text: 'd = 27–29 within 1σ', or 'd = 27 at either 1σ edge'."""
+    return f"d = {b['-1']} at either 1σ edge" if b["-1"] == b["1"] else f"d = {b['-1']}–{b['1']} {within}"
+
+
 def jload(p):
     return json.loads(pathlib.Path(p).read_text())
 
@@ -569,7 +574,7 @@ def main():
 each reset layer folded into the measurement layer before it (ftalgo.calib.circuit_noise.merge_measure_reset_layers: every
 noise channel kept except the reset layer's idle depolarizing; on memories it is the SD6 one-layer model above exactly).
 Idling then has Λ = {lam[0]:.1f}–{lam[-1]:.1f} at p = 0.1%, reaches 10⁻¹⁵ per patch-round at d = {mrsens['d_round']}
-(d = {mrsens['d_band']['-1']}–{mrsens['d_band']['1']} within 1σ), and one shot of Gidney's algorithm needs d = {mrsens['one_shot']['d']}
+({band(mrsens['d_band'])}), and one shot of Gidney's algorithm needs d = {mrsens['one_shot']['d']}
 at his budget; textbook RSA-2048 needs d = {tb_mr['d']} ({fmt_q(tb_mr['physical_qubits'])} physical qubits).{comp} Section 3.7's
 tables give both calibrations."""
 
@@ -863,7 +868,7 @@ Gidney chooses d = {sens['published_d']} because his projection of surface-code 
 p~L~ ≈ 3.5^−d^/40 per patch per round, from the yoked-surface-code simulations of Gidney, Newman, Brooks
 and Jones) first reaches 10⁻¹⁵ per patch per round there; over a 12-hour shot of up to 1,600
 logical qubits that leaves 93.3% of shots free of logical errors. Asked the same question, the measured
-model answers d = {pr['d_measured']} (d = {pr['d_band']['-1']}–{pr['d_band']['1']} within the fit's 1σ band):
+model answers d = {pr['d_measured']} ({band(pr['d_band'], "within the fit's 1σ band")}):
 
 {V['per_round_table']}
 
