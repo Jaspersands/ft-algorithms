@@ -23,26 +23,35 @@ from ftalgo.experiment import d_range, run_config
 OUT = os.path.join(os.path.dirname(__file__), "..", "data", "results", "shor_modern")
 
 
+def build(N):
+    """The windowed order-finding circuit for N, its parameters, and the scorer: per shot [peak, factors found]."""
+    circ, info = am.order_finding_modern(N)
+    table = shor.success_table(N, info.a, info.m)
+    peaks = shor.peak_table(N, info.a, info.m)
+
+    def score(rows):
+        y = info.outcomes(rows)
+        return np.stack([peaks[y], table[y]], axis=1)
+
+    return circ, info, score, table, peaks
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--N", type=int, nargs="*", default=[15, 21, 35])
     ap.add_argument("--p", type=float, nargs="*", default=[0.001])
     ap.add_argument("--factory", nargs="*", default=["cultivation", "15to1"])
     ap.add_argument("--shots", type=int, default=2000)
+    ap.add_argument("--model", default=None, help="a fitted model other than data/calibration/model.json")
+    ap.add_argument("--out", default=OUT)
     args = ap.parse_args()
-    os.makedirs(OUT, exist_ok=True)
-    model = LogicalModel.load()
+    out = args.out
+    os.makedirs(out, exist_ok=True)
+    model = LogicalModel.load(args.model) if args.model else LogicalModel.load()
 
     for N in args.N:
-        circ, info = am.order_finding_modern(N)
-        table = shor.success_table(N, info.a, info.m)
-        peaks = shor.peak_table(N, info.a, info.m)
-
-        def score(rows, info=info, table=table, peaks=peaks):
-            y = info.outcomes(rows)
-            return np.stack([peaks[y], table[y]], axis=1)  # [peak, factors found]
-
-        base_path = os.path.join(OUT, f"N{N}-baselines.json")
+        circ, info, score, table, peaks = build(N)
+        base_path = os.path.join(out, f"N{N}-baselines.json")
         if not os.path.exists(base_path):
             print(f"Computing noiseless baseline for N={N}...", flush=True)
             prog = Program(circ.to_text())
@@ -64,7 +73,7 @@ def main():
                 ds = d_range(circ, model, p, fac)
                 for d in ds:
                     name = f"N{N}-{fac}-p{p}-d{d}"
-                    path = os.path.join(OUT, name + ".json")
+                    path = os.path.join(out, name + ".json")
                     if os.path.exists(path):
                         continue
                     r = run_config(

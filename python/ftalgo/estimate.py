@@ -117,7 +117,7 @@ def stratified(
         var += w * w * vk
         total += n
         last = sk
-        strata.append({"k": k, "weight": w, "shots": n, "score": out(sk)})
+        strata.append({"k": k, "weight": w, "shots": n, "score": out(sk), "sd": out(np.sqrt(vk * n))})
         if k == 1 and attribute:
             static = faults.site != faults.DYNAMIC
             shot_cls = np.full(n, -1)
@@ -131,6 +131,52 @@ def stratified(
     if last is not None:
         value += t * last
     return Estimate(out(value), out(np.sqrt(var)), t, "stratified", strata, per_class, total)
+
+
+def _pool(n: np.ndarray, m: np.ndarray, sd: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Mean and sample variance of the union of groups with sizes n, means m and sample SDs sd."""
+    total = n.sum()
+    mean = (n[:, None] * m).sum(axis=0) / total
+    ss = ((n[:, None] - 1) * sd**2 + n[:, None] * (m - mean) ** 2).sum(axis=0)
+    return mean, ss / max(total - 1, 1)
+
+
+def merge(parts: list[dict]) -> Estimate:
+    """One configuration sampled in independent chunks (each an Estimate.to_json() from the same
+    program, so the same strata weights and tail): the estimate of all their shots together."""
+    first = parts[0]
+    single = np.isscalar(first["value"])
+    vec = lambda v: np.atleast_1d(np.asarray(v, dtype=float))  # noqa: E731
+    out = lambda v: float(v[0]) if single else [float(x) for x in v]  # noqa: E731
+    if first["method"] == "plain":
+        n = np.array([q["shots"] for q in parts], dtype=float)
+        sd = np.array([vec(q["sigma"]) * math.sqrt(q["shots"]) for q in parts])
+        mean, var = _pool(n, np.array([vec(q["value"]) for q in parts]), sd)
+        return Estimate(out(mean), out(np.sqrt(var / n.sum())), 0.0, "plain", shots=int(n.sum()))
+    by_k: dict = {}
+    for q in parts:
+        for st in q["strata"]:
+            by_k.setdefault(st["k"], []).append(st)
+    value = var = 0.0
+    strata = []
+    last = None
+    for k in sorted(by_k):
+        group = by_k[k]
+        w = group[0]["weight"]
+        n = np.array([st["shots"] for st in group], dtype=float)
+        mean, v = _pool(n, np.array([vec(st["score"]) for st in group]), np.array([vec(st["sd"]) for st in group]))
+        value = value + w * mean
+        var = var + w * w * (v / n.sum() if n.sum() > 1 else np.full_like(mean, 0.25))
+        strata.append({"k": k, "weight": w, "shots": int(n.sum()), "score": out(mean), "sd": out(np.sqrt(v))})
+        last = mean
+    if last is not None:
+        value = value + first["tail"] * last
+    single_fault: dict = {}
+    for q in parts:
+        for cls, (n, m) in q["single_fault"].items():
+            n0, m0 = single_fault.get(cls, (0, 0.0))
+            single_fault[cls] = (n0 + n, out((n0 * vec(m0) + n * vec(m)) / (n0 + n)))
+    return Estimate(out(value), out(np.sqrt(var)), first["tail"], "stratified", strata, single_fault, sum(q["shots"] for q in parts))
 
 
 def error_budget(budget: dict, est: Estimate, i: int = 0) -> dict:

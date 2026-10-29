@@ -8,6 +8,7 @@ Output: data/results/lih.json
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import pathlib
@@ -31,6 +32,11 @@ MIN_SHOTS = 60
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--model", default=None, help="a fitted model other than data/calibration/model.json")
+    ap.add_argument("--out", default=str(OUT))
+    args = ap.parse_args()
+    out = pathlib.Path(args.out)
     print("Computing LiH potential energy dissociation curve...")
     r_sweep = np.linspace(1.0, 3.0, 15)
     curve_pts = lih_dissociation_curve(r_sweep)
@@ -78,15 +84,15 @@ def main():
     noiseless_shots = p_noiseless.sample(300, seed=1, faults="none")
     noiseless_score = score(noiseless_shots).mean(axis=0)
 
-    model = LogicalModel.load()
+    model = LogicalModel.load(args.model) if args.model else LogicalModel.load()
     runs = []
-    if OUT.exists():
+    if out.exists():
         try:
-            prev = json.loads(OUT.read_text())
+            prev = json.loads(out.read_text())
             # Only resume runs computed for the same Hamiltonian and shot budget.
             if prev.get("orbitals") == "casscf" and prev.get("shots") == SHOTS:
                 runs = prev.get("runs", [])
-            print(f"Loaded {len(runs)} existing runs from {OUT}", flush=True)
+            print(f"Loaded {len(runs)} existing runs from {out}", flush=True)
         except Exception:
             runs = []
 
@@ -110,8 +116,8 @@ def main():
             "dissociation_curve": curve_data,
             "runs": runs,
         }
-        OUT.parent.mkdir(parents=True, exist_ok=True)
-        OUT.write_text(json.dumps(result, indent=2))
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(result, indent=2))
 
     save_current()
 
@@ -159,7 +165,7 @@ def main():
         save_current()
         print(
             f"{cfg_tag}: chem.acc. {res['scores'][0]:.3f} ± {res['score_sigmas'][0]:.3f}  "
-            f"E[faults] {res['expected_faults']:.3g}  ({res['wall_seconds']} s) [saved to {OUT}]",
+            f"E[faults] {res['expected_faults']:.3g}  ({res['wall_seconds']} s) [saved to {out}]",
             flush=True,
         )
 

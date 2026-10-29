@@ -12,7 +12,7 @@ from .arch import FACTORIES, Architecture
 from .calib.model import LogicalModel
 from .circuit import Circuit
 from .engine import Program
-from .estimate import error_budget, stratified
+from .estimate import error_budget, merge, stratified
 from .schedule import compile_noisy
 
 
@@ -60,6 +60,22 @@ def run_config(
         "extrapolated": bool(arch.extrapolated),
         "wall_seconds": round(time.time() - t0, 1),
     }
+
+
+def merge_runs(parts: list[dict]) -> dict:
+    """run_config results for one configuration sampled in chunks (different seeds, shots split
+    between them): one result, as if from all the shots at once."""
+    est = merge([q["estimate"] for q in parts])
+    vals = est.value if isinstance(est.value, list) else [est.value]
+    sigs = est.sigma if isinstance(est.sigma, list) else [est.sigma]
+    r = dict(parts[0])
+    r.update({
+        "success": vals[0], "sigma": sigs[0], "scores": vals, "score_sigmas": sigs,
+        "interval": list(est.interval()), "estimate": est.to_json(),
+        "error_budget": error_budget(dict(parts[0]["budget"]), est),
+        "wall_seconds": round(sum(q["wall_seconds"] for q in parts), 1), "chunks": len(parts),
+    })
+    return r
 
 
 def d_range(circ: Circuit, model: LogicalModel, p: float, factory: str, lo_faults: float = 40.0, hi_faults: float = 0.003, dmax: int = 31) -> list[int]:
