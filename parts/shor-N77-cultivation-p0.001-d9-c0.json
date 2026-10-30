@@ -1,0 +1,92 @@
+{
+ "d": 9,
+ "p": 0.001,
+ "factory": "cultivation",
+ "success": 0.0014992503748125937,
+ "sigma": 0.001499250374812582,
+ "scores": [
+  0.0014992503748125937,
+  1.0
+ ],
+ "score_sigmas": [
+  0.001499250374812582,
+  0.0
+ ],
+ "interval": [
+  0.0,
+  0.004497751124437757
+ ],
+ "estimate": {
+  "value": [
+   0.0014992503748125937,
+   1.0
+  ],
+  "sigma": [
+   0.001499250374812582,
+   0.0
+  ],
+  "tail": 0.0,
+  "method": "plain",
+  "strata": [],
+  "single_fault": {},
+  "shots": 667
+ },
+ "expected_faults": 20.2594894472003,
+ "budget": {
+  "measure": 2.7055997075012508e-05,
+  "CCZ": 0.5234525645856166,
+  "idle": 17.616830347049415,
+  "CNOT": 2.1191794795539183,
+  "S": 0.004067228192511704,
+  "T": 0.005057864650730002
+ },
+ "error_budget": {
+  "measure": {
+   "expected_faults": 2.7055997075012508e-05,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "CCZ": {
+   "expected_faults": 0.5234525645856166,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "idle": {
+   "expected_faults": 17.616830347049415,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "CNOT": {
+   "expected_faults": 2.1191794795539183,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "S": {
+   "expected_faults": 0.004067228192511704,
+   "single_fault_score": null,
+   "loss": null
+  },
+  "T": {
+   "expected_faults": 0.005057864650730002,
+   "single_fault_score": null,
+   "loss": null
+  }
+ },
+ "rounds": 749327,
+ "seconds": 0.749327,
+ "logical_qubits": 27,
+ "physical_qubits": {
+  "data": 14000,
+  "factories": 51993.05510144436,
+  "total": 65993.05510144436
+ },
+ "t_count": 506,
+ "ccz_count": 16170,
+ "eps_t": 2e-09,
+ "eps_ccz": 1.12e-16,
+ "extrapolated": false,
+ "wall_seconds": 1518.8,
+ "N": 77,
+ "a": 2,
+ "algorithm": "shor"
+}

@@ -1,0 +1,4145 @@
+{
+ "model": "data/calibration/model_mr.json",
+ "out": "results_mr",
+ "items": [
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N143-15to1-p0.001-d9",
+   "expected_faults": 32.55350261161791,
+   "cost": 49145.5,
+   "chunks": 28
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N143-15to1-p0.001-d11",
+   "expected_faults": 3.4176758509841947,
+   "cost": 49145.5,
+   "chunks": 28
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N143-15to1-p0.001-d13",
+   "expected_faults": 0.34903684440418337,
+   "cost": 1687.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N143-15to1-p0.001-d15",
+   "expected_faults": 0.03520249570942642,
+   "cost": 298.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N143-15to1-p0.001-d17",
+   "expected_faults": 0.003539736459457813,
+   "cost": 150.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 19,
+   "name": "N143-15to1-p0.001-d19",
+   "expected_faults": 0.0003584577031271195,
+   "cost": 71.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N143-cultivation-p0.001-d9",
+   "expected_faults": 32.553501380301235,
+   "cost": 12811.1,
+   "chunks": 8
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N143-cultivation-p0.001-d11",
+   "expected_faults": 3.4176746196289045,
+   "cost": 12811.1,
+   "chunks": 8
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N143-cultivation-p0.001-d13",
+   "expected_faults": 0.34903561304776204,
+   "cost": 1714.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N143-cultivation-p0.001-d15",
+   "expected_faults": 0.03520126435300514,
+   "cost": 324.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N143-cultivation-p0.001-d17",
+   "expected_faults": 0.003538505103036545,
+   "cost": 133.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "N143-cultivation-p0.001-d19",
+   "expected_faults": 0.00035722634933485947,
+   "cost": 72.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 9,
+   "name": "N143-injected-p0.001-d9",
+   "expected_faults": 33.21652182813893,
+   "cost": 14253.9,
+   "chunks": 8
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 11,
+   "name": "N143-injected-p0.001-d11",
+   "expected_faults": 4.080712220121665,
+   "cost": 14253.9,
+   "chunks": 8
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 13,
+   "name": "N143-injected-p0.001-d13",
+   "expected_faults": 1.0120753141599137,
+   "cost": 2624.5,
+   "chunks": 2
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 15,
+   "name": "N143-injected-p0.001-d15",
+   "expected_faults": 0.6982412266769749,
+   "cost": 2344.4,
+   "chunks": 2
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 17,
+   "name": "N143-injected-p0.001-d17",
+   "expected_faults": 0.6665785003048198,
+   "cost": 2361.8,
+   "chunks": 2
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N143-15to1-p0.002-d15",
+   "expected_faults": 15.374957947312868,
+   "cost": 17197.7,
+   "chunks": 10
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N143-15to1-p0.002-d17",
+   "expected_faults": 3.403818647684147,
+   "cost": 4506.7,
+   "chunks": 3
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 19,
+   "name": "N143-15to1-p0.002-d19",
+   "expected_faults": 0.751701745819392,
+   "cost": 1319.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 21,
+   "name": "N143-15to1-p0.002-d21",
+   "expected_faults": 0.16668008253687547,
+   "cost": 537.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 23,
+   "name": "N143-15to1-p0.002-d23",
+   "expected_faults": 0.03733460643331282,
+   "cost": 146.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 25,
+   "name": "N143-15to1-p0.002-d25",
+   "expected_faults": 0.008521442116141774,
+   "cost": 179.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 27,
+   "name": "N143-15to1-p0.002-d27",
+   "expected_faults": 0.002024993440125772,
+   "cost": 78.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N143-cultivation-p0.002-d15",
+   "expected_faults": 15.37487914831501,
+   "cost": 18527.9,
+   "chunks": 11
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N143-cultivation-p0.002-d17",
+   "expected_faults": 3.4037398476153937,
+   "cost": 4413.2,
+   "chunks": 3
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "N143-cultivation-p0.002-d19",
+   "expected_faults": 0.751622945469421,
+   "cost": 1465.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 21,
+   "name": "N143-cultivation-p0.002-d21",
+   "expected_faults": 0.1666012821183473,
+   "cost": 670.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 23,
+   "name": "N143-cultivation-p0.002-d23",
+   "expected_faults": 0.037255805996381626,
+   "cost": 194.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 25,
+   "name": "N143-cultivation-p0.002-d25",
+   "expected_faults": 0.008442641672637252,
+   "cost": 196.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 27,
+   "name": "N143-cultivation-p0.002-d27",
+   "expected_faults": 0.0019461929939925031,
+   "cost": 96.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 15,
+   "name": "N143-injected-p0.002-d15",
+   "expected_faults": 18.0269907477392,
+   "cost": 12374.1,
+   "chunks": 7
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 17,
+   "name": "N143-injected-p0.002-d17",
+   "expected_faults": 6.055887267109466,
+   "cost": 13217.8,
+   "chunks": 8
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 19,
+   "name": "N143-injected-p0.002-d19",
+   "expected_faults": 3.4037796527846225,
+   "cost": 10269.7,
+   "chunks": 6
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 21,
+   "name": "N143-injected-p0.002-d21",
+   "expected_faults": 2.8187604119930234,
+   "cost": 8021.5,
+   "chunks": 5
+  },
+  {
+   "kind": "shor",
+   "key": 143,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 23,
+   "name": "N143-injected-p0.002-d23",
+   "expected_faults": 2.689415571159285,
+   "cost": 8167.0,
+   "chunks": 5
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 7,
+   "name": "N15-15to1-p0.001-d7",
+   "expected_faults": 25.753758036937256,
+   "cost": 8.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N15-15to1-p0.001-d9",
+   "expected_faults": 2.8534511106744143,
+   "cost": 3.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N15-15to1-p0.001-d11",
+   "expected_faults": 0.3023881472520037,
+   "cost": 1.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N15-15to1-p0.001-d13",
+   "expected_faults": 0.03141262457013014,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N15-15to1-p0.001-d15",
+   "expected_faults": 0.003240238023194395,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N15-15to1-p0.001-d17",
+   "expected_faults": 0.0003350921843447514,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 7,
+   "name": "N15-cultivation-p0.001-d7",
+   "expected_faults": 25.75375786226098,
+   "cost": 8.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N15-cultivation-p0.001-d9",
+   "expected_faults": 2.8534509359599007,
+   "cost": 3.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N15-cultivation-p0.001-d11",
+   "expected_faults": 0.302387972532698,
+   "cost": 1.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N15-cultivation-p0.001-d13",
+   "expected_faults": 0.03141244985063793,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N15-cultivation-p0.001-d15",
+   "expected_faults": 0.0032400633037021876,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N15-cultivation-p0.001-d17",
+   "expected_faults": 0.00033491746485254383,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 7,
+   "name": "N15-injected-p0.001-d7",
+   "expected_faults": 25.847814791265662,
+   "cost": 8.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 9,
+   "name": "N15-injected-p0.001-d9",
+   "expected_faults": 2.9475281616669604,
+   "cost": 3.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 11,
+   "name": "N15-injected-p0.001-d11",
+   "expected_faults": 0.396467632061555,
+   "cost": 1.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 13,
+   "name": "N15-injected-p0.001-d13",
+   "expected_faults": 0.12549240744092532,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 15,
+   "name": "N15-injected-p0.001-d15",
+   "expected_faults": 0.09732005795764545,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 17,
+   "name": "N15-injected-p0.001-d17",
+   "expected_faults": 0.09441491678397052,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N15-15to1-p0.002-d11",
+   "expected_faults": 26.64894058862796,
+   "cost": 3.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N15-15to1-p0.002-d13",
+   "expected_faults": 6.154655988427556,
+   "cost": 2.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N15-15to1-p0.002-d15",
+   "expected_faults": 1.3983081586314139,
+   "cost": 1.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N15-15to1-p0.002-d17",
+   "expected_faults": 0.31632566093338577,
+   "cost": 1.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 19,
+   "name": "N15-15to1-p0.002-d19",
+   "expected_faults": 0.07177417946252705,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 21,
+   "name": "N15-15to1-p0.002-d21",
+   "expected_faults": 0.01642841983272338,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 23,
+   "name": "N15-15to1-p0.002-d23",
+   "expected_faults": 0.0038149519028358985,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 25,
+   "name": "N15-15to1-p0.002-d25",
+   "expected_faults": 0.0009067916515401381,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N15-cultivation-p0.002-d11",
+   "expected_faults": 26.648929410578997,
+   "cost": 4.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N15-cultivation-p0.002-d13",
+   "expected_faults": 6.154644808073905,
+   "cost": 2.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N15-cultivation-p0.002-d15",
+   "expected_faults": 1.3982969776912657,
+   "cost": 1.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N15-cultivation-p0.002-d17",
+   "expected_faults": 0.3163144798425326,
+   "cost": 1.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "N15-cultivation-p0.002-d19",
+   "expected_faults": 0.07176299833175913,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 21,
+   "name": "N15-cultivation-p0.002-d21",
+   "expected_faults": 0.016417238692256544,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 23,
+   "name": "N15-cultivation-p0.002-d23",
+   "expected_faults": 0.00380377075975782,
+   "cost": 0.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 25,
+   "name": "N15-cultivation-p0.002-d25",
+   "expected_faults": 0.0008956105075294763,
+   "cost": 1.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 11,
+   "name": "N15-injected-p0.002-d11",
+   "expected_faults": 27.02514523235595,
+   "cost": 4.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 13,
+   "name": "N15-injected-p0.002-d13",
+   "expected_faults": 6.53093819138462,
+   "cost": 2.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 15,
+   "name": "N15-injected-p0.002-d15",
+   "expected_faults": 1.7746101100415832,
+   "cost": 1.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 17,
+   "name": "N15-injected-p0.002-d17",
+   "expected_faults": 0.6926326947691661,
+   "cost": 1.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 19,
+   "name": "N15-injected-p0.002-d19",
+   "expected_faults": 0.44808253112571705,
+   "cost": 1.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 21,
+   "name": "N15-injected-p0.002-d21",
+   "expected_faults": 0.3927371152270701,
+   "cost": 1.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 15,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 23,
+   "name": "N15-injected-p0.002-d23",
+   "expected_faults": 0.3801237374377429,
+   "cost": 1.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N21-15to1-p0.001-d9",
+   "expected_faults": 6.146862250967335,
+   "cost": 55.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N21-15to1-p0.001-d11",
+   "expected_faults": 0.6486691537515478,
+   "cost": 8.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N21-15to1-p0.001-d13",
+   "expected_faults": 0.06694693562243581,
+   "cost": 4.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N21-15to1-p0.001-d15",
+   "expected_faults": 0.00684778939614465,
+   "cost": 2.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N21-15to1-p0.001-d17",
+   "expected_faults": 0.0007009194405750198,
+   "cost": 2.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N21-cultivation-p0.001-d9",
+   "expected_faults": 6.146861925977429,
+   "cost": 54.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N21-cultivation-p0.001-d11",
+   "expected_faults": 0.6486688287528152,
+   "cost": 8.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N21-cultivation-p0.001-d13",
+   "expected_faults": 0.06694661062338036,
+   "cost": 4.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N21-cultivation-p0.001-d15",
+   "expected_faults": 0.0068474643970892046,
+   "cost": 3.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N21-cultivation-p0.001-d17",
+   "expected_faults": 0.0007005944415195742,
+   "cost": 2.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 9,
+   "name": "N21-injected-p0.001-d9",
+   "expected_faults": 6.321856765460592,
+   "cost": 60.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 11,
+   "name": "N21-injected-p0.001-d11",
+   "expected_faults": 0.823668195435746,
+   "cost": 8.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 13,
+   "name": "N21-injected-p0.001-d13",
+   "expected_faults": 0.24194653173643496,
+   "cost": 4.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 15,
+   "name": "N21-injected-p0.001-d15",
+   "expected_faults": 0.18184745445275047,
+   "cost": 4.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 17,
+   "name": "N21-injected-p0.001-d17",
+   "expected_faults": 0.175700593175117,
+   "cost": 4.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N21-15to1-p0.002-d13",
+   "expected_faults": 13.144952643325448,
+   "cost": 35.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N21-15to1-p0.002-d15",
+   "expected_faults": 2.9685181692790277,
+   "cost": 10.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N21-15to1-p0.002-d17",
+   "expected_faults": 0.6659515619836363,
+   "cost": 4.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 19,
+   "name": "N21-15to1-p0.002-d19",
+   "expected_faults": 0.14959015022649932,
+   "cost": 3.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 21,
+   "name": "N21-15to1-p0.002-d21",
+   "expected_faults": 0.03384690089072821,
+   "cost": 3.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 23,
+   "name": "N21-15to1-p0.002-d23",
+   "expected_faults": 0.007759936688138427,
+   "cost": 2.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 25,
+   "name": "N21-15to1-p0.002-d25",
+   "expected_faults": 0.0018189904750623852,
+   "cost": 2.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N21-cultivation-p0.002-d13",
+   "expected_faults": 13.144931846537675,
+   "cost": 35.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N21-cultivation-p0.002-d15",
+   "expected_faults": 2.9684973713992036,
+   "cost": 11.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N21-cultivation-p0.002-d17",
+   "expected_faults": 0.6659307638235265,
+   "cost": 4.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "N21-cultivation-p0.002-d19",
+   "expected_faults": 0.149569351992184,
+   "cost": 3.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 21,
+   "name": "N21-cultivation-p0.002-d21",
+   "expected_faults": 0.03382610263837178,
+   "cost": 2.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 23,
+   "name": "N21-cultivation-p0.002-d23",
+   "expected_faults": 0.007739138430924752,
+   "cost": 2.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 25,
+   "name": "N21-cultivation-p0.002-d25",
+   "expected_faults": 0.0017981922161139849,
+   "cost": 2.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 13,
+   "name": "N21-injected-p0.002-d13",
+   "expected_faults": 13.844882336328054,
+   "cost": 39.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 15,
+   "name": "N21-injected-p0.002-d15",
+   "expected_faults": 3.668484596754286,
+   "cost": 15.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 17,
+   "name": "N21-injected-p0.002-d17",
+   "expected_faults": 1.3659274433735853,
+   "cost": 9.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 19,
+   "name": "N21-injected-p0.002-d19",
+   "expected_faults": 0.8495684829338295,
+   "cost": 8.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 21,
+   "name": "N21-injected-p0.002-d21",
+   "expected_faults": 0.7338258729785624,
+   "cost": 8.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 21,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 23,
+   "name": "N21-injected-p0.002-d23",
+   "expected_faults": 0.7077390764477149,
+   "cost": 7.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N35-15to1-p0.001-d9",
+   "expected_faults": 11.711431011837721,
+   "cost": 731.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N35-15to1-p0.001-d11",
+   "expected_faults": 1.2328660669824727,
+   "cost": 110.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N35-15to1-p0.001-d13",
+   "expected_faults": 0.12668834219267797,
+   "cost": 54.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N35-15to1-p0.001-d15",
+   "expected_faults": 0.012884351330882676,
+   "cost": 12.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N35-15to1-p0.001-d17",
+   "expected_faults": 0.0013093583039080012,
+   "cost": 10.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N35-cultivation-p0.001-d9",
+   "expected_faults": 11.711430468971546,
+   "cost": 817.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N35-cultivation-p0.001-d11",
+   "expected_faults": 1.2328655241043642,
+   "cost": 161.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N35-cultivation-p0.001-d13",
+   "expected_faults": 0.12668779931425575,
+   "cost": 34.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N35-cultivation-p0.001-d15",
+   "expected_faults": 0.01288380845246046,
+   "cost": 20.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N35-cultivation-p0.001-d17",
+   "expected_faults": 0.0013088154254857862,
+   "cost": 19.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 9,
+   "name": "N35-injected-p0.001-d9",
+   "expected_faults": 12.003741848846278,
+   "cost": 425.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 11,
+   "name": "N35-injected-p0.001-d11",
+   "expected_faults": 1.525184466212517,
+   "cost": 116.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 13,
+   "name": "N35-injected-p0.001-d13",
+   "expected_faults": 0.4190076675415245,
+   "cost": 28.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 15,
+   "name": "N35-injected-p0.001-d15",
+   "expected_faults": 0.3052037918413258,
+   "cost": 32.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 17,
+   "name": "N35-injected-p0.001-d17",
+   "expected_faults": 0.29362881331000723,
+   "cost": 32.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N35-15to1-p0.002-d13",
+   "expected_faults": 24.898600674589957,
+   "cost": 602.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N35-15to1-p0.002-d15",
+   "expected_faults": 5.603853676321652,
+   "cost": 267.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N35-15to1-p0.002-d17",
+   "expected_faults": 1.2503318007637956,
+   "cost": 55.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 19,
+   "name": "N35-15to1-p0.002-d19",
+   "expected_faults": 0.27895375417221285,
+   "cost": 28.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 21,
+   "name": "N35-15to1-p0.002-d21",
+   "expected_faults": 0.06261569972622276,
+   "cost": 18.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 23,
+   "name": "N35-15to1-p0.002-d23",
+   "expected_faults": 0.0142258818050361,
+   "cost": 13.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 25,
+   "name": "N35-15to1-p0.002-d25",
+   "expected_faults": 0.003300547459218336,
+   "cost": 13.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 27,
+   "name": "N35-15to1-p0.002-d27",
+   "expected_faults": 0.0007999653799875004,
+   "cost": 12.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N35-cultivation-p0.002-d13",
+   "expected_faults": 24.89856593563662,
+   "cost": 592.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N35-cultivation-p0.002-d15",
+   "expected_faults": 5.6038189355429715,
+   "cost": 290.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N35-cultivation-p0.002-d17",
+   "expected_faults": 1.2502970595173277,
+   "cost": 79.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "N35-cultivation-p0.002-d19",
+   "expected_faults": 0.2789190128016126,
+   "cost": 45.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 21,
+   "name": "N35-cultivation-p0.002-d21",
+   "expected_faults": 0.0625809583254863,
+   "cost": 29.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 23,
+   "name": "N35-cultivation-p0.002-d23",
+   "expected_faults": 0.014191140396186368,
+   "cost": 26.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 25,
+   "name": "N35-cultivation-p0.002-d25",
+   "expected_faults": 0.0032658060474708116,
+   "cost": 20.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 27,
+   "name": "N35-cultivation-p0.002-d27",
+   "expected_faults": 0.0007652239670809996,
+   "cost": 21.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 13,
+   "name": "N35-injected-p0.002-d13",
+   "expected_faults": 26.067763233766733,
+   "cost": 337.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 15,
+   "name": "N35-injected-p0.002-d15",
+   "expected_faults": 6.773077596773668,
+   "cost": 200.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 17,
+   "name": "N35-injected-p0.002-d17",
+   "expected_faults": 2.419571513038587,
+   "cost": 129.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 19,
+   "name": "N35-injected-p0.002-d19",
+   "expected_faults": 1.4481975611270756,
+   "cost": 112.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 21,
+   "name": "N35-injected-p0.002-d21",
+   "expected_faults": 1.231860574702322,
+   "cost": 128.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 35,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 23,
+   "name": "N35-injected-p0.002-d23",
+   "expected_faults": 1.1834710368595105,
+   "cost": 169.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N77-15to1-p0.001-d9",
+   "expected_faults": 20.259490288017055,
+   "cost": 2621.5,
+   "chunks": 2
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N77-15to1-p0.001-d11",
+   "expected_faults": 2.129179550147886,
+   "cost": 1425.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N77-15to1-p0.001-d13",
+   "expected_faults": 0.21804297813978488,
+   "cost": 250.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N77-15to1-p0.001-d15",
+   "expected_faults": 0.02207328510033898,
+   "cost": 74.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N77-15to1-p0.001-d17",
+   "expected_faults": 0.0022301441274585076,
+   "cost": 47.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N77-cultivation-p0.001-d9",
+   "expected_faults": 20.2594894472003,
+   "cost": 9706.8,
+   "chunks": 6
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N77-cultivation-p0.001-d11",
+   "expected_faults": 2.1291787093104766,
+   "cost": 1899.3,
+   "chunks": 2
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N77-cultivation-p0.001-d13",
+   "expected_faults": 0.21804213730222863,
+   "cost": 303.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N77-cultivation-p0.001-d15",
+   "expected_faults": 0.022072444262782744,
+   "cost": 69.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N77-cultivation-p0.001-d17",
+   "expected_faults": 0.0022293032899022617,
+   "cost": 50.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 9,
+   "name": "N77-injected-p0.001-d9",
+   "expected_faults": 20.71223609591435,
+   "cost": 2580.5,
+   "chunks": 2
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 11,
+   "name": "N77-injected-p0.001-d11",
+   "expected_faults": 2.581937070796112,
+   "cost": 1571.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 13,
+   "name": "N77-injected-p0.001-d13",
+   "expected_faults": 0.6708019332053785,
+   "cost": 377.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 15,
+   "name": "N77-injected-p0.001-d15",
+   "expected_faults": 0.47483241853456837,
+   "cost": 311.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.001,
+   "factory": "injected",
+   "d": 17,
+   "name": "N77-injected-p0.001-d17",
+   "expected_faults": 0.45498930001265236,
+   "cost": 311.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N77-15to1-p0.002-d15",
+   "expected_faults": 9.623747006923738,
+   "cost": 1763.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N77-15to1-p0.002-d17",
+   "expected_faults": 2.1379554338365927,
+   "cost": 488.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 19,
+   "name": "N77-15to1-p0.002-d19",
+   "expected_faults": 0.4743296509915748,
+   "cost": 150.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 21,
+   "name": "N77-15to1-p0.002-d21",
+   "expected_faults": 0.1057646436298025,
+   "cost": 84.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 23,
+   "name": "N77-15to1-p0.002-d23",
+   "expected_faults": 0.02384510008344393,
+   "cost": 50.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 25,
+   "name": "N77-15to1-p0.002-d25",
+   "expected_faults": 0.005483782201026865,
+   "cost": 59.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "15to1",
+   "d": 27,
+   "name": "N77-15to1-p0.002-d27",
+   "expected_faults": 0.0013150926856772078,
+   "cost": 34.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N77-cultivation-p0.002-d15",
+   "expected_faults": 9.623693198651027,
+   "cost": 1730.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N77-cultivation-p0.002-d17",
+   "expected_faults": 2.137901624837532,
+   "cost": 483.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "N77-cultivation-p0.002-d19",
+   "expected_faults": 0.47427584179975424,
+   "cost": 154.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 21,
+   "name": "N77-cultivation-p0.002-d21",
+   "expected_faults": 0.10571083439130562,
+   "cost": 80.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 23,
+   "name": "N77-cultivation-p0.002-d23",
+   "expected_faults": 0.023791290832380664,
+   "cost": 44.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 25,
+   "name": "N77-cultivation-p0.002-d25",
+   "expected_faults": 0.005429972945475675,
+   "cost": 55.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "cultivation",
+   "d": 27,
+   "name": "N77-cultivation-p0.002-d27",
+   "expected_faults": 0.0012612834283306732,
+   "cost": 30.0,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 15,
+   "name": "N77-injected-p0.002-d15",
+   "expected_faults": 11.434700148090625,
+   "cost": 2232.3,
+   "chunks": 2
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 17,
+   "name": "N77-injected-p0.002-d17",
+   "expected_faults": 3.948933034176614,
+   "cost": 1270.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 19,
+   "name": "N77-injected-p0.002-d19",
+   "expected_faults": 2.285313593373791,
+   "cost": 1043.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 21,
+   "name": "N77-injected-p0.002-d21",
+   "expected_faults": 1.9167502402166607,
+   "cost": 960.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor",
+   "key": 77,
+   "p": 0.002,
+   "factory": "injected",
+   "d": 23,
+   "name": "N77-injected-p0.002-d23",
+   "expected_faults": 1.8348311304705862,
+   "cost": 959.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 7,
+   "name": "N15-15to1-p0.001-d7",
+   "expected_faults": 18.872283098850062,
+   "cost": 3.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N15-15to1-p0.001-d9",
+   "expected_faults": 2.0276727804192958,
+   "cost": 1.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N15-15to1-p0.001-d11",
+   "expected_faults": 0.20996282829627774,
+   "cost": 0.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N15-15to1-p0.001-d13",
+   "expected_faults": 0.02133890140536054,
+   "cost": 0.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N15-15to1-p0.001-d15",
+   "expected_faults": 0.0021513967539950577,
+   "cost": 0.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 7,
+   "name": "N15-cultivation-p0.001-d7",
+   "expected_faults": 18.87228303397022,
+   "cost": 4.4,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N15-cultivation-p0.001-d9",
+   "expected_faults": 2.0276727155253833,
+   "cost": 1.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N15-cultivation-p0.001-d11",
+   "expected_faults": 0.20996276340053563,
+   "cost": 0.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N15-cultivation-p0.001-d13",
+   "expected_faults": 0.02133883650954915,
+   "cost": 0.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 15,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N15-cultivation-p0.001-d15",
+   "expected_faults": 0.0021513318581836663,
+   "cost": 0.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N21-15to1-p0.001-d9",
+   "expected_faults": 5.63315234507921,
+   "cost": 46.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N21-15to1-p0.001-d11",
+   "expected_faults": 0.5812869928117598,
+   "cost": 7.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N21-15to1-p0.001-d13",
+   "expected_faults": 0.05874837863749896,
+   "cost": 3.1,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N21-15to1-p0.001-d15",
+   "expected_faults": 0.005878483407942477,
+   "cost": 2.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N21-15to1-p0.001-d17",
+   "expected_faults": 0.0005870452141090458,
+   "cost": 1.9,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N21-cultivation-p0.001-d9",
+   "expected_faults": 5.633152220803098,
+   "cost": 42.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N21-cultivation-p0.001-d11",
+   "expected_faults": 0.5812868685322586,
+   "cost": 6.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N21-cultivation-p0.001-d13",
+   "expected_faults": 0.05874825435786016,
+   "cost": 2.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N21-cultivation-p0.001-d15",
+   "expected_faults": 0.0058783591283036755,
+   "cost": 1.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 21,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N21-cultivation-p0.001-d17",
+   "expected_faults": 0.0005869209344702435,
+   "cost": 1.7,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 9,
+   "name": "N35-15to1-p0.001-d9",
+   "expected_faults": 9.70009609454773,
+   "cost": 102.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 11,
+   "name": "N35-15to1-p0.001-d11",
+   "expected_faults": 0.9994507716461981,
+   "cost": 21.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "N35-15to1-p0.001-d13",
+   "expected_faults": 0.10074068021409362,
+   "cost": 4.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "N35-15to1-p0.001-d15",
+   "expected_faults": 0.010042621197383335,
+   "cost": 2.6,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "N35-15to1-p0.001-d17",
+   "expected_faults": 0.0009979662665865231,
+   "cost": 2.2,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 9,
+   "name": "N35-cultivation-p0.001-d9",
+   "expected_faults": 9.70009591109685,
+   "cost": 86.8,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 11,
+   "name": "N35-cultivation-p0.001-d11",
+   "expected_faults": 0.9994505881909376,
+   "cost": 28.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "N35-cultivation-p0.001-d13",
+   "expected_faults": 0.1007404967586268,
+   "cost": 6.3,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "N35-cultivation-p0.001-d15",
+   "expected_faults": 0.010042437741916516,
+   "cost": 4.5,
+   "chunks": 1
+  },
+  {
+   "kind": "shor_modern",
+   "key": 35,
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "N35-cultivation-p0.001-d17",
+   "expected_faults": 0.0009977828111197057,
+   "cost": 3.8,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 13,
+   "name": "H2-15to1-p0.001-d13",
+   "expected_faults": 9.157800180348355,
+   "cost": 329.7,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 15,
+   "name": "H2-15to1-p0.001-d15",
+   "expected_faults": 1.772145274309078,
+   "cost": 329.7,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 17,
+   "name": "H2-15to1-p0.001-d17",
+   "expected_faults": 0.9216448331570593,
+   "cost": 216.3,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 19,
+   "name": "H2-15to1-p0.001-d19",
+   "expected_faults": 0.8214828314199522,
+   "cost": 215.4,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "15to1",
+   "d": 21,
+   "name": "H2-15to1-p0.001-d21",
+   "expected_faults": 0.8093679788191692,
+   "cost": 215.4,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 13,
+   "name": "H2-cultivation-p0.001-d13",
+   "expected_faults": 8.38605737982802,
+   "cost": 299.6,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "H2-cultivation-p0.001-d15",
+   "expected_faults": 1.0004022858284187,
+   "cost": 299.6,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "H2-cultivation-p0.001-d17",
+   "expected_faults": 0.1499018207090503,
+   "cost": 158.4,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "H2-cultivation-p0.001-d19",
+   "expected_faults": 0.04973981588325163,
+   "cost": 160.4,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 21,
+   "name": "H2-cultivation-p0.001-d21",
+   "expected_faults": 0.0376249628801744,
+   "cost": 124.4,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "H2",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 23,
+   "name": "H2-cultivation-p0.001-d23",
+   "expected_faults": 0.03611736229430681,
+   "cost": 124.4,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "HeH+",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 15,
+   "name": "HeHp-cultivation-p0.001-d15",
+   "expected_faults": 2.585475260229709,
+   "cost": 1052.8,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "HeH+",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 17,
+   "name": "HeHp-cultivation-p0.001-d17",
+   "expected_faults": 0.3819169952533444,
+   "cost": 539.8,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "HeH+",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 19,
+   "name": "HeHp-cultivation-p0.001-d19",
+   "expected_faults": 0.12348352512943497,
+   "cost": 367.4,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "HeH+",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 21,
+   "name": "HeHp-cultivation-p0.001-d21",
+   "expected_faults": 0.09234349521664707,
+   "cost": 354.0,
+   "chunks": 1
+  },
+  {
+   "kind": "qpe",
+   "key": "HeH+",
+   "p": 0.001,
+   "factory": "cultivation",
+   "d": 23,
+   "name": "HeHp-cultivation-p0.001-d23",
+   "expected_faults": 0.08848066786897413,
+   "cost": 354.0,
+   "chunks": 1
+  },
+  {
+   "kind": "lih",
+   "name": "lih",
+   "cost": 3000.0,
+   "chunks": 1
+  }
+ ],
+ "jobs": [
+  [
+   [
+    229,
+    0
+   ],
+   [
+    35,
+    0
+   ],
+   [
+    20,
+    0
+   ],
+   [
+    126,
+    0
+   ],
+   [
+    78,
+    0
+   ],
+   [
+    102,
+    0
+   ],
+   [
+    98,
+    0
+   ],
+   [
+    192,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    0
+   ],
+   [
+    24,
+    3
+   ],
+   [
+    34,
+    2
+   ],
+   [
+    146,
+    0
+   ],
+   [
+    130,
+    0
+   ],
+   [
+    37,
+    0
+   ],
+   [
+    81,
+    0
+   ],
+   [
+    187,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    1
+   ],
+   [
+    24,
+    4
+   ],
+   [
+    34,
+    3
+   ],
+   [
+    113,
+    0
+   ],
+   [
+    124,
+    0
+   ],
+   [
+    90,
+    0
+   ],
+   [
+    103,
+    0
+   ],
+   [
+    69,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    2
+   ],
+   [
+    24,
+    5
+   ],
+   [
+    34,
+    4
+   ],
+   [
+    203,
+    0
+   ],
+   [
+    139,
+    0
+   ],
+   [
+    42,
+    0
+   ],
+   [
+    188,
+    0
+   ],
+   [
+    38,
+    0
+   ],
+   [
+    76,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    3
+   ],
+   [
+    24,
+    6
+   ],
+   [
+    6,
+    0
+   ],
+   [
+    173,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    4
+   ],
+   [
+    24,
+    7
+   ],
+   [
+    6,
+    1
+   ],
+   [
+    4,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    5
+   ],
+   [
+    24,
+    8
+   ],
+   [
+    6,
+    2
+   ],
+   [
+    166,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    6
+   ],
+   [
+    24,
+    9
+   ],
+   [
+    6,
+    3
+   ],
+   [
+    21,
+    0
+   ],
+   [
+    86,
+    0
+   ],
+   [
+    185,
+    0
+   ]
+  ],
+  [
+   [
+    12,
+    7
+   ],
+   [
+    24,
+    10
+   ],
+   [
+    6,
+    4
+   ],
+   [
+    10,
+    0
+   ],
+   [
+    115,
+    0
+   ],
+   [
+    80,
+    0
+   ],
+   [
+    67,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    0
+   ],
+   [
+    32,
+    0
+   ],
+   [
+    35,
+    1
+   ],
+   [
+    148,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    1
+   ],
+   [
+    32,
+    1
+   ],
+   [
+    35,
+    2
+   ],
+   [
+    118,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    2
+   ],
+   [
+    32,
+    2
+   ],
+   [
+    35,
+    3
+   ],
+   [
+    221,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    3
+   ],
+   [
+    32,
+    3
+   ],
+   [
+    35,
+    4
+   ],
+   [
+    220,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    4
+   ],
+   [
+    32,
+    4
+   ],
+   [
+    154,
+    0
+   ],
+   [
+    216,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    5
+   ],
+   [
+    32,
+    5
+   ],
+   [
+    154,
+    1
+   ],
+   [
+    217,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    6
+   ],
+   [
+    32,
+    6
+   ],
+   [
+    154,
+    2
+   ],
+   [
+    144,
+    0
+   ]
+  ],
+  [
+   [
+    13,
+    7
+   ],
+   [
+    32,
+    7
+   ],
+   [
+    154,
+    3
+   ],
+   [
+    29,
+    0
+   ]
+  ],
+  [
+   [
+    31,
+    0
+   ],
+   [
+    33,
+    3
+   ],
+   [
+    18,
+    2
+   ],
+   [
+    151,
+    0
+   ]
+  ],
+  [
+   [
+    31,
+    1
+   ],
+   [
+    33,
+    4
+   ],
+   [
+    25,
+    0
+   ],
+   [
+    156,
+    0
+   ]
+  ],
+  [
+   [
+    31,
+    2
+   ],
+   [
+    33,
+    5
+   ],
+   [
+    25,
+    1
+   ],
+   [
+    218,
+    0
+   ]
+  ],
+  [
+   [
+    31,
+    3
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    34,
+    1
+   ],
+   [
+    22,
+    0
+   ]
+  ],
+  [
+   [
+    31,
+    4
+   ],
+   [
+    24,
+    0
+   ],
+   [
+    154,
+    4
+   ],
+   [
+    223,
+    0
+   ],
+   [
+    204,
+    0
+   ],
+   [
+    74,
+    0
+   ],
+   [
+    191,
+    0
+   ]
+  ],
+  [
+   [
+    31,
+    5
+   ],
+   [
+    24,
+    1
+   ],
+   [
+    154,
+    5
+   ],
+   [
+    123,
+    0
+   ],
+   [
+    209,
+    0
+   ],
+   [
+    200,
+    0
+   ],
+   [
+    186,
+    0
+   ]
+  ],
+  [
+   [
+    31,
+    6
+   ],
+   [
+    24,
+    2
+   ],
+   [
+    34,
+    0
+   ],
+   [
+    28,
+    0
+   ]
+  ],
+  [
+   [
+    164,
+    0
+   ],
+   [
+    33,
+    2
+   ],
+   [
+    18,
+    1
+   ],
+   [
+    128,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    7
+   ],
+   [
+    26,
+    0
+   ],
+   [
+    3,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    1
+   ],
+   [
+    1,
+    8
+   ],
+   [
+    150,
+    0
+   ],
+   [
+    163,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    2
+   ],
+   [
+    1,
+    9
+   ],
+   [
+    19,
+    0
+   ],
+   [
+    162,
+    0
+   ],
+   [
+    87,
+    0
+   ],
+   [
+    116,
+    0
+   ],
+   [
+    85,
+    0
+   ],
+   [
+    44,
+    0
+   ],
+   [
+    39,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    3
+   ],
+   [
+    1,
+    10
+   ],
+   [
+    14,
+    0
+   ],
+   [
+    214,
+    0
+   ],
+   [
+    168,
+    0
+   ],
+   [
+    83,
+    0
+   ],
+   [
+    183,
+    0
+   ],
+   [
+    206,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    4
+   ],
+   [
+    1,
+    11
+   ],
+   [
+    14,
+    1
+   ],
+   [
+    9,
+    0
+   ],
+   [
+    169,
+    0
+   ],
+   [
+    91,
+    0
+   ],
+   [
+    54,
+    0
+   ],
+   [
+    197,
+    0
+   ],
+   [
+    68,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    5
+   ],
+   [
+    1,
+    12
+   ],
+   [
+    149,
+    0
+   ],
+   [
+    143,
+    0
+   ],
+   [
+    198,
+    0
+   ],
+   [
+    108,
+    0
+   ],
+   [
+    62,
+    0
+   ],
+   [
+    184,
+    0
+   ],
+   [
+    47,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    6
+   ],
+   [
+    1,
+    13
+   ],
+   [
+    149,
+    1
+   ],
+   [
+    213,
+    0
+   ],
+   [
+    82,
+    0
+   ],
+   [
+    199,
+    0
+   ],
+   [
+    49,
+    0
+   ],
+   [
+    63,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    7
+   ],
+   [
+    1,
+    14
+   ],
+   [
+    159,
+    0
+   ],
+   [
+    227,
+    0
+   ],
+   [
+    158,
+    0
+   ],
+   [
+    210,
+    0
+   ],
+   [
+    212,
+    0
+   ],
+   [
+    196,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    8
+   ],
+   [
+    1,
+    15
+   ],
+   [
+    159,
+    1
+   ],
+   [
+    228,
+    0
+   ],
+   [
+    153,
+    0
+   ],
+   [
+    48,
+    0
+   ],
+   [
+    89,
+    0
+   ],
+   [
+    56,
+    0
+   ],
+   [
+    52,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    9
+   ],
+   [
+    1,
+    16
+   ],
+   [
+    179,
+    0
+   ],
+   [
+    226,
+    0
+   ],
+   [
+    77,
+    0
+   ],
+   [
+    194,
+    0
+   ],
+   [
+    70,
+    0
+   ],
+   [
+    202,
+    0
+   ],
+   [
+    46,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    10
+   ],
+   [
+    1,
+    17
+   ],
+   [
+    16,
+    0
+   ],
+   [
+    122,
+    0
+   ],
+   [
+    157,
+    0
+   ],
+   [
+    140,
+    0
+   ],
+   [
+    96,
+    0
+   ],
+   [
+    50,
+    0
+   ],
+   [
+    45,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    11
+   ],
+   [
+    1,
+    18
+   ],
+   [
+    16,
+    1
+   ],
+   [
+    161,
+    0
+   ],
+   [
+    222,
+    0
+   ],
+   [
+    142,
+    0
+   ],
+   [
+    207,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    12
+   ],
+   [
+    1,
+    19
+   ],
+   [
+    15,
+    0
+   ],
+   [
+    165,
+    0
+   ],
+   [
+    177,
+    0
+   ],
+   [
+    133,
+    0
+   ],
+   [
+    104,
+    0
+   ],
+   [
+    40,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    13
+   ],
+   [
+    1,
+    20
+   ],
+   [
+    15,
+    1
+   ],
+   [
+    172,
+    0
+   ],
+   [
+    119,
+    0
+   ],
+   [
+    132,
+    0
+   ],
+   [
+    105,
+    0
+   ],
+   [
+    41,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    14
+   ],
+   [
+    1,
+    21
+   ],
+   [
+    178,
+    0
+   ],
+   [
+    135,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    15
+   ],
+   [
+    1,
+    22
+   ],
+   [
+    178,
+    1
+   ],
+   [
+    225,
+    0
+   ],
+   [
+    170,
+    0
+   ],
+   [
+    134,
+    0
+   ],
+   [
+    97,
+    0
+   ],
+   [
+    59,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    16
+   ],
+   [
+    1,
+    23
+   ],
+   [
+    224,
+    0
+   ],
+   [
+    127,
+    0
+   ],
+   [
+    99,
+    0
+   ],
+   [
+    100,
+    0
+   ],
+   [
+    95,
+    0
+   ],
+   [
+    73,
+    0
+   ],
+   [
+    51,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    17
+   ],
+   [
+    1,
+    24
+   ],
+   [
+    180,
+    0
+   ],
+   [
+    27,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    18
+   ],
+   [
+    1,
+    25
+   ],
+   [
+    181,
+    0
+   ],
+   [
+    112,
+    0
+   ],
+   [
+    110,
+    0
+   ],
+   [
+    84,
+    0
+   ],
+   [
+    72,
+    0
+   ],
+   [
+    58,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    19
+   ],
+   [
+    1,
+    26
+   ],
+   [
+    182,
+    0
+   ],
+   [
+    117,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    20
+   ],
+   [
+    1,
+    27
+   ],
+   [
+    155,
+    0
+   ],
+   [
+    155,
+    1
+   ]
+  ],
+  [
+   [
+    0,
+    21
+   ],
+   [
+    171,
+    0
+   ],
+   [
+    25,
+    2
+   ],
+   [
+    219,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    22
+   ],
+   [
+    17,
+    0
+   ],
+   [
+    7,
+    0
+   ],
+   [
+    208,
+    0
+   ],
+   [
+    92,
+    0
+   ],
+   [
+    121,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    23
+   ],
+   [
+    17,
+    1
+   ],
+   [
+    7,
+    1
+   ],
+   [
+    167,
+    0
+   ],
+   [
+    106,
+    0
+   ],
+   [
+    107,
+    0
+   ],
+   [
+    65,
+    0
+   ],
+   [
+    61,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    24
+   ],
+   [
+    17,
+    2
+   ],
+   [
+    7,
+    2
+   ],
+   [
+    174,
+    0
+   ],
+   [
+    175,
+    0
+   ],
+   [
+    36,
+    0
+   ],
+   [
+    101,
+    0
+   ],
+   [
+    189,
+    0
+   ],
+   [
+    60,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    25
+   ],
+   [
+    17,
+    3
+   ],
+   [
+    7,
+    3
+   ],
+   [
+    137,
+    0
+   ],
+   [
+    138,
+    0
+   ],
+   [
+    88,
+    0
+   ],
+   [
+    211,
+    0
+   ],
+   [
+    64,
+    0
+   ],
+   [
+    53,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    26
+   ],
+   [
+    17,
+    4
+   ],
+   [
+    7,
+    4
+   ],
+   [
+    23,
+    0
+   ],
+   [
+    193,
+    0
+   ],
+   [
+    93,
+    0
+   ],
+   [
+    195,
+    0
+   ],
+   [
+    57,
+    0
+   ],
+   [
+    75,
+    0
+   ]
+  ],
+  [
+   [
+    0,
+    27
+   ],
+   [
+    17,
+    5
+   ],
+   [
+    7,
+    5
+   ],
+   [
+    152,
+    0
+   ],
+   [
+    114,
+    0
+   ],
+   [
+    205,
+    0
+   ],
+   [
+    94,
+    0
+   ],
+   [
+    71,
+    0
+   ]
+  ],
+  [
+   [
+    1,
+    0
+   ],
+   [
+    17,
+    6
+   ],
+   [
+    7,
+    6
+   ],
+   [
+    11,
+    0
+   ],
+   [
+    176,
+    0
+   ],
+   [
+    111,
+    0
+   ],
+   [
+    79,
+    0
+   ],
+   [
+    201,
+    0
+   ],
+   [
+    66,
+    0
+   ]
+  ],
+  [
+   [
+    1,
+    1
+   ],
+   [
+    17,
+    7
+   ],
+   [
+    7,
+    7
+   ],
+   [
+    5,
+    0
+   ],
+   [
+    129,
+    0
+   ],
+   [
+    109,
+    0
+   ],
+   [
+    43,
+    0
+   ],
+   [
+    55,
+    0
+   ],
+   [
+    190,
+    0
+   ]
+  ],
+  [
+   [
+    1,
+    2
+   ],
+   [
+    17,
+    8
+   ],
+   [
+    160,
+    0
+   ],
+   [
+    215,
+    0
+   ]
+  ],
+  [
+   [
+    1,
+    3
+   ],
+   [
+    17,
+    9
+   ],
+   [
+    18,
+    0
+   ],
+   [
+    136,
+    0
+   ]
+  ],
+  [
+   [
+    1,
+    4
+   ],
+   [
+    8,
+    0
+   ],
+   [
+    6,
+    7
+   ],
+   [
+    30,
+    0
+   ],
+   [
+    125,
+    0
+   ],
+   [
+    131,
+    0
+   ]
+  ],
+  [
+   [
+    1,
+    5
+   ],
+   [
+    33,
+    0
+   ],
+   [
+    6,
+    5
+   ],
+   [
+    145,
+    0
+   ],
+   [
+    120,
+    0
+   ]
+  ],
+  [
+   [
+    1,
+    6
+   ],
+   [
+    33,
+    1
+   ],
+   [
+    6,
+    6
+   ],
+   [
+    147,
+    0
+   ],
+   [
+    141,
+    0
+   ]
+  ]
+ ]
+}
