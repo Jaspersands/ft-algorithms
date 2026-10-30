@@ -13,12 +13,14 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, os.path.join(ROOT, "python"))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
 
 from ftalgo import shor  # noqa: E402
 from ftalgo.arch import FACTORIES, Architecture  # noqa: E402
 from ftalgo.calib.model import LogicalModel  # noqa: E402
 from ftalgo.engine import Program  # noqa: E402
 from ftalgo.schedule import compile_noisy  # noqa: E402
+import mr_runs  # noqa: E402
 
 SITE = os.path.join(ROOT, "site", "data")
 DEMO_D = [7, 9, 11, 13, 15]
@@ -136,6 +138,8 @@ def main():
     sc = os.path.join(ROOT, "data", "results", "scaling.json")
     if os.path.exists(sc):
         out["scaling"] = json.load(open(sc))
+    # The algorithm runs under both calibrations (tools/mr_runs.py), when data/results_mr/ exists.
+    out["mr_runs"] = mr_runs.rows()
     out["factories"] = {k: {"label": f.label, "source": f.source, "eps_t_1e-3": f.eps_t(1e-3), "eps_ccz_1e-3": f.eps_ccz(1e-3)} for k, f in FACTORIES.items()}
 
     # The browser demo: Shor, N = 15, every (d, p, factory) of the grid, gzipped.

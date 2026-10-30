@@ -23,6 +23,7 @@ import shutil
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "python"))
+sys.path.insert(0, str(ROOT / "tools"))
 
 import matplotlib  # noqa: E402
 
@@ -31,6 +32,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from ftalgo.arch import FACTORIES  # noqa: E402
+import mr_runs  # noqa: E402
 from ftalgo.calib.model import LogicalModel  # noqa: E402
 
 REPORT = ROOT / "report"
@@ -577,6 +579,20 @@ Idling then has Λ = {lam[0]:.1f}–{lam[-1]:.1f} at p = 0.1%, reaches 10⁻¹�
 ({band(mrsens['d_band'])}), and one shot of Gidney's algorithm needs d = {mrsens['one_shot']['d']}
 at his budget; textbook RSA-2048 needs d = {tb_mr['d']} ({fmt_q(tb_mr['physical_qubits'])} physical qubits).{comp} Section 3.7's
 tables give both calibrations."""
+        rs = mr_runs.rows()
+        if rs:
+            sm = mr_runs.summary(rs)
+            dd = lambda v: "—" if v is None else str(v)  # noqa: E731
+            V["mr_text"] += f"""
+
+The simulated algorithm runs were repeated on the recalibrated machine as well ({len(rs)} workloads with cultivated magic
+states, plus the injected and 15-to-1 factories; data/results_mr/, run in parallel on GitHub Actions by tools/grid.py, which
+splits long configurations into shot chunks and pools them). The distance at which a run first reaches 90% of its noiseless
+success drops by one step for {sm['lower']} of them and stays the same for {sm['same']}; none needs more. Where the magic
+states set the ceiling (injected states, H₂ with 15-to-1 distillation), the ceiling is unchanged within error.
+
+{table(["workload", "p", "noiseless", "d for 90%, as calibrated", "one measure-and-reset layer"],
+       [[r["workload"], f"{r['p'] * 100:g}%", f"{r['noiseless']:.2f}", dd(r["d"]), dd(r["d_mr"])] for r in rs])}"""
 
     # -- the text ------------------------------------------------------------------------------
     sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
@@ -954,12 +970,10 @@ memory lengths and d = 11 the calibrated model needs d = {pr['d_measured']}.)
 - Published algorithms enter only through their gate counts and run times; their layouts (Gidney 2025's
   yoked storage and parallel lookups, Lee et al.'s floor plan) are not modelled, so only distances are compared.
 - The LiH problem is a 2-qubit active space; chemistry at scale is represented only by FeMoco's published counts.
-- The algorithm runs use the machine calibrated on stabilizer-qec's SD6 memory and surgery circuits,
-  which measure and reset ancillas in separate layers: Section 3.9 shows that this is the pessimistic end
-  of four circuit-level models, by up to about a factor of two in logical error rate. The recalibration
-  with one measure-and-reset layer is used for the extrapolations only; rerunning the algorithm grid on it
-  (about 80 CPU-hours, mostly Shor for N = 143) is left to do. Biased noise and the codes tailored to it
-  (XZZX) are not modelled.
+- The machine is calibrated on stabilizer-qec's SD6 memory and surgery circuits, which measure and reset
+  ancillas in separate layers (the pessimistic end of four circuit-level models, Section 3.9), and on the
+  same circuits with one measure-and-reset layer; the figures and per-run tables use the first, and
+  Section 3.9 compares the two. Biased noise and the codes tailored to it (XZZX) are not modelled.
 
 # Reproduction
 
@@ -972,6 +986,7 @@ python tools/noise_models.py; python tools/noise_models.py --summary
 python tools/calibrate.py --mr; python tools/fit_model.py --mr; python tools/compose_check.py --mr
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
+python tools/grid.py plan|run|merge   # the same runs on model_mr.json (or Actions → Algorithm grid)
 python tools/scale.py; python tools/sensitivity.py
 python tools/site_data.py; python tools/report.py
 ```

@@ -8,6 +8,9 @@ import pathlib
 import re
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import mr_runs  # noqa: E402
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
@@ -190,8 +193,19 @@ def build() -> str:
             f"circuits with each reset layer folded into the measurement layer before it (`tools/calibrate.py --mr`; "
             f"data/calibration/raw_mr/, model_mr.json). Idling then has Λ = {lam_mr[0]:.1f}–{lam_mr[-1]:.1f}, reaches 1e-15 per "
             f"patch-round at d = {mr['d_round']} ({band(mr['d_band'])}), and one shot of "
-            f"Gidney's algorithm needs d = {mr['one_shot']['d']} at his budget. The tables above show both calibrations; the "
-            f"simulated algorithm runs (Shor, phase estimation) use the original one.")
+            f"Gidney's algorithm needs d = {mr['one_shot']['d']} at his budget. The tables above show both calibrations.")
+        rs = mr_runs.rows()
+        if rs:
+            sm = mr_runs.summary(rs)
+            out.append(
+                f"\nThe simulated algorithm runs were repeated on it too ({len(rs)} workloads, data/results_mr/, run in parallel "
+                f"on GitHub Actions by `tools/grid.py`). The distance at which a run first reaches 90% of its noiseless success "
+                f"drops by one step (d − 2) for {sm['lower']} of them and stays the same for {sm['same']}; none needs more. "
+                f"Where the magic states set the ceiling (injected states, H₂ with 15-to-1), the ceiling is unchanged.\n")
+            out.append("| workload | p | noiseless | d for 90% of it, as calibrated | one measure-and-reset layer |\n|---|---:|---:|---:|---:|")
+            for r in rs:
+                dd = lambda v: "—" if v is None else str(v)  # noqa: E731
+                out.append(f"| {r['workload']} | {r['p'] * 100:g}% | {r['noiseless']:.2f} | {dd(r['d'])} | {dd(r['d_mr'])} |")
 
     return "\n".join(out)
 

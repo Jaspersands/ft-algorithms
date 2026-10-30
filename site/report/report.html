@@ -23,7 +23,7 @@ computer</h1>
 machine whose logical error rates were measured by circuit-level
 simulation</p>
   <p class="byline">Jasper
-Sands · 2026-10-29 · commit <code>2587003</code></p>
+Sands · 2026-10-30 · commit <code>eb13b85</code></p>
   <p class="links"><a href="../index.html">the explainer site</a> · <a href="https://github.com/Jaspersands/ft-algorithms">github.com/Jaspersands/ft-algorithms</a> · <a href="report.pdf">PDF</a></p>
 </header>
 <section class="abstract">
@@ -1623,6 +1623,147 @@ textbook RSA-2048 needs d = 33 (29 M physical qubits). Whole surgery
 experiments predicted from its parts are 0.87–1.14× the measured failure
 rate (median 1.02×), as for the original calibration. Section 3.7’s
 tables give both calibrations.</p>
+<p>The simulated algorithm runs were repeated on the recalibrated
+machine as well (16 workloads with cultivated magic states, plus the
+injected and 15-to-1 factories; data/results_mr/, run in parallel on
+GitHub Actions by tools/grid.py, which splits long configurations into
+shot chunks and pools them). The distance at which a run first reaches
+90% of its noiseless success drops by one step for 9 of them and stays
+the same for 7; none needs more. Where the magic states set the ceiling
+(injected states, H₂ with 15-to-1 distillation), the ceiling is
+unchanged within error.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">workload</th>
+<th style="text-align: right;">p</th>
+<th style="text-align: right;">noiseless</th>
+<th style="text-align: right;">d for 90%, as calibrated</th>
+<th style="text-align: right;">one measure-and-reset layer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Shor, textbook, N = 15</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Shor, textbook, N = 15</td>
+<td style="text-align: right;">0.2%</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Shor, textbook, N = 21</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Shor, textbook, N = 21</td>
+<td style="text-align: right;">0.2%</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Shor, textbook, N = 35</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Shor, textbook, N = 35</td>
+<td style="text-align: right;">0.2%</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Shor, textbook, N = 77</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Shor, textbook, N = 77</td>
+<td style="text-align: right;">0.2%</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Shor, textbook, N = 143</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Shor, textbook, N = 143</td>
+<td style="text-align: right;">0.2%</td>
+<td style="text-align: right;">0.77</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Shor, windowed + MBU, N = 15</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Shor, windowed + MBU, N = 21</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.79</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Shor, windowed + MBU, N = 35</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">H2</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">HeH+</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.97</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">LiH, CAS(2, 2)</td>
+<td style="text-align: right;">0.1%</td>
+<td style="text-align: right;">0.88</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">21</td>
+</tr>
+</tbody>
+</table>
 <h1 data-number="4" id="validation"><span
 class="header-section-number">4</span> Validation</h1>
 <ul>
@@ -1667,13 +1808,11 @@ Lee et al.’s floor plan) are not modelled, so only distances are
 compared.</li>
 <li>The LiH problem is a 2-qubit active space; chemistry at scale is
 represented only by FeMoco’s published counts.</li>
-<li>The algorithm runs use the machine calibrated on stabilizer-qec’s
-SD6 memory and surgery circuits, which measure and reset ancillas in
-separate layers: Section 3.9 shows that this is the pessimistic end of
-four circuit-level models, by up to about a factor of two in logical
-error rate. The recalibration with one measure-and-reset layer is used
-for the extrapolations only; rerunning the algorithm grid on it (about
-80 CPU-hours, mostly Shor for N = 143) is left to do. Biased noise and
+<li>The machine is calibrated on stabilizer-qec’s SD6 memory and surgery
+circuits, which measure and reset ancillas in separate layers (the
+pessimistic end of four circuit-level models, Section 3.9), and on the
+same circuits with one measure-and-reset layer; the figures and per-run
+tables use the first, and Section 3.9 compares the two. Biased noise and
 the codes tailored to it (XZZX) are not modelled.</li>
 </ul>
 <h1 data-number="6" id="reproduction"><span
@@ -1686,6 +1825,7 @@ python tools/noise_models.py; python tools/noise_models.py --summary
 python tools/calibrate.py --mr; python tools/fit_model.py --mr; python tools/compose_check.py --mr
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
+python tools/grid.py plan|run|merge   # the same runs on model_mr.json (or Actions → Algorithm grid)
 python tools/scale.py; python tools/sensitivity.py
 python tools/site_data.py; python tools/report.py</code></pre>
 </main>

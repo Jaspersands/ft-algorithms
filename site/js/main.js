@@ -326,6 +326,16 @@ function scaleFigures(sc) {
   table($("tab-scale"), head.concat(["physical qubits", "run time"]), rows, (r) => r[4] !== "—");
 }
 
+function mrRuns(rows) {
+  if (!rows || !rows.length) return;
+  setK("mrr.n", rows.length);
+  setK("mrr.lower", rows.filter((r) => r.d != null && r.d_mr != null && r.d_mr < r.d).length);
+  const dd = (v) => (v == null ? "—" : v);
+  table($("tab-mr-runs"), ["workload", "p", "noiseless", "d for 90%, as calibrated", "one measure-and-reset layer"],
+    rows.map((r) => [r.workload, `${+(r.p * 100).toFixed(2)}%`, r.noiseless.toFixed(2), dd(r.d), dd(r.d_mr)]),
+    (r) => r[3] !== r[4]);
+}
+
 function gidney(sens, sc) {
   if (!sens || !sens.per_round) return;
   const pr = sens.per_round;
@@ -465,6 +475,7 @@ async function main() {
   qpeHist(data.qpe_hist);
   scaleFigures(data.scaling);
   gidney(data.sensitivity, data.scaling);
+  mrRuns(data.mr_runs);
   lihTable(data.lih);
   opsTable();
   initCalculator(data.calculator);
