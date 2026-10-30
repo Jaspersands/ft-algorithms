@@ -76,6 +76,9 @@ jobs:
     timeout-minutes: 350
     strategy:
       fail-fast: false
+      # Leave two of the account's 20 concurrent jobs free, so CI and Pages
+      # deploys in other repositories are not queued behind the grid.
+      max-parallel: 18
       matrix:
         job: ${{ fromJson(needs.plan.outputs.jobs) }}
     steps:
