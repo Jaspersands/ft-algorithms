@@ -1,6 +1,7 @@
 # Fault-tolerant algorithms, run end to end
 
 [![CI](https://github.com/Jaspersands/ft-algorithms/actions/workflows/ci.yml/badge.svg)](https://github.com/Jaspersands/ft-algorithms/actions/workflows/ci.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23792569.svg)](https://doi.org/10.5281/zenodo.23792569)
 
 Shor's algorithm and molecular phase estimation, compiled to Clifford + T + Toffoli and run
 **end to end** on a simulated surface-code quantum computer whose every logical error rate was

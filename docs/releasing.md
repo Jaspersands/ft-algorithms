@@ -27,6 +27,6 @@ runs; no secrets are needed, since trusted publishing uses the workflow's identi
    exists, and within minutes Zenodo shows its DOI and the concept DOI (which always resolves to
    the latest version).
 
-After the first release, put the concept DOI (`10.5281/zenodo.NNNNNNN`) in `CITATION.cff`
-(`doi:`) and add its badge to the top of `README.md`:
-`[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.NNNNNNN.svg)](https://doi.org/10.5281/zenodo.NNNNNNN)`.
+The concept DOI, which always resolves to the latest version, is
+[10.5281/zenodo.23792569](https://doi.org/10.5281/zenodo.23792569); `CITATION.cff` and the README badge
+carry it, so later releases need no DOI edits. Bump `version` and `date-released` in `CITATION.cff`.
