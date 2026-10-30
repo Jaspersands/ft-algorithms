@@ -2,9 +2,9 @@
 title: Factoring and chemistry on a simulated fault-tolerant quantum computer
 subtitle: Algorithms run end to end on a surface-code machine whose logical error rates were measured by circuit-level simulation
 author: Jasper Sands
-date: 2026-10-29
+date: 2026-10-30
 version: 0.3
-commit: 2587003
+commit: c9aa918
 description: Technical report of the ft-algorithms project.
 toc: true
 abstract: |
@@ -447,6 +447,31 @@ Idling then has Λ = 11.6–12.5 at p = 0.1%, reaches 10⁻¹⁵ per patch-round
 at his budget; textbook RSA-2048 needs d = 33 (29 M physical qubits). Whole surgery experiments predicted from its parts are 0.87–1.14× the measured failure rate (median 1.02×), as for the original calibration. Section 3.7's
 tables give both calibrations.
 
+The simulated algorithm runs were repeated on the recalibrated machine as well (16 workloads with cultivated magic
+states, plus the injected and 15-to-1 factories; data/results_mr/, run in parallel on GitHub Actions by tools/grid.py, which
+splits long configurations into shot chunks and pools them). The distance at which a run first reaches 90% of its noiseless
+success drops by one step for 9 of them and stays the same for 7; none needs more. Where the magic
+states set the ceiling (injected states, H₂ with 15-to-1 distillation), the ceiling is unchanged within error.
+
+| workload | p | noiseless | d for 90%, as calibrated | one measure-and-reset layer |
+| :--- | ---: | ---: | ---: | ---: |
+| Shor, textbook, N = 15 | 0.1% | 1.00 | 13 | 11 |
+| Shor, textbook, N = 15 | 0.2% | 1.00 | 19 | 17 |
+| Shor, textbook, N = 21 | 0.1% | 0.79 | 13 | 13 |
+| Shor, textbook, N = 21 | 0.2% | 0.79 | 21 | 19 |
+| Shor, textbook, N = 35 | 0.1% | 0.79 | 15 | 13 |
+| Shor, textbook, N = 35 | 0.2% | 0.79 | 21 | 21 |
+| Shor, textbook, N = 77 | 0.1% | 0.77 | 15 | 15 |
+| Shor, textbook, N = 77 | 0.2% | 0.77 | 23 | 21 |
+| Shor, textbook, N = 143 | 0.1% | 0.77 | 15 | 15 |
+| Shor, textbook, N = 143 | 0.2% | 0.77 | 23 | 21 |
+| Shor, windowed + MBU, N = 15 | 0.1% | 1.00 | 11 | 11 |
+| Shor, windowed + MBU, N = 21 | 0.1% | 0.79 | 13 | 13 |
+| Shor, windowed + MBU, N = 35 | 0.1% | 0.78 | 13 | 13 |
+| H2 | 0.1% | 0.92 | 19 | 17 |
+| HeH+ | 0.1% | 0.97 | 21 | 19 |
+| LiH, CAS(2, 2) | 0.1% | 0.88 | 23 | 21 |
+
 # Validation
 
 - ftsim: dense = sparse on random circuits; 100 random circuits equal Qiskit's statevector to 10⁻¹⁰;
@@ -477,12 +502,10 @@ tables give both calibrations.
 - Published algorithms enter only through their gate counts and run times; their layouts (Gidney 2025's
   yoked storage and parallel lookups, Lee et al.'s floor plan) are not modelled, so only distances are compared.
 - The LiH problem is a 2-qubit active space; chemistry at scale is represented only by FeMoco's published counts.
-- The algorithm runs use the machine calibrated on stabilizer-qec's SD6 memory and surgery circuits,
-  which measure and reset ancillas in separate layers: Section 3.9 shows that this is the pessimistic end
-  of four circuit-level models, by up to about a factor of two in logical error rate. The recalibration
-  with one measure-and-reset layer is used for the extrapolations only; rerunning the algorithm grid on it
-  (about 80 CPU-hours, mostly Shor for N = 143) is left to do. Biased noise and the codes tailored to it
-  (XZZX) are not modelled.
+- The machine is calibrated on stabilizer-qec's SD6 memory and surgery circuits, which measure and reset
+  ancillas in separate layers (the pessimistic end of four circuit-level models, Section 3.9), and on the
+  same circuits with one measure-and-reset layer; the figures and per-run tables use the first, and
+  Section 3.9 compares the two. Biased noise and the codes tailored to it (XZZX) are not modelled.
 
 # Reproduction
 
@@ -495,6 +518,7 @@ python tools/noise_models.py; python tools/noise_models.py --summary
 python tools/calibrate.py --mr; python tools/fit_model.py --mr; python tools/compose_check.py --mr
 python tools/run_shor.py; python tools/run_shor_modern.py
 python tools/run_qpe.py; python tools/run_lih.py
+python tools/grid.py plan|run|merge   # the same runs on model_mr.json (or Actions → Algorithm grid)
 python tools/scale.py; python tools/sensitivity.py
 python tools/site_data.py; python tools/report.py
 ```

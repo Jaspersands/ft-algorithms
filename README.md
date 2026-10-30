@@ -87,7 +87,28 @@ Gidney 2025 picks d = 25 because his projection of surface-code memory reaches 1
 
 The distance that reaches 1e-15 per patch-round at p = 0.1% runs from d = 23 to d = 29 across these circuit-level models, and Gidney's d = 25 lies inside that range. SI1000, the noise model of the yoked-surface-code paper's simulations (arXiv:2312.04522), has the projection's slope here (Λ = 11.6–12.3) but a 2.1× higher rate at d = 9, and needs d = 27. Gidney 2025 labels the projection uniform depolarizing; Stim's generated circuit with every parameter at p, one reading of that which leaves qubits idle during gate layers noiseless, is below it. The calibration's circuit is the most pessimistic of the four: it depolarizes idle qubits in every layer and measures and resets the ancillas in separate layers, so data qubits idle through two of them each round. Merging them alone lowers the d = 9 rates 1.7–2.0× and raises Λ to ≈ 12, so every result here leans pessimistic by about that. (The SD6 row is the calibration's own memories fitted like the others, over d ≤ 9; with all its memory lengths and d = 11 the calibrated model needs d = 29.)
 
-**Recalibrated with one measure-and-reset layer.** Every calibration experiment was rerun on the same circuits with each reset layer folded into the measurement layer before it (`tools/calibrate.py --mr`; data/calibration/raw_mr/, model_mr.json). Idling then has Λ = 11.6–12.5, reaches 1e-15 per patch-round at d = 27 (d = 27 at either 1σ edge), and one shot of Gidney's algorithm needs d = 27 at his budget. The tables above show both calibrations; the simulated algorithm runs (Shor, phase estimation) use the original one.
+**Recalibrated with one measure-and-reset layer.** Every calibration experiment was rerun on the same circuits with each reset layer folded into the measurement layer before it (`tools/calibrate.py --mr`; data/calibration/raw_mr/, model_mr.json). Idling then has Λ = 11.6–12.5, reaches 1e-15 per patch-round at d = 27 (d = 27 at either 1σ edge), and one shot of Gidney's algorithm needs d = 27 at his budget. The tables above show both calibrations.
+
+The simulated algorithm runs were repeated on it too (16 workloads, data/results_mr/, run in parallel on GitHub Actions by `tools/grid.py`). The distance at which a run first reaches 90% of its noiseless success drops by one step (d − 2) for 9 of them and stays the same for 7; none needs more. Where the magic states set the ceiling (injected states, H₂ with 15-to-1), the ceiling is unchanged.
+
+| workload | p | noiseless | d for 90% of it, as calibrated | one measure-and-reset layer |
+|---|---:|---:|---:|---:|
+| Shor, textbook, N = 15 | 0.1% | 1.00 | 13 | 11 |
+| Shor, textbook, N = 15 | 0.2% | 1.00 | 19 | 17 |
+| Shor, textbook, N = 21 | 0.1% | 0.79 | 13 | 13 |
+| Shor, textbook, N = 21 | 0.2% | 0.79 | 21 | 19 |
+| Shor, textbook, N = 35 | 0.1% | 0.79 | 15 | 13 |
+| Shor, textbook, N = 35 | 0.2% | 0.79 | 21 | 21 |
+| Shor, textbook, N = 77 | 0.1% | 0.77 | 15 | 15 |
+| Shor, textbook, N = 77 | 0.2% | 0.77 | 23 | 21 |
+| Shor, textbook, N = 143 | 0.1% | 0.77 | 15 | 15 |
+| Shor, textbook, N = 143 | 0.2% | 0.77 | 23 | 21 |
+| Shor, windowed + MBU, N = 15 | 0.1% | 1.00 | 11 | 11 |
+| Shor, windowed + MBU, N = 21 | 0.1% | 0.79 | 13 | 13 |
+| Shor, windowed + MBU, N = 35 | 0.1% | 0.78 | 13 | 13 |
+| H2 | 0.1% | 0.92 | 19 | 17 |
+| HeH+ | 0.1% | 0.97 | 21 | 19 |
+| LiH, CAS(2, 2) | 0.1% | 0.88 | 23 | 21 |
 <!-- results:end -->
 
 ## How it is checked
